@@ -36,3 +36,23 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.register('updateSubmodule', Exec) {
+	description = '서브 모듈을 최신화 합니다.'
+	workingDir = file('submodule')
+	commandLine 'git', 'pull', '--ff-only'
+}
+
+tasks.register('copyYML', Copy) {
+	description = '서브 모듈의 yml 파일을 resources 디렉토리로 복사합니다.'
+	dependsOn tasks.named('updateSubmodule')
+
+	from(file('submodule')) {
+		include '*.yml'
+	}
+	into(file('src/main/resources'))
+}
+
+tasks.named('processResources') {
+	dependsOn tasks.named('copyYML')
+}

@@ -5,7 +5,7 @@ name: CI/CD using github actions & docker
 # main이나 develop 브랜치에 push가 되었을 때 실행#
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "env_setting" ]
 
 permissions:
   contents: read
@@ -37,7 +37,7 @@ jobs:
       - name: Set yml file
         uses: microsoft/variable-substitution@v1
         with:
-          files: 'src/main/resources/application.yml'
+          files: 'src/submodule/application.yml'
 
 
       # shell: bash

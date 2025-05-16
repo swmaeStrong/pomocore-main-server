@@ -18,8 +18,8 @@ public class UsageLogController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> saveUsageLog(@RequestBody SaveUsageLogDto usageLogDto) {
-        usageLogService.save(usageLogDto);
+    public ResponseEntity<Void> saveUsageLog(@RequestBody List<SaveUsageLogDto> usageLogDtoList) {
+        usageLogService.saveAll(usageLogDtoList);
         return ResponseEntity.ok().build();
     }
 

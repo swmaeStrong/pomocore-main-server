@@ -2,7 +2,6 @@ package com.swmStrong.demo.domain.usageLog.service;
 
 import com.swmStrong.demo.config.PatternMatcher;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
-import com.swmStrong.demo.domain.usageLog.dto.UsageLogRequestDto;
 import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
 import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
 import com.swmStrong.demo.domain.usageLog.repository.UsageLogRepository;
@@ -24,9 +23,14 @@ public class UsageLogServiceImpl implements UsageLogService {
         this.usageLogRepository = usageLogRepository;
         this.patternMatcher = patternMatcher;
     }
-
     @Override
-    public void save(SaveUsageLogDto saveUsageLogDto) {
+    public void saveAll(List<SaveUsageLogDto> saveUsageLogDtoList) {
+        for (SaveUsageLogDto saveUsageLogDto : saveUsageLogDtoList) {
+            save(saveUsageLogDto);
+        }
+    }
+
+    private void save(SaveUsageLogDto saveUsageLogDto) {
         UsageLog usageLog = UsageLog.builder()
                 .userId(saveUsageLogDto.userId())
                 .app(saveUsageLogDto.app())

@@ -41,6 +41,11 @@ jobs:
         uses: microsoft/variable-substitution@v1
         with:
           files: 'submodule/application.yml'
+        env:
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
 
 
       # shell: bash
@@ -56,8 +61,8 @@ jobs:
         if: contains(github.ref, 'dev')
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -f Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/whowantit:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/whowantit:latest
+          docker build -f Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/swmstrong:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/swmstrong:latest
       
 
       # deploy to develop
@@ -72,18 +77,18 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
             #           Stop and remove existing container
-                    sudo docker stop whowantit || true
-                    sudo docker rm whowantit || true
-                    sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/whowantit || true
+                    sudo docker stop swmstrong || true
+                    sudo docker rm swmstrong || true
+                    sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/swmstrong || true
             
             # Pull the latest image
-                    sudo docker pull ${{ secrets.DOCKER_USERNAME }}/whowantit || exit 1
+                    sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swmstrong || exit 1
             # Run the new container
-                    sudo docker run -d --name whowantit \
+                    sudo docker run -d --name swmstrong \
                     -p 8080:8080 \
-                    ${{ secrets.DOCKER_USERNAME }}/whowantit
+                    ${{ secrets.DOCKER_USERNAME }}/swmstrong
             # Clean up unused images
                     sudo docker image prune -f
             # Check logs
-                    sudo docker logs whowantit
+                    sudo docker logs swmstrong
 

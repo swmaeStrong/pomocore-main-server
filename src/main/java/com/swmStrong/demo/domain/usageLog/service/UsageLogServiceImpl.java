@@ -1,6 +1,6 @@
 package com.swmStrong.demo.domain.usageLog.service;
 
-import com.swmStrong.demo.config.PatternMatcher;
+import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
 import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
@@ -23,10 +23,12 @@ public class UsageLogServiceImpl implements UsageLogService {
         this.usageLogRepository = usageLogRepository;
         this.patternMatcher = patternMatcher;
     }
+
     @Override
     public void saveAll(List<SaveUsageLogDto> saveUsageLogDtoList) {
         for (SaveUsageLogDto saveUsageLogDto : saveUsageLogDtoList) {
             save(saveUsageLogDto);
+            //TODO: 데이터 레디스 스트림으로 보내고, 레디스 sortedSet 에 저장해서 리더보드 만들기
         }
     }
 
@@ -40,6 +42,8 @@ public class UsageLogServiceImpl implements UsageLogService {
                 .timestamp(saveUsageLogDto.timestamp())
                 .build();
         usageLogRepository.save(usageLog);
+
+
     }
 
     @Override

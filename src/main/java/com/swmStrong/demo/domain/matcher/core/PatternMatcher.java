@@ -1,4 +1,4 @@
-package com.swmStrong.demo.config;
+package com.swmStrong.demo.domain.matcher.core;
 
 import com.swmStrong.demo.domain.patternCategory.entity.PatternCategory;
 import com.swmStrong.demo.domain.patternCategory.repository.PatternCategoryRepository;

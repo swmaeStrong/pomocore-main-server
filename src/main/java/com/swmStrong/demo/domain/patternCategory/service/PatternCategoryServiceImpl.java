@@ -1,6 +1,6 @@
 package com.swmStrong.demo.domain.patternCategory.service;
 
-import com.swmStrong.demo.config.PatternMatcher;
+import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
 import com.swmStrong.demo.domain.patternCategory.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.patternCategory.entity.PatternCategory;
 import com.swmStrong.demo.domain.patternCategory.repository.CustomPatternCategoryRepository;

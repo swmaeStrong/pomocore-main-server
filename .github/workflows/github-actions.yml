@@ -62,7 +62,6 @@ jobs:
           username: ubuntu #ubuntu
           port: 22
           key: ${{ secrets.PRIVATE_KEY }}
-          envs: MYSQL_URL,MYSQL_USERNAME,MYSQL_PASSWORD,MONGO_URL,DOCKER_USERNAME
           script: |
             #       Stop and remove existing container
             sudo docker stop swmstrong || true
@@ -74,14 +73,11 @@ jobs:
           
           
             # 3. .env 파일 생성
-            cat <<EOF > .env
-            MYSQL_URL=$MYSQL_URL
-            MYSQL_USERNAME=$MYSQL_USERNAME
-            MYSQL_PASSWORD=$MYSQL_PASSWORD
-            MONGO_URL=$MONGO_URL
-            DOCKER_USERNAME=$DOCKER_USERNAME
-            EOF
-
+            echo "MYSQL_URL=${{ secrets.MYSQL_URL }}" > .env
+            echo "MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}" >> .env
+            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+            echo "MONGO_URL=${{ secrets.MONGO_URL }}" >> .env
+            echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
 
             # Run the new container
               docker-compose --env-file .env up -d

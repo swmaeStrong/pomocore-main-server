@@ -46,10 +46,6 @@ public class PatternMatcher {
         public Node() {
             this.fail = this;
         }
-
-        public boolean isEnd() {
-            return !categories.isEmpty();
-        }
     }
 
     Node root;
@@ -64,7 +60,7 @@ public class PatternMatcher {
         log.info("insert pattern: {} category: {}", pattern, category);
     }
 
-    public void connect() {
+    private void connect() {
         Queue<Node> q = new LinkedList<>();
         q.add(this.root);
 

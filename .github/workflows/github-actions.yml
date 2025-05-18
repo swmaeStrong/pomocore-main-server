@@ -45,6 +45,12 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      - name: 🔍 Debug env values before substitution
+        run: |
+          echo "MYSQL_URL=${MYSQL_URL}"
+          echo "MYSQL_USERNAME=${MYSQL_USERNAME}"
+          echo "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
+          echo "MONGO_URL=${MONGO_URL}"
 
       - name: Set yml file
         uses: microsoft/variable-substitution@v1

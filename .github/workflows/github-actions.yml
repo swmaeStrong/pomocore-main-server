@@ -73,12 +73,12 @@ jobs:
             
             
             if [ ! -d "swmstrong" ]; then
-              git clone https:kyh0726:${{secrets.GITHUB_TOKEN}}//github.com/swmaeStrong/MVP_BE.git swmstrong
+              git clone https://kyh0726:${{secrets.GH_TOKEN}}@github.com/swmaeStrong/MVP_BE.git swmstrong
             else
               cd swmstrong && git pull origin main
             fi
 
-      # 3. .env 파일 생성
+            # 3. .env 파일 생성
             echo "MYSQL_URL=${{ secrets.MYSQL_URL }}" > .env
             echo "MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}" >> .env
             echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env

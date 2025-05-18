@@ -34,8 +34,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Check if application.yml exists
-        run: ls -al submodule/application.yml
 
       # gradle caching - 빌드 시간 향상#
       - name: Gradle Caching
@@ -49,11 +47,11 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: 🔍 Debug env values before substitution
         run: |
-          echo "MYSQL_URL=${MYSQL_URL}"
-          echo "MYSQL_USERNAME=${MYSQL_USERNAME}"
-          echo "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
-          echo "MONGO_URL=${MONGO_URL}"
-
+          echo "MYSQL_URL=${{ secrets.MYSQL_URL }}"
+          echo "MYSQL_URL=${{ secrets.MYSQL_USERNAME }}"
+          echo "MYSQL_URL=${{ secrets.MYSQL_PASSWORD }}"
+          echo "MYSQL_URL=${{ secrets.MONGO_URL }}"
+          
       - name: Set yml file
         uses: microsoft/variable-substitution@v1
         with:

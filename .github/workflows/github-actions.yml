@@ -62,24 +62,25 @@ jobs:
           username: ubuntu #ubuntu
           port: 22
           key: ${{ secrets.PRIVATE_KEY }}
+          envs: MYSQL_URL,MYSQL_USERNAME,MYSQL_PASSWORD,MONGO_URL,DOCKER_USERNAME
           script: |
             #       Stop and remove existing container
             sudo docker stop swmstrong || true
             sudo docker rm swmstrong || true
-            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/swmstrong || true
+            sudo docker image rm $DOCKER_USERNAME/swmstrong || true
 
           # Pull the latest image
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swmstrong || exit 1
+            sudo docker pull $DOCKER_USERNAME/swmstrong || exit 1
           
           
             # 3. .env 파일 생성
-            cat <<EOF > .env    
-MYSQL_URL=${{ secrets.MYSQL_URL }}
-MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
-MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-MONGO_URL=${{ secrets.MONGO_URL }}
-DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-EOF
+            cat <<EOF > .env
+            MYSQL_URL=$MYSQL_URL
+            MYSQL_USERNAME=$MYSQL_USERNAME
+            MYSQL_PASSWORD=$MYSQL_PASSWORD
+            MONGO_URL=$MONGO_URL
+            DOCKER_USERNAME=$DOCKER_USERNAME
+            EOF
 
 
             # Run the new container

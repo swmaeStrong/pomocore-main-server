@@ -45,22 +45,14 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: 🔍 Debug env values before substitution
+
+      - name: 🔧 Manual substitution using sed
         run: |
-          echo "MYSQL_URL=${{ secrets.MYSQL_URL }}"
-          echo "MYSQL_URL=${{ secrets.MYSQL_USERNAME }}"
-          echo "MYSQL_URL=${{ secrets.MYSQL_PASSWORD }}"
-          echo "MYSQL_URL=${{ secrets.MONGO_URL }}"
-          
-      - name: Set yml file
-        uses: microsoft/variable-substitution@v1
-        with:
-          files: 'submodule/application.yml'
-        env:
-          MYSQL_URL: ${{ secrets.MYSQL_URL }}
-          MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MONGO_URL: ${{ secrets.MONGO_URL }}
+          sed -i "s|\${MYSQL_URL}|${{ secrets.MYSQL_URL }}|g" submodule/application.yml
+          sed -i "s|\${MYSQL_USERNAME}|${{ secrets.MYSQL_USERNAME }}|g" submodule/application.yml
+          sed -i "s|\${MYSQL_PASSWORD}|${{ secrets.MYSQL_PASSWORD }}|g" submodule/application.yml
+          sed -i "s|\${MONGO_URL}|${{ secrets.MONGO_URL }}|g" submodule/application.yml
+
 
 
       # shell: bash

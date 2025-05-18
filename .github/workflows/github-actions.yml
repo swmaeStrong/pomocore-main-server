@@ -13,8 +13,17 @@ permissions:
 jobs:
   CI-CD:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-
       # JDK setting - github actions에서 사용할 JDK 설정 (프로젝트나 AWS의 java 버전과 달라도 무방)#
       - uses: actions/checkout@v3
         with:
@@ -91,4 +100,3 @@ jobs:
                     sudo docker image prune -f
             # Check logs
                     sudo docker logs swmstrong
-

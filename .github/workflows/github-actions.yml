@@ -52,6 +52,14 @@ jobs:
           docker build -f Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/swmstrong:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/swmstrong:latest
 
+      # docker-compose.yml만 EC2에 복사
+      - name: Upload docker-compose.yml to EC2
+        run: |
+          scp -i ${{ secrets.PRIVATE_KEY }} \
+              -o StrictHostKeyChecking=no \
+              docker-compose.yml \
+              ubuntu@${{ secrets.HOST_DEV }}:/home/ubuntu/
+
       # deploy to develop | env_setting
       - name: Deploy to dev
         uses: appleboy/ssh-action@master

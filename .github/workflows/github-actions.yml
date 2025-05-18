@@ -64,29 +64,29 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
             #       Stop and remove existing container
-                    sudo docker stop swmstrong || true
-                    sudo docker rm swmstrong || true
-                    sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/swmstrong || true
-            
-            # Pull the latest image
-                    sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swmstrong || exit 1
+            sudo docker stop swmstrong || true
+            sudo docker rm swmstrong || true
+            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/swmstrong || true
 
-
+          # Pull the latest image
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swmstrong || exit 1
+          
+          
             # 3. .env 파일 생성
-                    cat <<EOF > .env
-                    MYSQL_URL=${{ secrets.MYSQL_URL }}
-                    MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
-                    MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-                    MONGO_URL=${{ secrets.MONGO_URL }}
-                    DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-                    EOF
+            cat <<EOF > .env    
+MYSQL_URL=${{ secrets.MYSQL_URL }}
+MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
+MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+MONGO_URL=${{ secrets.MONGO_URL }}
+DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+EOF
 
 
             # Run the new container
-                    docker-compose --env-file .env up -d
+              docker-compose --env-file .env up -d
 
             # Clean up unused images
-                    docker image prune -f
+              docker image prune -f
             
             # Check logs
-                    sudo docker logs swmstrong
+              sudo docker logs swmstrong

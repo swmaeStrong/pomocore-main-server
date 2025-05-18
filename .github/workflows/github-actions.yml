@@ -34,6 +34,8 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Check if application.yml exists
+        run: ls -al submodule/application.yml
 
       # gradle caching - 빌드 시간 향상#
       - name: Gradle Caching

@@ -63,12 +63,12 @@ jobs:
           port: 22
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
-            #       Stop and remove existing container
+            # Stop and remove existing container
             sudo docker stop swmstrong || true
             sudo docker rm swmstrong || true
             sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/swmstrong || true
 
-          # Pull the latest image
+            # Pull the latest image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swmstrong || exit 1
           
           

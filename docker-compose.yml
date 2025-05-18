@@ -5,13 +5,14 @@ services:
     image: nginx:latest
     ports:
       - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app
   redis:
     image: redis:7.2
     ports:
       - "6379:6379"
-
+    depends_on:
+      - app
   app:
     image: ${DOCKER_USERNAME}/swmstrong:latest
     container_name: swmstrong

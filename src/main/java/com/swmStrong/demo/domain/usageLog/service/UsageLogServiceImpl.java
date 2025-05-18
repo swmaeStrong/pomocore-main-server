@@ -5,6 +5,9 @@ import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
 import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
 import com.swmStrong.demo.domain.usageLog.repository.UsageLogRepository;
+import com.swmStrong.demo.infra.redis.RedisStreamProducer;
+import com.swmStrong.demo.infra.redis.StreamConfig;
+import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,14 +17,16 @@ public class UsageLogServiceImpl implements UsageLogService {
 
     private final UsageLogRepository usageLogRepository;
     private final PatternMatcher patternMatcher;
+    private final RedisStreamProducer redisStreamProducer;
 
     public UsageLogServiceImpl(
             UsageLogRepository usageLogRepository,
-            PatternMatcher patternMatcher
-
+            PatternMatcher patternMatcher,
+            RedisStreamProducer redisStreamProducer
     ) {
         this.usageLogRepository = usageLogRepository;
         this.patternMatcher = patternMatcher;
+        this.redisStreamProducer = redisStreamProducer;
     }
 
     @Override
@@ -43,7 +48,19 @@ public class UsageLogServiceImpl implements UsageLogService {
                 .build();
         usageLogRepository.save(usageLog);
 
+        String category = usageLog.getCategories().stream()
+                .findFirst()
+                        .orElse("uncategorized");
 
+        redisStreamProducer.send(
+                StreamConfig.LEADERBOARD.getStreamKey(),
+                LeaderBoardUsageMessage.builder()
+                        .userId(usageLog.getUserId())
+                        .category(category)
+                        .duration(usageLog.getDuration().toSeconds())
+                        .timestamp(usageLog.getTimestamp())
+                        .build()
+        );
     }
 
     @Override

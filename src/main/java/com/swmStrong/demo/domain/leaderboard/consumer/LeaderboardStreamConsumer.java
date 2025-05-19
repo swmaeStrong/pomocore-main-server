@@ -5,6 +5,7 @@ import com.swmStrong.demo.domain.leaderboard.service.LeaderboardService;
 import com.swmStrong.demo.infra.redis.AbstractRedisStreamConsumer;
 import com.swmStrong.demo.infra.redis.StreamConfig;
 import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class LeaderboardStreamConsumer extends AbstractRedisStreamConsumer {
 
@@ -41,12 +43,10 @@ public class LeaderboardStreamConsumer extends AbstractRedisStreamConsumer {
                                 StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
                                 StreamOffset.create(StreamConfig.LEADERBOARD.getStreamKey(),  ReadOffset.from(">"))
                         );
-                System.out.println(records);
                 for (MapRecord<String, Object, Object> record: records) {
                     Map<Object, Object> valueMap = record.getValue();
                     LeaderBoardUsageMessage message = objectMapper.convertValue(valueMap, LeaderBoardUsageMessage.class);
 
-                    //TODO: 여기도 올라갔는지 정확히 확인한 뒤에 ACK 보내야하지 않을까?
                     leaderboardService.increaseScore(
                             message.category(),
                             message.userId(),
@@ -56,8 +56,7 @@ public class LeaderboardStreamConsumer extends AbstractRedisStreamConsumer {
                     stringRedisTemplate.opsForStream().acknowledge(StreamConfig.LEADERBOARD.getGroup(), record);
                 }
             } catch (Exception e) {
-                //TODO: 복구 로직
-                System.out.println(e.getMessage());
+                log.error(e.getMessage(), e);
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException ignored) {

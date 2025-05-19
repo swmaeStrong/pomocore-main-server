@@ -26,16 +26,16 @@ public class UserController {
                 .body(ApiResponse.success(SuccessCode._CREATED, null));
     }
 
-    @GetMapping("/{deviceId}/isDuplicated")
-    public ResponseEntity<ApiResponse<Boolean>> isGuestUserRegistered(@PathVariable String deviceId) {
+    @GetMapping("/guest-users/is-device-id-duplicated")
+    public ResponseEntity<ApiResponse<Boolean>> isGuestUserRegistered(@RequestParam(required = true) String deviceId) {
         Boolean result = userService.isGuestRegistered(deviceId);
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())
                 .body(ApiResponse.success(SuccessCode._OK, result));
     }
 
-    @GetMapping("/{nickname}/isDuplicated")
-    public ResponseEntity<ApiResponse<Boolean>> isGuestNicknameRegistered(@PathVariable String nickname) {
+    @GetMapping("/guest-users/is-nickname-duplicated")
+    public ResponseEntity<ApiResponse<Boolean>> isGuestNicknameRegistered(@RequestParam(required = true) String nickname) {
         Boolean result = userService.isGuestNicknameDuplicated(nickname);
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())

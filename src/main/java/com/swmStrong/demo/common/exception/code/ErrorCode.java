@@ -20,7 +20,14 @@ public enum ErrorCode implements BaseCode {
 
     _CONFLICT("4090", "이미 존재하는 리소스입니다.", HttpStatus.CONFLICT),
 
-    _INTERNAL_SERVER_ERROR("5000", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    _INTERNAL_SERVER_ERROR("5000", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+
+    // 커스텀 에러
+    DUPLICATE_NICKNAME("4091", "이미 존재하는 닉네임입니다.", HttpStatus.CONFLICT),
+    DUPLICATE_DEVICE_ID("4092", "이미 등록된 기기입니다.", HttpStatus.CONFLICT);
+
+
 
     private final String code;
     private final String message;

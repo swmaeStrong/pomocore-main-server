@@ -26,9 +26,9 @@ public class UserController {
                 .body(ApiResponse.success(SuccessCode._CREATED, null));
     }
 
-    @GetMapping("/{userId}/isRegistered")
-    public ResponseEntity<ApiResponse<Boolean>> isGuestUserRegistered(@PathVariable String userId) {
-        Boolean result = userService.isGuestRegistered(userId);
+    @GetMapping("/{deviceId}/isDuplicated")
+    public ResponseEntity<ApiResponse<Boolean>> isGuestUserRegistered(@PathVariable String deviceId) {
+        Boolean result = userService.isGuestRegistered(deviceId);
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())
                 .body(ApiResponse.success(SuccessCode._OK, result));

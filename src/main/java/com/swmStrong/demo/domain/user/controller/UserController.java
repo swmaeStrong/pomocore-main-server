@@ -26,7 +26,7 @@ public class UserController {
                 .body(ApiResponse.success(SuccessCode._CREATED, null));
     }
 
-    @GetMapping("/guest-users/is-device-id-duplicated")
+    @GetMapping("/is-device-id-duplicated")
     public ResponseEntity<ApiResponse<Boolean>> isGuestUserRegistered(@RequestParam(required = true) String deviceId) {
         Boolean result = userService.isGuestRegistered(deviceId);
         return ResponseEntity
@@ -34,7 +34,7 @@ public class UserController {
                 .body(ApiResponse.success(SuccessCode._OK, result));
     }
 
-    @GetMapping("/guest-users/is-nickname-duplicated")
+    @GetMapping("/is-nickname-duplicated")
     public ResponseEntity<ApiResponse<Boolean>> isGuestNicknameRegistered(@RequestParam(required = true) String nickname) {
         Boolean result = userService.isGuestNicknameDuplicated(nickname);
         return ResponseEntity

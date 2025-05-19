@@ -20,9 +20,9 @@ public class LeaderboardController {
     @GetMapping("/{category}")
     public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategory(
             @PathVariable String category,
-            @RequestParam(defaultValue = "10") int top
+            @RequestParam(defaultValue = "10") int rank
     ) {
-        return ResponseEntity.ok(leaderboardService.getTopUsers(category, top));
+        return ResponseEntity.ok(leaderboardService.getTopUsers(category, rank));
     }
 
     @GetMapping("/{category}/user/{userId}")

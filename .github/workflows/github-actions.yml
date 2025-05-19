@@ -74,8 +74,9 @@ jobs:
             
             if [ ! -d "swmstrong" ]; then
               git clone https://kyh0726:${{secrets.GH_TOKEN}}@github.com/swmaeStrong/MVP_BE.git swmstrong
+              cd swmstrong
             else
-              cd swmstrong && git pull origin main
+              cd swmstrong && git pull origin env_setting
             fi
 
             # 3. .env 파일 생성

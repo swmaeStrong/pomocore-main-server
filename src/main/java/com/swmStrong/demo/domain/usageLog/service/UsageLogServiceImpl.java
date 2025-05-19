@@ -56,7 +56,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                 LeaderBoardUsageMessage.builder()
                         .userId(usageLog.getUserId())
                         .category(category)
-                        .duration(usageLog.getDuration().toSeconds())
+                        .duration(usageLog.getDuration())
                         .timestamp(usageLog.getTimestamp())
                         .build()
         );

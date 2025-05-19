@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -19,13 +18,13 @@ public class UsageLog {
 
     private String userId;
     private LocalDateTime timestamp;
-    private Duration duration;
+    private long duration;
     private String app;
     private String title;
     private Set<String> categories;
 
     @Builder
-    public UsageLog(String userId, LocalDateTime timestamp, Duration duration, String app, String title, Set<String> categories) {
+    public UsageLog(String userId, LocalDateTime timestamp, long duration, String app, String title, Set<String> categories) {
         this.userId = userId;
         this.timestamp = timestamp;
         this.duration = duration;

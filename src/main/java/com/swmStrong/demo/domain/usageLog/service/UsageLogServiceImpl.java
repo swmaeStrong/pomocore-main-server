@@ -33,7 +33,6 @@ public class UsageLogServiceImpl implements UsageLogService {
     public void saveAll(List<SaveUsageLogDto> saveUsageLogDtoList) {
         for (SaveUsageLogDto saveUsageLogDto : saveUsageLogDtoList) {
             save(saveUsageLogDto);
-            //TODO: 데이터 레디스 스트림으로 보내고, 레디스 sortedSet 에 저장해서 리더보드 만들기
         }
     }
 
@@ -57,7 +56,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                 LeaderBoardUsageMessage.builder()
                         .userId(usageLog.getUserId())
                         .category(category)
-                        .duration(usageLog.getDuration().toSeconds())
+                        .duration(usageLog.getDuration())
                         .timestamp(usageLog.getTimestamp())
                         .build()
         );

@@ -1,7 +1,7 @@
-package com.swmStrong.demo.domain.patternCategory.repository;
+package com.swmStrong.demo.domain.categoryPattern.repository;
 
 
-public interface CustomPatternCategoryRepository {
+public interface CustomCategoryPatternRepository {
     void addPattern(String category, String newPattern);
     void removePattern(String category, String pattern);
 }

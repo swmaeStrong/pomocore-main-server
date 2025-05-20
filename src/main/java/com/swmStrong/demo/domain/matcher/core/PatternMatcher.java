@@ -1,7 +1,7 @@
 package com.swmStrong.demo.domain.matcher.core;
 
-import com.swmStrong.demo.domain.patternCategory.entity.PatternCategory;
-import com.swmStrong.demo.domain.patternCategory.repository.PatternCategoryRepository;
+import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
+import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,10 +12,10 @@ import java.util.*;
 @Component
 public class PatternMatcher {
 
-    private final PatternCategoryRepository patternCategoryRepository;
+    private final CategoryPatternRepository categoryPatternRepository;
 
-    public PatternMatcher(PatternCategoryRepository patternCategoryRepository) {
-        this.patternCategoryRepository = patternCategoryRepository;
+    public PatternMatcher(CategoryPatternRepository categoryPatternRepository) {
+        this.categoryPatternRepository = categoryPatternRepository;
         this.root = new Node();
     }
 
@@ -23,10 +23,10 @@ public class PatternMatcher {
     public void init() {
         this.root = new Node();
 
-        List<PatternCategory> allCategories = patternCategoryRepository.findAll();
-        for (PatternCategory patternCategory: allCategories) {
-            for (String pattern: patternCategory.getPatterns()) {
-                insert(pattern, patternCategory.getCategory());
+        List<CategoryPattern> allCategories = categoryPatternRepository.findAll();
+        for (CategoryPattern categoryPattern : allCategories) {
+            for (String pattern: categoryPattern.getPatterns()) {
+                insert(pattern, categoryPattern.getCategory());
             }
         }
         connect();

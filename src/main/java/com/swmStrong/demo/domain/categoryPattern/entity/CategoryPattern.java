@@ -1,4 +1,4 @@
-package com.swmStrong.demo.domain.patternCategory.entity;
+package com.swmStrong.demo.domain.categoryPattern.entity;
 
 import jakarta.persistence.Id;
 import lombok.*;
@@ -6,12 +6,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
-@Document(collection = "category")
+@Document(collection = "category_pattern")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class PatternCategory {
+public class CategoryPattern {
     @Id
     private String id;
 

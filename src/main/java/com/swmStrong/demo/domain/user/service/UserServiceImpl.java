@@ -13,14 +13,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     public Void registerGuestNickname(String deviceId, String nickname) {
-        User user = new User();
+
         if (userRepository.existsByNickname(nickname)){
             throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
         if (userRepository.existsByDeviceId(deviceId)){
             throw new ApiException(ErrorCode.DUPLICATE_DEVICE_ID);
         }
-
+        User user = new User();
         user.setDeviceId(deviceId);
         user.setNickname(nickname);
         userRepository.save(user);

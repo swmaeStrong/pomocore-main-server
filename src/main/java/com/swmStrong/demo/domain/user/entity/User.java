@@ -3,16 +3,19 @@ package com.swmStrong.demo.domain.user.entity;
 import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
 @Entity
-@Setter
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class User extends BaseEntity {
+
     @Id
+    @Builder.Default
     private String id = UUID.randomUUID().toString();
     private String deviceId;
     private String nickname;

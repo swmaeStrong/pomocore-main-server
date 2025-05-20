@@ -20,9 +20,11 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByDeviceId(deviceId)){
             throw new ApiException(ErrorCode.DUPLICATE_DEVICE_ID);
         }
-        User user = new User();
-        user.setDeviceId(deviceId);
-        user.setNickname(nickname);
+        User user = User.builder()
+                .deviceId(deviceId)
+                .nickname(nickname)
+                .build();
+
         userRepository.save(user);
         return null;
     }

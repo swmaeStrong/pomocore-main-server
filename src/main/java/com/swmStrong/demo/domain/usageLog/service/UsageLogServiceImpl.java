@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.usageLog.service;
 
 import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
+import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
 import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
@@ -10,6 +11,8 @@ import com.swmStrong.demo.infra.redis.StreamConfig;
 import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -67,5 +70,14 @@ public class UsageLogServiceImpl implements UsageLogService {
         List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
 
         return usageLogs.stream().map(UsageLogResponseDto::from).toList();
+    }
+
+    @Override
+    public List<CategoryUsageDto> getUsageLogByUserIdToday(String userId) {
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+        List<CategoryUsageDto> usageLogs = usageLogRepository.findByUserIdAndTimestampBetween(userId, start, end);
+        System.out.println(usageLogs.toString());
+        return usageLogs;
     }
 }

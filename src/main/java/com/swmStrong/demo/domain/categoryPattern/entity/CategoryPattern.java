@@ -17,4 +17,9 @@ public class CategoryPattern {
 
     private String category;
     private List<String> patterns;
+    private String color;
+
+    public void setColor(String color) {
+        this.color = color;
+    }
 }

@@ -9,7 +9,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000", "http://localhost:8080") // Swagger UI도 허용
+                .allowedOrigins("http://localhost:8080", "http://3.39.105.127")
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);

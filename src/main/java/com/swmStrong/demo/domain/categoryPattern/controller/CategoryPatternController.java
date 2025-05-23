@@ -57,10 +57,21 @@ public class CategoryPatternController {
     }
 
     @Operation(
-            summary = "카테고리 조회",
+            summary = "해당 카테고리 조회",
+            description =
+                "<p> 카테고리 이름에 맞는 카테고리를 조회한다. </p>" +
+                "<p> 카테고리 내부의 패턴도 함께 출력된다. </p>"
+    )
+    @GetMapping("/{category}")
+    public ResponseEntity<CategoryResponseDto> getCategoryByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(categoryPatternService.getCategoryByCategory(category));
+    }
+
+    @Operation(
+            summary = "카테고리 전체 조회",
             description =
                 "<p> 모든 카테고리를 조회한다. </p>" +
-                "<p> 카테고리 내부의 패턴도 조회할 수 있다. </p>"
+                "<p> 카테고리 내부의 패턴도 함께 출력된다. </p>"
     )
     @GetMapping
     public ResponseEntity<List<CategoryResponseDto>> getAllCategories() {

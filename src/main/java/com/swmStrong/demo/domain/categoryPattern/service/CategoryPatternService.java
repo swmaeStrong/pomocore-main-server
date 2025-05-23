@@ -12,6 +12,7 @@ public interface CategoryPatternService {
     void addPattern(String category, PatternRequestDto patternRequestDto);
     void deletePatternByCategory(String category, PatternRequestDto patternRequestDto);
     void deleteCategory(String category);
+    CategoryResponseDto getCategoryByCategory(String category);
     List<CategoryResponseDto> getCategories();
     void setCategoryColor(String category, ColorRequestDto colorRequestDto);
 }

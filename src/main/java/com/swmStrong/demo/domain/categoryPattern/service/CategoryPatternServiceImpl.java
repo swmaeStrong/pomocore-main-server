@@ -74,6 +74,14 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
+    public CategoryResponseDto getCategoryByCategory(String category) {
+        CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
+                .orElseThrow(IllegalArgumentException::new);
+
+        return CategoryResponseDto.from(categoryPattern);
+    }
+
+    @Override
     public List<CategoryResponseDto> getCategories() {
         List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
         return categoryPatterns.stream()

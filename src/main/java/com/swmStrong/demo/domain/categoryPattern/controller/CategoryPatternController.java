@@ -1,12 +1,16 @@
 package com.swmStrong.demo.domain.categoryPattern.controller;
 
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-//TODO: 계층 구조는 {카테고리}/{패턴} 이기 때문에 계층 구조 생각해서 다시 생각해보기
+
+import java.util.List;
+
 @Tag(name = "카테고리-패턴")
 @RestController
 @RequestMapping("/category")
@@ -49,6 +53,29 @@ public class CategoryPatternController {
     @DeleteMapping("/{category}")
     public ResponseEntity<Void> deletePatternByCategory(@PathVariable String category) {
         categoryPatternService.deleteCategory(category);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "카테고리 조회",
+            description =
+                "<p> 모든 카테고리를 조회한다. </p>" +
+                "<p> 카테고리 내부의 패턴도 조회할 수 있다. </p>"
+    )
+    @GetMapping
+    public ResponseEntity<List<CategoryResponseDto>> getAllCategories() {
+        return ResponseEntity.ok(categoryPatternService.getCategories());
+    }
+
+    @Operation(
+            summary = "카테고리 색깔 수정",
+            description =
+                "<p> 카테고리의 색깔을 수정한다. </p>" +
+                "<p> 색깔은 #000000 ~ #FFFFFF 로 입력한다. </p>"
+    )
+    @PatchMapping("/{category}/color")
+    public ResponseEntity<Void> updateCategoryColor(@PathVariable String category, @RequestBody ColorRequestDto colorRequestDto) {
+        categoryPatternService.setCategoryColor(category, colorRequestDto);
         return ResponseEntity.ok().build();
     }
 }

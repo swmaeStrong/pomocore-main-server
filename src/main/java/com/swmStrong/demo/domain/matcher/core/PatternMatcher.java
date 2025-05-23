@@ -101,9 +101,11 @@ public class PatternMatcher {
                 now = now.children.get(c);
             }
 
-            Node temp = now ;
+            Node temp = now;
             while (temp != this.root) {
-                matchedCategories.addAll(temp.categories);
+                if (!temp.categories.isEmpty()) {
+                    matchedCategories.addAll(temp.categories);
+                }
                 temp = temp.fail;
             }
         }

@@ -6,7 +6,7 @@ public record SaveUsageLogDto(
         String userId,
         String title,
         String app,
-        long duration,
+        double duration,
         LocalDateTime timestamp
 ) {
 }

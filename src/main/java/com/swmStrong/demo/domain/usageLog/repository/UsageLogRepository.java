@@ -1,6 +1,8 @@
 package com.swmStrong.demo.domain.usageLog.repository;
 
+import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.time.LocalDateTime;
@@ -8,5 +10,18 @@ import java.util.List;
 
 public interface UsageLogRepository extends MongoRepository<UsageLog, String> {
     List<UsageLog> findByUserId(String userId);
-    List<UsageLog> findByUserIdAndTimestampBetween(String userId, LocalDateTime start, LocalDateTime end);
+
+    @Aggregation(pipeline = {
+            "{ $match: { userId: ?0, timestamp: { $gte: ?1, $lt: ?2 } } }",
+            "{ $unwind: '$categories' }",
+            "{ $group: { _id: '$categories', duration: { $sum: '$duration' } } }",
+            "{ $lookup: {from: 'category_pattern', localField: '_id', foreignField: 'category', as: 'patternDocs' } }",
+            "{ $unwind: { path: '$patternDocs', preserveNullAndEmptyArrays: true } }",
+            "{ $project: { category: '$_id', duration: 1, color: '$patternDocs.color' } }"
+    })
+    List<CategoryUsageDto> findByUserIdAndTimestampBetween(
+            String userId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

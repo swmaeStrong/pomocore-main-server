@@ -1,11 +1,15 @@
 package com.swmStrong.demo.domain.categoryPattern.service;
 
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
 import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CustomCategoryPatternRepository;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class CategoryPatternServiceImpl implements CategoryPatternService {
@@ -49,6 +53,24 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
         }
         categoryPatternRepository.deletePatternCategoryByCategory(category);
         patternMatcher.init();
+    }
+
+    @Override
+    public List<CategoryResponseDto> getCategories() {
+        List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
+        return categoryPatterns.stream()
+                .map(CategoryResponseDto::from)
+                .toList();
+    }
+
+    @Override
+    public void setCategoryColor(String category, ColorRequestDto colorRequestDto) {
+        CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
+                .orElseThrow(IllegalArgumentException::new);
+
+        categoryPattern.setColor(colorRequestDto.color());
+
+        categoryPatternRepository.save(categoryPattern);
     }
 
     private void addCategory(String category) {

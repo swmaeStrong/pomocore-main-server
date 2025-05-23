@@ -8,7 +8,7 @@ public record UsageLogResponseDto(
         String userId,
         String title,
         String app,
-        long duration,
+        double duration,
         LocalDateTime timestamp
 ) {
     public static UsageLogResponseDto from(UsageLog usageLog) {

@@ -4,7 +4,7 @@ import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
+import java.util.Set;
 
 @Document(collection = "category_pattern")
 @Getter
@@ -16,8 +16,12 @@ public class CategoryPattern {
     private String id;
 
     private String category;
-    private List<String> patterns;
+    private Set<String> patterns;
     private String color;
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
     public void setColor(String color) {
         this.color = color;

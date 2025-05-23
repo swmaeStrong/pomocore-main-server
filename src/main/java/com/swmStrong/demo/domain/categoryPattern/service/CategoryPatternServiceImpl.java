@@ -1,7 +1,8 @@
 package com.swmStrong.demo.domain.categoryPattern.service;
 
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
-import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
@@ -29,19 +30,40 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
+    public void addCategory(CategoryRequestDto categoryRequestDto) {
+        if (categoryPatternRepository.existsByCategory(categoryRequestDto.category())) {
+            throw new IllegalArgumentException("이미 존재하는 카테고리");
+        }
+
+        //TODO: 색깔에 대한 정규표현식 만들어두기 (#000000 - #FFFFFF)
+
+        CategoryPattern categoryPattern = CategoryPattern.builder()
+                .category(categoryRequestDto.category())
+                .color(categoryRequestDto.color())
+                .build();
+
+        categoryPatternRepository.save(categoryPattern);
+    }
+
+    @Override
     public void addPattern(String category, PatternRequestDto patternRequestDto) {
         if (!categoryPatternRepository.existsByCategory(category)) {
-            addCategory(category);
+            throw new IllegalArgumentException("존재하지 않는 카테고리");
         }
+
         customCategoryPatternRepository.addPattern(category, patternRequestDto.pattern());
         patternMatcher.insert(patternRequestDto.pattern(), category);
     }
 
     @Override
     public void deletePatternByCategory(String category, PatternRequestDto patternRequestDto) {
-        if (!categoryPatternRepository.existsByCategory(category)) {
-            throw new IllegalArgumentException("존재하지 않는 카테고리");
+        CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
+                .orElseThrow(IllegalArgumentException::new);
+
+        if (!categoryPattern.getPatterns().contains(patternRequestDto.pattern())) {
+            throw new IllegalArgumentException("존재하지 않는 패턴");
         }
+
         customCategoryPatternRepository.removePattern(category, patternRequestDto.pattern());
         patternMatcher.init();
     }
@@ -56,6 +78,13 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
+    public CategoryResponseDto getCategoryByCategory(String category) {
+        CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
+                .orElseThrow(IllegalArgumentException::new);
+        return CategoryResponseDto.from(categoryPattern);
+    }
+
+    @Override
     public List<CategoryResponseDto> getCategories() {
         List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
         return categoryPatterns.stream()
@@ -64,22 +93,19 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
-    public void setCategoryColor(String category, ColorRequestDto colorRequestDto) {
+    public void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto) {
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                 .orElseThrow(IllegalArgumentException::new);
 
-        categoryPattern.setColor(colorRequestDto.color());
-
-        categoryPatternRepository.save(categoryPattern);
-    }
-
-    private void addCategory(String category) {
-        if (categoryPatternRepository.existsByCategory(category)) {
-            return;
+        if (updateCategoryRequestDto.category() != null) {
+            categoryPattern.setCategory(updateCategoryRequestDto.category());
+            patternMatcher.init();
         }
-        CategoryPattern categoryPattern = CategoryPattern.builder()
-                .category(category)
-                .build();
+        if (updateCategoryRequestDto.color() != null) {
+            categoryPattern.setColor(updateCategoryRequestDto.color());
+        }
+
         categoryPatternRepository.save(categoryPattern);
     }
+
 }

@@ -1,7 +1,8 @@
 package com.swmStrong.demo.domain.categoryPattern.controller;
 
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
-import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,8 +26,7 @@ public class CategoryPatternController {
     @Operation(
             summary = "패턴 추가",
             description =
-                "<p> 패턴을 추가한다. </p>" +
-                "<p> 추가하려는 카테고리가 없다면 자동 생성된다.</p>"
+                "<p> 카테고리에 해당하는 패턴을 추가한다. </p>"
     )
     @PostMapping("/{category}")
     public ResponseEntity<Void> addPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
@@ -36,7 +36,7 @@ public class CategoryPatternController {
 
     @Operation(
             summary = "패턴 삭제",
-            description = "<p> 패턴을 삭제한다. </p>"
+            description = "<p> 카테고리 안에 있는 패턴을 삭제한다. </p>"
     )
     @DeleteMapping("/{category}/pattern")
     public ResponseEntity<Void> deletePatternByCategoryAndPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
@@ -57,10 +57,21 @@ public class CategoryPatternController {
     }
 
     @Operation(
-            summary = "카테고리 조회",
+            summary = "해당 카테고리 조회",
+            description =
+                "<p> 카테고리 이름에 맞는 카테고리를 조회한다. </p>" +
+                "<p> 카테고리 내부의 패턴도 함께 출력된다. </p>"
+    )
+    @GetMapping("/{category}")
+    public ResponseEntity<CategoryResponseDto> getCategoryByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(categoryPatternService.getCategoryByCategory(category));
+    }
+
+    @Operation(
+            summary = "카테고리 전체 조회",
             description =
                 "<p> 모든 카테고리를 조회한다. </p>" +
-                "<p> 카테고리 내부의 패턴도 조회할 수 있다. </p>"
+                "<p> 카테고리 내부의 패턴도 함께 출력된다. </p>"
     )
     @GetMapping
     public ResponseEntity<List<CategoryResponseDto>> getAllCategories() {
@@ -68,14 +79,26 @@ public class CategoryPatternController {
     }
 
     @Operation(
-            summary = "카테고리 색깔 수정",
+            summary = "카테고리 수정",
             description =
-                "<p> 카테고리의 색깔을 수정한다. </p>" +
-                "<p> 색깔은 #000000 ~ #FFFFFF 로 입력한다. </p>"
+                "<p> 카테고리의 이름과 색깔을 수정한다. </p>" +
+                "<p> 색깔은 #000000 ~ #FFFFFF 로 입력한다. </p>" +
+                "<p> 필요한 부분만 입력하고, 나머지는 비워둬도 된다. </p>"
     )
-    @PatchMapping("/{category}/color")
-    public ResponseEntity<Void> updateCategoryColor(@PathVariable String category, @RequestBody ColorRequestDto colorRequestDto) {
-        categoryPatternService.setCategoryColor(category, colorRequestDto);
+    @PatchMapping("/{category}")
+    public ResponseEntity<Void> updateCategory(@PathVariable String category, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto) {
+        categoryPatternService.updateCategory(category, updateCategoryRequestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "카테고리 추가",
+            description =
+                "<p> 카테고리를 추가한다. </p>"
+    )
+    @PostMapping
+    public ResponseEntity<Void> addCategory(@RequestBody CategoryRequestDto categoryRequestDto) {
+        categoryPatternService.addCategory(categoryRequestDto);
         return ResponseEntity.ok().build();
     }
 }

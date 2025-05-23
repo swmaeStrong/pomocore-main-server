@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.categoryPattern.dto;
 
-public record ColorRequestDto(
+public record CategoryRequestDto(
+        String category,
         String color
 ) {
 }

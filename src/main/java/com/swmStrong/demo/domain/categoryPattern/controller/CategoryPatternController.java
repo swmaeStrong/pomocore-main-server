@@ -26,8 +26,7 @@ public class CategoryPatternController {
     @Operation(
             summary = "패턴 추가",
             description =
-                "<p> 패턴을 추가한다. </p>" +
-                "<p> 추가하려는 카테고리가 없다면 자동 생성된다.</p>"
+                "<p> 카테고리에 해당하는 패턴을 추가한다. </p>"
     )
     @PostMapping("/{category}")
     public ResponseEntity<Void> addPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
@@ -37,7 +36,7 @@ public class CategoryPatternController {
 
     @Operation(
             summary = "패턴 삭제",
-            description = "<p> 패턴을 삭제한다. </p>"
+            description = "<p> 카테고리 안에 있는 패턴을 삭제한다. </p>"
     )
     @DeleteMapping("/{category}/pattern")
     public ResponseEntity<Void> deletePatternByCategoryAndPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
@@ -80,6 +79,11 @@ public class CategoryPatternController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = "카테고리 추가",
+            description =
+                "<p> 카테고리를 추가한다. </p>"
+    )
     @PostMapping
     public ResponseEntity<Void> addCategory(@RequestBody CategoryRequestDto categoryRequestDto) {
         categoryPatternService.addCategory(categoryRequestDto);

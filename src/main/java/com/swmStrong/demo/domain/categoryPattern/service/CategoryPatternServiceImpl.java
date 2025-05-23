@@ -2,7 +2,7 @@ package com.swmStrong.demo.domain.categoryPattern.service;
 
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
-import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
@@ -90,12 +90,18 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
-    public void setCategoryColor(String category, ColorRequestDto colorRequestDto) {
+    public void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto) {
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                 .orElseThrow(IllegalArgumentException::new);
 
-        categoryPattern.setColor(colorRequestDto.color());
+        if (updateCategoryRequestDto.category() != null) {
+            categoryPattern.setCategory(updateCategoryRequestDto.category());
+        }
+        if (updateCategoryRequestDto.color() != null) {
+            categoryPattern.setColor(updateCategoryRequestDto.color());
+        }
 
         categoryPatternRepository.save(categoryPattern);
     }
+
 }

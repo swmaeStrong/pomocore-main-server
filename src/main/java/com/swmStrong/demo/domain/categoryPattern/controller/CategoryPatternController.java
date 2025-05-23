@@ -2,7 +2,7 @@ package com.swmStrong.demo.domain.categoryPattern.controller;
 
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
-import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,14 +79,15 @@ public class CategoryPatternController {
     }
 
     @Operation(
-            summary = "카테고리 색깔 수정",
+            summary = "카테고리 수정",
             description =
-                "<p> 카테고리의 색깔을 수정한다. </p>" +
-                "<p> 색깔은 #000000 ~ #FFFFFF 로 입력한다. </p>"
+                "<p> 카테고리의 이름과 색깔을 수정한다. </p>" +
+                "<p> 색깔은 #000000 ~ #FFFFFF 로 입력한다. </p>" +
+                "<p> 필요한 부분만 입력하고, 나머지는 비워둬도 된다. </p>"
     )
-    @PatchMapping("/{category}/color")
-    public ResponseEntity<Void> updateCategoryColor(@PathVariable String category, @RequestBody ColorRequestDto colorRequestDto) {
-        categoryPatternService.setCategoryColor(category, colorRequestDto);
+    @PatchMapping("/{category}")
+    public ResponseEntity<Void> updateCategory(@PathVariable String category, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto) {
+        categoryPatternService.updateCategory(category, updateCategoryRequestDto);
         return ResponseEntity.ok().build();
     }
 

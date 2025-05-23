@@ -18,13 +18,13 @@ public class UsageLog {
 
     private String userId;
     private LocalDateTime timestamp;
-    private long duration;
+    private double duration;
     private String app;
     private String title;
     private Set<String> categories;
 
     @Builder
-    public UsageLog(String userId, LocalDateTime timestamp, long duration, String app, String title, Set<String> categories) {
+    public UsageLog(String userId, LocalDateTime timestamp, double duration, String app, String title, Set<String> categories) {
         this.userId = userId;
         this.timestamp = timestamp;
         this.duration = duration;

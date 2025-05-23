@@ -76,8 +76,6 @@ public class UsageLogServiceImpl implements UsageLogService {
     public List<CategoryUsageDto> getUsageLogByUserIdToday(String userId) {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = start.plusDays(1);
-        List<CategoryUsageDto> usageLogs = usageLogRepository.findByUserIdAndTimestampBetween(userId, start, end);
-        System.out.println(usageLogs.toString());
-        return usageLogs;
+        return usageLogRepository.findByUserIdAndTimestampBetween(userId, start, end);
     }
 }

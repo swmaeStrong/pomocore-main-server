@@ -24,7 +24,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public void increaseScore(String category, String userId, long duration) {
+    public void increaseScore(String category, String userId, double duration) {
         String key = generateKey(category);
         log.info("Increase score for user {} to {}", userId, duration);
         leaderboardRepository.increaseScoreByUserId(key, userId, duration);

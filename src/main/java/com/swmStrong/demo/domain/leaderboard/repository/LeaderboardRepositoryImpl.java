@@ -16,7 +16,7 @@ public class LeaderboardRepositoryImpl implements LeaderboardRepository {
     }
 
     @Override
-    public void increaseScoreByUserId(String key, String userId, long seconds) {
+    public void increaseScoreByUserId(String key, String userId, double seconds) {
         stringRedisTemplate.opsForZSet().incrementScore(key, userId, seconds);
     }
 

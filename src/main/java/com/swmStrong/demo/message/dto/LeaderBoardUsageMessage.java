@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public record LeaderBoardUsageMessage(
         String userId,
         String category,
-        long duration,
+        double duration,
         LocalDateTime timestamp
 ) {
 }

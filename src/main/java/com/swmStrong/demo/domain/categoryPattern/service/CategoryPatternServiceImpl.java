@@ -57,9 +57,13 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
     @Override
     public void deletePatternByCategory(String category, PatternRequestDto patternRequestDto) {
-        if (!categoryPatternRepository.existsByCategory(category)) {
-            throw new IllegalArgumentException("존재하지 않는 카테고리");
+        CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
+                .orElseThrow(IllegalArgumentException::new);
+
+        if (!categoryPattern.getPatterns().contains(patternRequestDto.pattern())) {
+            throw new IllegalArgumentException("존재하지 않는 패턴");
         }
+
         customCategoryPatternRepository.removePattern(category, patternRequestDto.pattern());
         patternMatcher.init();
     }
@@ -77,7 +81,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     public CategoryResponseDto getCategoryByCategory(String category) {
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                 .orElseThrow(IllegalArgumentException::new);
-
         return CategoryResponseDto.from(categoryPattern);
     }
 

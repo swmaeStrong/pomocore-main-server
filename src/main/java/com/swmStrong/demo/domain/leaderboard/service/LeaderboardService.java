@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface LeaderboardService {
     void increaseScore(String category, String userId, double duration, LocalDateTime timestamp);
-    List<LeaderboardResponseDto> getTopUsers(String category, int topN, LocalDate date);
+    List<LeaderboardResponseDto> getLeaderboardPage(String category, int start, LocalDate date);
     LeaderboardResponseDto getUserScoreInfo(String category, String userId, LocalDate date);
 }

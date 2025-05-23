@@ -26,18 +26,18 @@ public class LeaderboardController {
             summary = "리더보드 조회",
             description =
                 "<p> 카테고리별로 N등 까지의 유저와 점수, 순위를 출력한다. </p>" +
-                "<p> rank 의 기본값은 10이다. </p>" +
+                "<p> page 의 기본값은 0이다. </p>" +
                 "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
     )
     @GetMapping("/{category}")
     public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategory(
             @PathVariable String category,
-            @RequestParam(defaultValue = "10") int rank,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
             ) {
-        return ResponseEntity.ok(leaderboardService.getTopUsers(category, rank, date));
+        return ResponseEntity.ok(leaderboardService.getLeaderboardPage(category, page, date));
     }
 
     @Operation(

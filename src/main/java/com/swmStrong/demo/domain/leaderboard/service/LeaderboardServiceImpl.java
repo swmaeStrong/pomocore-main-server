@@ -34,16 +34,16 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public List<LeaderboardResponseDto> getTopUsers(String category, int topN, LocalDate date) {
+    public List<LeaderboardResponseDto> getLeaderboardPage(String category, int start, LocalDate date) {
         if (date == null) {
             date = LocalDate.now();
         }
 
         String key = generateKey(category, date);
-        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.getTopUsers(key, topN);
+        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findTenFromStart(key, start);
 
         List<LeaderboardResponseDto> response = new ArrayList<>();
-        long rank = 1;
+        long rank = start;
         for (ZSetOperations.TypedTuple<String> tuple : tuples) {
             String userId = tuple.getValue();
             double score = Optional.ofNullable(tuple.getScore()).orElse(0.0);
@@ -68,8 +68,8 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
         return LeaderboardResponseDto.builder()
                 .userId(userId)
-                .score(leaderboardRepository.getScoreByUserId(key, userId))
-                .rank(leaderboardRepository.getRankByUserId(key, userId) + 1)
+                .score(leaderboardRepository.findScoreByUserId(key, userId))
+                .rank(leaderboardRepository.findRankByUserId(key, userId) + 1)
                 .build();
     }
 

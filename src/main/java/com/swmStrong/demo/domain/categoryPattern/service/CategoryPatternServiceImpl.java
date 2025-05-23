@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.categoryPattern.service;
 
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
 import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
@@ -29,10 +30,27 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
+    public void addCategory(CategoryRequestDto categoryRequestDto) {
+        if (categoryPatternRepository.existsByCategory(categoryRequestDto.category())) {
+            throw new IllegalArgumentException("이미 존재하는 카테고리");
+        }
+
+        //TODO: 색깔에 대한 정규표현식 만들어두기 (#000000 - #FFFFFF)
+
+        CategoryPattern categoryPattern = CategoryPattern.builder()
+                .category(categoryRequestDto.category())
+                .color(categoryRequestDto.color())
+                .build();
+
+        categoryPatternRepository.save(categoryPattern);
+    }
+
+    @Override
     public void addPattern(String category, PatternRequestDto patternRequestDto) {
         if (!categoryPatternRepository.existsByCategory(category)) {
-            addCategory(category);
+            throw new IllegalArgumentException("존재하지 않는 카테고리");
         }
+
         customCategoryPatternRepository.addPattern(category, patternRequestDto.pattern());
         patternMatcher.insert(patternRequestDto.pattern(), category);
     }
@@ -70,16 +88,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
         categoryPattern.setColor(colorRequestDto.color());
 
-        categoryPatternRepository.save(categoryPattern);
-    }
-
-    private void addCategory(String category) {
-        if (categoryPatternRepository.existsByCategory(category)) {
-            return;
-        }
-        CategoryPattern categoryPattern = CategoryPattern.builder()
-                .category(category)
-                .build();
         categoryPatternRepository.save(categoryPattern);
     }
 }

@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.categoryPattern.controller;
 
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.ColorRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
@@ -76,6 +77,12 @@ public class CategoryPatternController {
     @PatchMapping("/{category}/color")
     public ResponseEntity<Void> updateCategoryColor(@PathVariable String category, @RequestBody ColorRequestDto colorRequestDto) {
         categoryPatternService.setCategoryColor(category, colorRequestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> addCategory(@RequestBody CategoryRequestDto categoryRequestDto) {
+        categoryPatternService.addCategory(categoryRequestDto);
         return ResponseEntity.ok().build();
     }
 }

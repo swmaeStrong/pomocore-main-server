@@ -99,6 +99,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
         if (updateCategoryRequestDto.category() != null) {
             categoryPattern.setCategory(updateCategoryRequestDto.category());
+            patternMatcher.init();
         }
         if (updateCategoryRequestDto.color() != null) {
             categoryPattern.setColor(updateCategoryRequestDto.color());

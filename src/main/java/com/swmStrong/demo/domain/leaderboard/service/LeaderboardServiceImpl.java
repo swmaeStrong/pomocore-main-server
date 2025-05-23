@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,15 +26,20 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public void increaseScore(String category, String userId, double duration) {
-        String key = generateKey(category);
+    public void increaseScore(String category, String userId, double duration, LocalDateTime timestamp) {
+        LocalDate day = timestamp.toLocalDate();
+        String key = generateKey(category, day);
         log.info("Increase score for user {} to {}", userId, duration);
         leaderboardRepository.increaseScoreByUserId(key, userId, duration);
     }
 
     @Override
-    public List<LeaderboardResponseDto> getTopUsers(String category, int topN) {
-        String key = generateKey(category);
+    public List<LeaderboardResponseDto> getTopUsers(String category, int topN, LocalDate date) {
+        if (date == null) {
+            date = LocalDate.now();
+        }
+
+        String key = generateKey(category, date);
         Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.getTopUsers(key, topN);
 
         List<LeaderboardResponseDto> response = new ArrayList<>();
@@ -52,24 +59,22 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public Optional<LeaderboardResponseDto> getUserScoreInfo(String category, String userId) {
-        String key = generateKey(category);
-        Long rank = leaderboardRepository.getRankByUserId(key, userId);
-        Double score = leaderboardRepository.getScoreByUserId(key, userId);
+    public LeaderboardResponseDto getUserScoreInfo(String category, String userId, LocalDate date) {
+        if (date == null) {
+            date = LocalDate.now();
+        }
 
+        String key = generateKey(category, date);
 
-        if (rank == null || score == null) return Optional.empty();
-        return Optional.of(
-                LeaderboardResponseDto.builder()
-                        .userId(userId)
-                        .rank(rank)
-                        .score(score)
-                        .build()
-        );
+        return LeaderboardResponseDto.builder()
+                .userId(userId)
+                .score(leaderboardRepository.getScoreByUserId(key, userId))
+                .rank(leaderboardRepository.getRankByUserId(key, userId) + 1)
+                .build();
     }
 
-    private String generateKey(String category) {
-        return LEADERBOARD_KEY_PREFIX + category;
+    private String generateKey(String category, LocalDate day) {
+        return LEADERBOARD_KEY_PREFIX + category + ":" + day.toString();
     }
 }
 

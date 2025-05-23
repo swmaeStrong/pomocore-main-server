@@ -50,7 +50,8 @@ public class LeaderboardStreamConsumer extends AbstractRedisStreamConsumer {
                     leaderboardService.increaseScore(
                             message.category(),
                             message.userId(),
-                            message.duration()
+                            message.duration(),
+                            message.timestamp()
                     );
 
                     stringRedisTemplate.opsForStream().acknowledge(StreamConfig.LEADERBOARD.getGroup(), record);

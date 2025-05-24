@@ -9,8 +9,6 @@ import java.util.Set;
 @Document(collection = "category_pattern")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class CategoryPattern {
     @Id
     private String id;
@@ -24,6 +22,14 @@ public class CategoryPattern {
     }
 
     public void setColor(String color) {
+        this.color = color;
+    }
+
+    @Builder
+    public CategoryPattern(String id, String category, Set<String> patterns, String color) {
+        this.id = id;
+        this.category = category;
+        this.patterns = patterns;
         this.color = color;
     }
 }

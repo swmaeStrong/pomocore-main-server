@@ -21,17 +21,17 @@ public class LeaderboardRepositoryImpl implements LeaderboardRepository {
     }
 
     @Override
-    public Set<ZSetOperations.TypedTuple<String>> getTopUsers(String key, int topN) {
-        return stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, 0, topN-1);
+    public Set<ZSetOperations.TypedTuple<String>> findPageWithSize(String key, int page, int size) {
+        return stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, (long) (page-1) * size, (long) page * size-1);
     }
 
     @Override
-    public Long getRankByUserId(String key, String userId) {
+    public Long findRankByUserId(String key, String userId) {
         return stringRedisTemplate.opsForZSet().reverseRank(key, userId);
     }
 
     @Override
-    public Double getScoreByUserId(String key, String userId) {
+    public Double findScoreByUserId(String key, String userId) {
         return stringRedisTemplate.opsForZSet().score(key, userId);
     }
 }

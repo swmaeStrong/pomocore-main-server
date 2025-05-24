@@ -33,11 +33,12 @@ public class LeaderboardController {
     public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategory(
             @PathVariable String category,
             @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
             ) {
-        return ResponseEntity.ok(leaderboardService.getLeaderboardPage(category, page, date));
+        return ResponseEntity.ok(leaderboardService.getLeaderboardPage(category, page, size, date));
     }
 
     @Operation(

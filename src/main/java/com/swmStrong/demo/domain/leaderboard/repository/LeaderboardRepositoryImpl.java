@@ -21,8 +21,8 @@ public class LeaderboardRepositoryImpl implements LeaderboardRepository {
     }
 
     @Override
-    public Set<ZSetOperations.TypedTuple<String>> findTenFromStart(String key, int start) {
-        return stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, start-1, start + 8);
+    public Set<ZSetOperations.TypedTuple<String>> findPageWithSize(String key, int page, int size) {
+        return stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, (long) (page-1) * size, (long) page * size-1);
     }
 
     @Override

@@ -34,16 +34,16 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public List<LeaderboardResponseDto> getLeaderboardPage(String category, int start, LocalDate date) {
+    public List<LeaderboardResponseDto> getLeaderboardPage(String category, int page, int size, LocalDate date) {
         if (date == null) {
             date = LocalDate.now();
         }
 
         String key = generateKey(category, date);
-        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findTenFromStart(key, start);
+        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findPageWithSize(key, page, size);
 
         List<LeaderboardResponseDto> response = new ArrayList<>();
-        long rank = start;
+        long rank = (long) (page-1) * size + 1;
         for (ZSetOperations.TypedTuple<String> tuple : tuples) {
             String userId = tuple.getValue();
             double score = Optional.ofNullable(tuple.getScore()).orElse(0.0);

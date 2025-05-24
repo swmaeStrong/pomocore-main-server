@@ -7,7 +7,7 @@ import java.util.Set;
 
 public interface LeaderboardRepository {
     void increaseScoreByUserId(String key, String userId, double seconds);
-    Set<ZSetOperations.TypedTuple<String>> findTenFromStart(String key, int start);
+    Set<ZSetOperations.TypedTuple<String>> findPageWithSize(String key, int page, int size);
     Long findRankByUserId(String key, String userId);
     Double findScoreByUserId(String key, String userId);
 }

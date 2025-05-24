@@ -26,7 +26,7 @@ public class LeaderboardController {
             summary = "리더보드 조회",
             description =
                 "<p> 카테고리별로 N등 까지의 유저와 점수, 순위를 출력한다. </p>" +
-                "<p> page 의 기본값은 0이다. </p>" +
+                "<p> page 의 기본값은 1이다. </p>" +
                 "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
     )
     @GetMapping("/{category}")

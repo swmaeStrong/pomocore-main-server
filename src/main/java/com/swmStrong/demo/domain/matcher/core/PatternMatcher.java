@@ -16,8 +16,9 @@ public class PatternMatcher {
 
     public PatternMatcher(CategoryPatternRepository categoryPatternRepository) {
         this.categoryPatternRepository = categoryPatternRepository;
-        this.root = new Node();
     }
+
+    Node root = new Node();
 
     @PostConstruct
     public void init() {
@@ -51,7 +52,6 @@ public class PatternMatcher {
         }
     }
 
-    Node root;
 
     public void insert(String pattern, String category) {
         Node now = this.root;
@@ -97,10 +97,12 @@ public class PatternMatcher {
         title = title.toLowerCase();
         Set<String> matchedCategories = new HashSet<>();
         for (char c: title.toCharArray()) {
-            while (now != this.root && !now.children.containsKey(c)) {
+
+            while (now != null && now != this.root && !now.children.containsKey(c)) {
                 now = now.fail;
             }
-            if (now.children.containsKey(c)) {
+
+            if (now != null && now.children.containsKey(c)) {
                 now = now.children.get(c);
             }
 

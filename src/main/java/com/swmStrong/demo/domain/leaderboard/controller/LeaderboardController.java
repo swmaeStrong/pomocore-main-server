@@ -45,7 +45,9 @@ public class LeaderboardController {
             summary = "유저의 점수 조회",
             description =
                 "<p> 유저의 카테고리 별 점수와 등수를 조회한다. </p>" +
-                "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
+                "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>" +
+                "<p> 랭크가 0인 경우, 점수가 없다는 뜻이다. </p>"
+
     )
     @GetMapping("/{category}/user-info")
     public ResponseEntity<LeaderboardResponseDto> getUserInfo(

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Slf4j
-@Component
+@Component("PatternMatcher")
 public class PatternMatcher {
 
     private final CategoryPatternRepository categoryPatternRepository;
@@ -25,6 +25,9 @@ public class PatternMatcher {
 
         List<CategoryPattern> allCategories = categoryPatternRepository.findAll();
         for (CategoryPattern categoryPattern : allCategories) {
+            if (categoryPattern.getPatterns() == null || categoryPattern.getPatterns().isEmpty()) {
+                continue;
+            }
             for (String pattern: categoryPattern.getPatterns()) {
                 insert(pattern, categoryPattern.getCategory());
             }

@@ -5,6 +5,5 @@ import org.springframework.stereotype.Service;
 
 public interface UserService {
     public void registerGuestNickname(String deviceId, String nickname);
-    public boolean isGuestRegistered(String deviceId);
     public boolean isGuestNicknameDuplicated(String nickname);
 }

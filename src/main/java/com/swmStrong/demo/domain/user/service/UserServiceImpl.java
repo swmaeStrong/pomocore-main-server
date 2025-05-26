@@ -17,19 +17,15 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByNickname(nickname)){
             throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
-        if (userRepository.existsByDeviceId(deviceId)){
+        if (userRepository.existsById(deviceId)){
             throw new ApiException(ErrorCode.DUPLICATE_DEVICE_ID);
         }
         User user = User.builder()
-                .deviceId(deviceId)
+                .id(deviceId)
                 .nickname(nickname)
                 .build();
 
         userRepository.save(user);
-    }
-
-    public boolean isGuestRegistered(String deviceId) {
-        return userRepository.existsByDeviceId(deviceId);
     }
 
     public boolean isGuestNicknameDuplicated(String nickname) {

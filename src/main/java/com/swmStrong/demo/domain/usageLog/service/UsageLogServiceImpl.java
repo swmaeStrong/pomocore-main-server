@@ -32,6 +32,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         this.redisStreamProducer = redisStreamProducer;
     }
 
+    //TODO: 문제가 발생할 가능성도 있으니 try - except 구조로 변경
     @Override
     public void saveAll(List<SaveUsageLogDto> saveUsageLogDtoList) {
         for (SaveUsageLogDto saveUsageLogDto : saveUsageLogDtoList) {
@@ -48,17 +49,14 @@ public class UsageLogServiceImpl implements UsageLogService {
                 .duration(saveUsageLogDto.duration())
                 .timestamp(saveUsageLogDto.timestamp())
                 .build();
-        usageLogRepository.save(usageLog);
 
-        String category = usageLog.getCategories().stream()
-                .findFirst()
-                        .orElse("uncategorized");
+        usageLogRepository.save(usageLog);
 
         redisStreamProducer.send(
                 StreamConfig.LEADERBOARD.getStreamKey(),
                 LeaderBoardUsageMessage.builder()
                         .userId(usageLog.getUserId())
-                        .category(category)
+                        .category(usageLog.getCategories().iterator().next())
                         .duration(usageLog.getDuration())
                         .timestamp(usageLog.getTimestamp())
                         .build()

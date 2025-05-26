@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Slf4j
-@Component
+@Component("PatternMatcher")
 public class PatternMatcher {
 
     private final CategoryPatternRepository categoryPatternRepository;
@@ -25,6 +25,9 @@ public class PatternMatcher {
 
         List<CategoryPattern> allCategories = categoryPatternRepository.findAll();
         for (CategoryPattern categoryPattern : allCategories) {
+            if (categoryPattern.getPatterns() == null || categoryPattern.getPatterns().isEmpty()) {
+                continue;
+            }
             for (String pattern: categoryPattern.getPatterns()) {
                 insert(pattern, categoryPattern.getCategory());
             }
@@ -52,7 +55,7 @@ public class PatternMatcher {
 
     public void insert(String pattern, String category) {
         Node now = this.root;
-
+        pattern = pattern.toLowerCase();
         for (char c: pattern.toCharArray()) {
             now = now.children.computeIfAbsent(c, Node::new);
         }
@@ -91,7 +94,7 @@ public class PatternMatcher {
 
     public Set<String> search(String title) {
         Node now = this.root;
-
+        title = title.toLowerCase();
         Set<String> matchedCategories = new HashSet<>();
         for (char c: title.toCharArray()) {
             while (now != this.root && !now.children.containsKey(c)) {
@@ -102,13 +105,13 @@ public class PatternMatcher {
             }
 
             Node temp = now;
-            while (temp != this.root) {
+            while (temp != this.root && temp != null) {
                 if (!temp.categories.isEmpty()) {
                     matchedCategories.addAll(temp.categories);
                 }
                 temp = temp.fail;
             }
         }
-        return matchedCategories;
+        return matchedCategories.isEmpty()? Set.of("uncategorized"): matchedCategories;
     }
 }

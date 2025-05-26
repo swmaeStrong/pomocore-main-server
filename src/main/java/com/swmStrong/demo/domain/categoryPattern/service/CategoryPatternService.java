@@ -15,4 +15,5 @@ public interface CategoryPatternService {
     CategoryResponseDto getCategoryByCategory(String category);
     List<CategoryResponseDto> getCategories();
     void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto);
+    boolean existsByCategory(String category);
 }

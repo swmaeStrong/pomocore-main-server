@@ -1,0 +1,76 @@
+{
+  "categoryPatterns": [
+    {
+      "category": "uncategorized",
+      "color": "#CCCCCC",
+      "patterns": []
+    },
+    {
+      "category": "develop",
+      "color": "#000000",
+      "patterns": [
+        "vscode",
+        "intellij",
+        "xcode",
+        "goland",
+        "postman",
+        "mysqlworkbench",
+        "mongodb compass"
+      ]
+    },
+    {
+      "category": "sns",
+      "color": "#F39C12",
+      "patterns": [
+        "instagram",
+        "kakaotalk",
+        "threads",
+        "facebook",
+        "twitter",
+        "snapchat"
+      ]
+    },
+    {
+      "category": "youtube",
+      "color": "#E74C3C",
+      "patterns": [
+        "youtube",
+        "yt studio",
+        "youtube music"
+      ]
+    },
+    {
+      "category": "documentation",
+      "color": "#3498DB",
+      "patterns": [
+        "notion",
+        "obsidian",
+        "google docs",
+        "hackmd",
+        "evernote"
+      ]
+    },
+    {
+      "category": "design",
+      "color": "#9B59B6",
+      "patterns": [
+        "figma",
+        "adobe xd",
+        "sketch",
+        "photoshop",
+        "illustrator"
+      ]
+    },
+    {
+      "category": "communication",
+      "color": "#27AE60",
+      "patterns": [
+        "slack",
+        "discord",
+        "zoom",
+        "teams",
+        "meet"
+      ]
+    }
+  ]
+}

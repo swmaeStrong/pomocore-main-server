@@ -32,4 +32,8 @@ public class UsageLog {
         this.title = title;
         this.categories = categories;
     }
+
+    public void addCategory(String category) {
+        this.categories.add(category);
+    }
 }

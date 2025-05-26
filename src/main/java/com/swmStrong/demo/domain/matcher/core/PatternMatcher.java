@@ -55,7 +55,7 @@ public class PatternMatcher {
 
     public void insert(String pattern, String category) {
         Node now = this.root;
-
+        pattern = pattern.toLowerCase();
         for (char c: pattern.toCharArray()) {
             now = now.children.computeIfAbsent(c, Node::new);
         }
@@ -94,7 +94,7 @@ public class PatternMatcher {
 
     public Set<String> search(String title) {
         Node now = this.root;
-
+        title = title.toLowerCase();
         Set<String> matchedCategories = new HashSet<>();
         for (char c: title.toCharArray()) {
             while (now != this.root && !now.children.containsKey(c)) {
@@ -105,7 +105,7 @@ public class PatternMatcher {
             }
 
             Node temp = now;
-            while (temp != this.root) {
+            while (temp != this.root && temp != null) {
                 if (!temp.categories.isEmpty()) {
                     matchedCategories.addAll(temp.categories);
                 }

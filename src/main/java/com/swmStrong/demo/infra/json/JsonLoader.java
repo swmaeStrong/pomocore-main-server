@@ -14,7 +14,6 @@ public class JsonLoader {
     }
 
     public <T> T load(String location, Class<T> c) {
-        System.out.println("잘되냐?");
         try {
             return objectMapper.readValue(new ClassPathResource(location).getInputStream(), c);
         } catch (Exception e) {

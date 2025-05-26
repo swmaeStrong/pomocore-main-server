@@ -1,0 +1,38 @@
+package com.swmStrong.demo.domain.categoryPattern.initializer;
+
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryPatternJSONDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
+import com.swmStrong.demo.infra.json.JsonLoader;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CategoryPatternInitializer implements SmartInitializingSingleton {
+
+    private final CategoryPatternService categoryPatternService;
+    private final JsonLoader jsonLoader;
+
+    public CategoryPatternInitializer(CategoryPatternService categoryPatternService, JsonLoader jsonLoader) {
+        this.categoryPatternService = categoryPatternService;
+        this.jsonLoader = jsonLoader;
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        init();
+    }
+
+    private void init() {
+        CategoryPatternJSONDto jsonDto = jsonLoader.load("data/category-patterns.json", CategoryPatternJSONDto.class);
+        for (CategoryPatternJSONDto.CategoryPatternEntry entry: jsonDto.getCategoryPatterns()) {
+            if (!categoryPatternService.existsByCategory(entry.getCategory())) {
+                categoryPatternService.addCategory(CategoryRequestDto.of(entry.getCategory(), entry.getColor()));
+            }
+            for (String pattern: entry.getPatterns()) {
+                categoryPatternService.addPattern(entry.getCategory(), PatternRequestDto.of(pattern));
+            }
+        }
+    }
+}

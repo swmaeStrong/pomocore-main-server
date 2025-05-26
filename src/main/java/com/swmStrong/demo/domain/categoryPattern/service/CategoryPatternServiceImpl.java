@@ -108,4 +108,8 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
         categoryPatternRepository.save(categoryPattern);
     }
 
+    @Override
+    public boolean existsByCategory(String category) {
+        return categoryPatternRepository.existsByCategory(category);
+    }
 }

@@ -15,8 +15,6 @@ import java.util.UUID;
 public class User extends BaseEntity {
 
     @Id
-    @Builder.Default
-    private String id = UUID.randomUUID().toString();
-    private String deviceId;
+    private String id;
     private String nickname;
 }

@@ -112,6 +112,6 @@ public class PatternMatcher {
                 temp = temp.fail;
             }
         }
-        return matchedCategories;
+        return matchedCategories.isEmpty()? Set.of("uncategorized"): matchedCategories;
     }
 }

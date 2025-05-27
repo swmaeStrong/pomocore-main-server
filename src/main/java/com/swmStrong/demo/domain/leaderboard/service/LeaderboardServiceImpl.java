@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.leaderboard.service;
 
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardRepository;
+import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,13 @@ import java.util.Set;
 public class LeaderboardServiceImpl implements LeaderboardService {
 
     private final LeaderboardRepository leaderboardRepository;
+    private final UserInfoProvider userInfoProvider;
 
     private static final String LEADERBOARD_KEY_PREFIX = "leaderboard:";
 
-    public LeaderboardServiceImpl(LeaderboardRepository leaderboardRepository) {
+    public LeaderboardServiceImpl(LeaderboardRepository leaderboardRepository, UserInfoProvider userInfoProvider) {
         this.leaderboardRepository = leaderboardRepository;
+        this.userInfoProvider = userInfoProvider;
     }
 
     @Override
@@ -50,6 +53,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             response.add(
                     LeaderboardResponseDto.builder()
                             .userId(userId)
+                            .nickname(userInfoProvider.getNicknameByUserId(userId))
                             .score(score)
                             .rank(rank++)
                             .build()

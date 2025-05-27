@@ -9,13 +9,23 @@
       "category": "develop",
       "color": "#000000",
       "patterns": [
-        "vscode",
+        "code",
         "intellij",
         "xcode",
         "goland",
         "postman",
         "mysqlworkbench",
-        "mongodb compass"
+        "mongodb compass",
+        ".swift",
+        ".py",
+        ".java",
+        ".cpp",
+        ".c",
+        ".tsx",
+        ".ts",
+        ".js",
+        ".jsx",
+        "chatgpt"
       ]
     },
     {

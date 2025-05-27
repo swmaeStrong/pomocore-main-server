@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UsageLogServiceImpl implements UsageLogService {
@@ -71,8 +72,12 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
 
     @Override
-    public List<CategoryUsageDto> getUsageLogByUserIdToday(String userId) {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
+    public List<CategoryUsageDto> getUsageLogByUserIdAndDate(String userId, LocalDate date) {
+        if (date == null) {
+            date = LocalDate.now();
+        }
+
+        LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1);
         return usageLogRepository.findByUserIdAndTimestampBetween(userId, start, end);
     }

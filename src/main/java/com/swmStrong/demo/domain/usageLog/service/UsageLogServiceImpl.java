@@ -42,11 +42,14 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
 
     private void save(SaveUsageLogDto saveUsageLogDto) {
+        Set<String> categories = patternMatcher.search(saveUsageLogDto.title());
+        categories.addAll(patternMatcher.search(saveUsageLogDto.app()));
+
         UsageLog usageLog = UsageLog.builder()
                 .userId(saveUsageLogDto.userId())
                 .app(saveUsageLogDto.app())
                 .title(saveUsageLogDto.title())
-                .categories(patternMatcher.search(saveUsageLogDto.title()))
+                .categories(categories)
                 .duration(saveUsageLogDto.duration())
                 .timestamp(saveUsageLogDto.timestamp())
                 .build();

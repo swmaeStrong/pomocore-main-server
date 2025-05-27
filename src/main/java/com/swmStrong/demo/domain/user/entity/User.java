@@ -5,18 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class User extends BaseEntity {
-
     @Id
-    @Builder.Default
-    private String id = UUID.randomUUID().toString();
-    private String deviceId;
+    private String id;
     private String nickname;
+
+    @Builder
+    public User(String id, String nickname) {
+        this.id = id;
+        this.nickname = nickname;
+    }
 }

@@ -12,24 +12,25 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-    public void registerGuestNickname(String deviceId, String nickname) {
+    public void registerGuestNickname(String userId, String nickname) {
 
         if (userRepository.existsByNickname(nickname)){
             throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
-        if (userRepository.existsByDeviceId(deviceId)){
+        if (userRepository.existsById(userId)){
             throw new ApiException(ErrorCode.DUPLICATE_DEVICE_ID);
         }
+
         User user = User.builder()
-                .deviceId(deviceId)
+                .id(userId)
                 .nickname(nickname)
                 .build();
 
         userRepository.save(user);
     }
 
-    public boolean isGuestRegistered(String deviceId) {
-        return userRepository.existsByDeviceId(deviceId);
+    public boolean isGuestRegistered(String userId) {
+        return userRepository.existsById(userId);
     }
 
     public boolean isGuestNicknameDuplicated(String nickname) {

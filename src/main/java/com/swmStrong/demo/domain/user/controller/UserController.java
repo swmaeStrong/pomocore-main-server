@@ -20,7 +20,7 @@ public class UserController {
 
     @PostMapping()
     public ResponseEntity<ApiResponse<Void>> createGuestUser(@RequestBody UserRequestDto userRequestDto) {
-        userService.registerGuestNickname(userRequestDto.deviceId(), userRequestDto.nickname());
+        userService.registerGuestNickname(userRequestDto.userId(), userRequestDto.nickname());
         return ResponseEntity
                 .status(SuccessCode._CREATED.getHttpStatus())
                 .body(ApiResponse.success(SuccessCode._CREATED, null));

@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.categoryPattern.dto;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 public class CategoryPatternJSONDto {
@@ -12,6 +13,6 @@ public class CategoryPatternJSONDto {
     public static class CategoryPatternEntry {
         private String category;
         private String color;
-        private List<String> patterns;
+        private Set<String> patterns;
     }
 }

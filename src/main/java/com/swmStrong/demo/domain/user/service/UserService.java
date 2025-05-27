@@ -1,9 +1,6 @@
 package com.swmStrong.demo.domain.user.service;
 
-import com.swmStrong.demo.domain.user.entity.User;
-import org.springframework.stereotype.Service;
-
 public interface UserService {
-    public void registerGuestNickname(String deviceId, String nickname);
-    public boolean isGuestNicknameDuplicated(String nickname);
+    void registerGuestNickname(String userId, String nickname);
+    boolean isGuestNicknameDuplicated(String nickname);
 }

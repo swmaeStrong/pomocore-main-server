@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.categoryPattern.initializer;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryPatternJSONDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import com.swmStrong.demo.domain.categoryPattern.repository.CustomCategoryPatternRepository;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import com.swmStrong.demo.infra.json.JsonLoader;
@@ -15,16 +16,16 @@ import java.util.Set;
 public class CategoryPatternInitializer implements SmartInitializingSingleton {
 
     private final CategoryPatternService categoryPatternService;
-    private final CustomCategoryPatternRepository customCategoryPatternRepository;
+    private final CategoryPatternRepository categoryPatternRepository;
     private final JsonLoader jsonLoader;
 
     public CategoryPatternInitializer(
             CategoryPatternService categoryPatternService,
-            CustomCategoryPatternRepository customCategoryPatternRepository,
+            CategoryPatternRepository categoryPatternRepository,
             JsonLoader jsonLoader
     ) {
         this.categoryPatternService = categoryPatternService;
-        this.customCategoryPatternRepository = customCategoryPatternRepository;
+        this.categoryPatternRepository = categoryPatternRepository;
         this.jsonLoader = jsonLoader;
     }
 
@@ -41,7 +42,7 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
             }
 
             Set<String> newPatterns = entry.getPatterns();
-            newPatterns.removeAll(customCategoryPatternRepository.findPatternsByCategory(entry.getCategory()));
+            newPatterns.removeAll(categoryPatternRepository.findPatternsByCategory(entry.getCategory()));
             for (String pattern: newPatterns) {
                 categoryPatternService.addPattern(entry.getCategory(), PatternRequestDto.of(pattern));
             }

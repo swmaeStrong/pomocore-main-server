@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "리더보드")
 @RestController
@@ -40,6 +41,16 @@ public class LeaderboardController {
         return ResponseEntity.ok(leaderboardService.getLeaderboardPage(category, page, size, date));
     }
 
+    @GetMapping("/{category}/all")
+    public ResponseEntity<List<LeaderboardResponseDto>> getUsersByCategory(
+            @PathVariable String category,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return ResponseEntity.ok(leaderboardService.getAllLeaderboard(category, date));
+    }
+
     @Operation(
             summary = "유저의 점수 조회",
             description =
@@ -57,5 +68,10 @@ public class LeaderboardController {
             LocalDate date
     ) {
         return ResponseEntity.ok(leaderboardService.getUserScoreInfo(category, userId, date));
+    }
+
+    @GetMapping("/top-users")
+    public ResponseEntity<Map<String, List<LeaderboardResponseDto>>> getLeaderboards() {
+        return ResponseEntity.ok(leaderboardService.getLeaderboards());
     }
 }

@@ -39,4 +39,10 @@ public class LeaderboardRepositoryImpl implements LeaderboardRepository {
         Double score = stringRedisTemplate.opsForZSet().score(key, userId);
         return score != null ? score : 0.0;
     }
+
+    @Override
+    public Set<ZSetOperations.TypedTuple<String>> findAll(String key) {
+        Set<ZSetOperations.TypedTuple<String>> result = stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, 0, -1);
+        return result != null ? result : Collections.emptySet();
+    }
 }

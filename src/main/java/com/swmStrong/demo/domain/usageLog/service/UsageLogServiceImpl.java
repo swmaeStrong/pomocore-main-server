@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.usageLog.service;
 
+import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
@@ -9,6 +10,7 @@ import com.swmStrong.demo.domain.usageLog.repository.UsageLogRepository;
 import com.swmStrong.demo.infra.redis.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.StreamConfig;
 import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,15 +24,18 @@ public class UsageLogServiceImpl implements UsageLogService {
     private final UsageLogRepository usageLogRepository;
     private final PatternMatcher patternMatcher;
     private final RedisStreamProducer redisStreamProducer;
+    private final CategoryProvider categoryProvider;
 
     public UsageLogServiceImpl(
             UsageLogRepository usageLogRepository,
             PatternMatcher patternMatcher,
-            RedisStreamProducer redisStreamProducer
+            RedisStreamProducer redisStreamProducer,
+            CategoryProvider categoryProvider
     ) {
         this.usageLogRepository = usageLogRepository;
         this.patternMatcher = patternMatcher;
         this.redisStreamProducer = redisStreamProducer;
+        this.categoryProvider = categoryProvider;
     }
 
     //TODO: 문제가 발생할 가능성도 있으니 try - except 구조로 변경
@@ -41,12 +46,16 @@ public class UsageLogServiceImpl implements UsageLogService {
         }
     }
 
+
     private void save(SaveUsageLogDto saveUsageLogDto) {
-        Set<String> categories = patternMatcher.search(saveUsageLogDto.title());
-        categories.addAll(patternMatcher.search(saveUsageLogDto.app()));
+        //TODO: 현재 데이터 라벨링 관련 논의 시 app이 우선권을 가짐. 이후 변경되는 점 업데이트 필요
+        Set<ObjectId> categories = patternMatcher.search(saveUsageLogDto.app());
+        if (categories.isEmpty()) {
+            categories.addAll(patternMatcher.search(saveUsageLogDto.title()));
+        }
 
         if (categories.isEmpty()) {
-            categories.add("uncategorized");
+            categories.add(categoryProvider.getCategoryIdByCategory("Uncategorized"));
         }
 
         UsageLog usageLog = UsageLog.builder()
@@ -64,7 +73,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                 StreamConfig.LEADERBOARD.getStreamKey(),
                 LeaderBoardUsageMessage.builder()
                         .userId(usageLog.getUserId())
-                        .category(usageLog.getCategories().iterator().next())
+                        .categoryId(usageLog.getCategories().iterator().next())
                         .duration(usageLog.getDuration())
                         .timestamp(usageLog.getTimestamp())
                         .build()

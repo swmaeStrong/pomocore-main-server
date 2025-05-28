@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.categoryPattern.entity;
 
 import jakarta.persistence.Id;
 import lombok.*;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Set;
@@ -11,7 +12,7 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CategoryPattern {
     @Id
-    private String id;
+    private ObjectId id;
 
     private String category;
     private Set<String> patterns;
@@ -26,8 +27,7 @@ public class CategoryPattern {
     }
 
     @Builder
-    public CategoryPattern(String id, String category, Set<String> patterns, String color) {
-        this.id = id;
+    public CategoryPattern(String category, Set<String> patterns, String color) {
         this.category = category;
         this.patterns = patterns;
         this.color = color;

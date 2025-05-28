@@ -5,6 +5,7 @@ import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardRepository;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
@@ -33,8 +34,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public void increaseScore(String category, String userId, double duration, LocalDateTime timestamp) {
+    public void increaseScore(String categoryId, String userId, double duration, LocalDateTime timestamp) {
         LocalDate day = timestamp.toLocalDate();
+        ObjectId categoryObjectId = new ObjectId(categoryId);
+        String category = categoryProvider.getCategoryById(categoryObjectId);
+
         String key = generateKey(category, day);
         log.info("Increase score for user {} to {}", userId, duration);
         leaderboardRepository.increaseScoreByUserId(key, userId, duration);

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface LeaderboardService {
-    void increaseScore(String category, String userId, double duration, LocalDateTime timestamp);
+    void increaseScore(String categoryId, String userId, double duration, LocalDateTime timestamp);
     List<LeaderboardResponseDto> getLeaderboardPage(String category, int page, int size, LocalDate date);
     LeaderboardResponseDto getUserScoreInfo(String category, String userId, LocalDate date);
     List<LeaderboardResponseDto> getAllLeaderboard(String category, LocalDate date);

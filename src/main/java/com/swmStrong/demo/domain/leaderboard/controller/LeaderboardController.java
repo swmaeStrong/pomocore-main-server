@@ -41,6 +41,12 @@ public class LeaderboardController {
         return ResponseEntity.ok(leaderboardService.getLeaderboardPage(category, page, size, date));
     }
 
+    @Operation(
+            summary = "카테고리의 모든 유저 조회",
+            description =
+                "<p> 카테고리별로, 모든 유저의 점수, 순위를 출력한다. </p>" +
+                "<p> 페이징 없는 버전이다. </p>"
+    )
     @GetMapping("/{category}/all")
     public ResponseEntity<List<LeaderboardResponseDto>> getUsersByCategory(
             @PathVariable String category,
@@ -70,6 +76,12 @@ public class LeaderboardController {
         return ResponseEntity.ok(leaderboardService.getUserScoreInfo(category, userId, date));
     }
 
+    @Operation(
+            summary = "전체 카테고리 10등까지 조회",
+            description =
+                "<p> 전체 카테고리의 1등부터 10등까지 조회한다. </p>" +
+                "<p> 일단 당일만 조회 가능하다. </p>"
+    )
     @GetMapping("/top-users")
     public ResponseEntity<Map<String, List<LeaderboardResponseDto>>> getLeaderboards() {
         return ResponseEntity.ok(leaderboardService.getLeaderboards());

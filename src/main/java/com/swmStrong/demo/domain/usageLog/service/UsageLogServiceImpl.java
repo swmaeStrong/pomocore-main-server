@@ -45,6 +45,10 @@ public class UsageLogServiceImpl implements UsageLogService {
         Set<String> categories = patternMatcher.search(saveUsageLogDto.title());
         categories.addAll(patternMatcher.search(saveUsageLogDto.app()));
 
+        if (categories.isEmpty()) {
+            categories.add("uncategorized");
+        }
+
         UsageLog usageLog = UsageLog.builder()
                 .userId(saveUsageLogDto.userId())
                 .app(saveUsageLogDto.app())

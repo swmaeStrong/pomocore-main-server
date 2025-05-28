@@ -10,4 +10,5 @@ public interface LeaderboardRepository {
     Set<ZSetOperations.TypedTuple<String>> findPageWithSize(String key, int page, int size);
     Long findRankByUserId(String key, String userId);
     Double findScoreByUserId(String key, String userId);
+    Set<ZSetOperations.TypedTuple<String>> findAll(String key);
 }

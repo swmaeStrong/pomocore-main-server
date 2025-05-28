@@ -48,7 +48,7 @@ public class LeaderboardStreamConsumer extends AbstractRedisStreamConsumer {
                     LeaderBoardUsageMessage message = objectMapper.convertValue(valueMap, LeaderBoardUsageMessage.class);
 
                     leaderboardService.increaseScore(
-                            message.category(),
+                            message.categoryId(),
                             message.userId(),
                             message.duration(),
                             message.timestamp()

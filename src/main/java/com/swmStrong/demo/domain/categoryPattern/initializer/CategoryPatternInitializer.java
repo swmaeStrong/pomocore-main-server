@@ -4,7 +4,6 @@ import com.swmStrong.demo.domain.categoryPattern.dto.CategoryPatternJSONDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
-import com.swmStrong.demo.domain.categoryPattern.repository.CustomCategoryPatternRepository;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import com.swmStrong.demo.infra.json.JsonLoader;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -40,7 +39,6 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
             if (!categoryPatternService.existsByCategory(entry.getCategory())) {
                 categoryPatternService.addCategory(CategoryRequestDto.of(entry.getCategory(), entry.getColor()));
             }
-
             Set<String> newPatterns = entry.getPatterns();
             newPatterns.removeAll(categoryPatternRepository.findPatternsByCategory(entry.getCategory()));
             for (String pattern: newPatterns) {

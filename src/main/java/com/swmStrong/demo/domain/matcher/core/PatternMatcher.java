@@ -4,6 +4,7 @@ import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -30,7 +31,7 @@ public class PatternMatcher {
                 continue;
             }
             for (String pattern: categoryPattern.getPatterns()) {
-                insert(pattern, categoryPattern.getCategory());
+                insert(pattern, categoryPattern.getId());
             }
         }
         connect();
@@ -41,7 +42,7 @@ public class PatternMatcher {
         char key;
         HashMap<Character, Node> children = new HashMap<>();
         Node fail = null;
-        Set<String> categories = new HashSet<>();
+        Set<ObjectId> categories = new HashSet<>();
 
         public Node(char key) {
             this.key = key;
@@ -53,14 +54,14 @@ public class PatternMatcher {
     }
 
 
-    public void insert(String pattern, String category) {
+    public void insert(String pattern, ObjectId categoryId) {
         Node now = this.root;
         pattern = pattern.toLowerCase();
         for (char c: pattern.toCharArray()) {
             now = now.children.computeIfAbsent(c, Node::new);
         }
-        now.categories.add(category);
-        log.info("insert pattern: {} category: {}", pattern, category);
+        now.categories.add(categoryId);
+        log.info("insert pattern: {} categoryId: {}", pattern, categoryId);
     }
 
     private void connect() {
@@ -92,10 +93,10 @@ public class PatternMatcher {
         }
     }
 
-    public Set<String> search(String title) {
+    public Set<ObjectId> search(String title) {
         Node now = this.root;
         title = title.toLowerCase();
-        Set<String> matchedCategories = new HashSet<>();
+        Set<ObjectId> matchedCategories = new HashSet<>();
         for (char c: title.toCharArray()) {
 
             while (now != null && now != this.root && !now.children.containsKey(c)) {

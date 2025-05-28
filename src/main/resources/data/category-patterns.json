@@ -1,35 +1,38 @@
 {
   "categoryPatterns": [
     {
-      "category": "uncategorized",
-      "color": "#CCCCCC",
-      "patterns": []
-    },
-    {
-      "category": "develop",
-      "color": "#000000",
+      "category": "Development",
+      "color": "#6495ED",
       "patterns": [
-        "code",
+        "vscode",
         "intellij",
         "xcode",
         "goland",
         "postman",
         "mysqlworkbench",
         "mongodb compass",
-        ".swift",
-        ".py",
-        ".java",
+        "code",
         ".cpp",
-        ".c",
-        ".tsx",
+        ".java",
         ".ts",
+        ".tsx",
         ".js",
         ".jsx",
-        "chatgpt"
+        ".swift",
+        ".c",
+        ".py",
+        ".vue"
       ]
     },
     {
-      "category": "sns",
+      "category": "Uncategorized",
+      "color": "#CCCCCC",
+      "patterns": [
+
+      ]
+    },
+    {
+      "category": "SNS",
       "color": "#F39C12",
       "patterns": [
         "instagram",
@@ -37,11 +40,12 @@
         "threads",
         "facebook",
         "twitter",
-        "snapchat"
+        "snapchat",
+        "카카오톡"
       ]
     },
     {
-      "category": "youtube",
+      "category": "YouTube",
       "color": "#E74C3C",
       "patterns": [
         "youtube",
@@ -50,7 +54,7 @@
       ]
     },
     {
-      "category": "documentation",
+      "category": "Documentation",
       "color": "#3498DB",
       "patterns": [
         "notion",
@@ -61,7 +65,7 @@
       ]
     },
     {
-      "category": "design",
+      "category": "Design",
       "color": "#9B59B6",
       "patterns": [
         "figma",
@@ -72,14 +76,23 @@
       ]
     },
     {
-      "category": "communication",
+      "category": "Communication",
       "color": "#27AE60",
       "patterns": [
         "slack",
         "discord",
         "zoom",
         "teams",
-        "meet"
+        "meet",
+        "line"
+      ]
+    },
+    {
+      "category": "LLM",
+      "color": "#123456",
+      "patterns": [
+        "chatgpt",
+        "claude"
       ]
     }
   ]

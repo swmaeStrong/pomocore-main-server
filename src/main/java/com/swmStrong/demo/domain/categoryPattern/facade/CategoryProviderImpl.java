@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.categoryPattern.facade;
 
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,5 +21,19 @@ public class CategoryProviderImpl implements CategoryProvider {
         return categoryPatternRepository.findAll().stream()
                 .map(CategoryPattern::getCategory)
                 .toList();
+    }
+
+    @Override
+    public String getCategoryById(ObjectId categoryId) {
+        return categoryPatternRepository.findById(categoryId)
+                .orElseThrow(IllegalArgumentException::new)
+                .getCategory();
+    }
+
+    @Override
+    public ObjectId getCategoryIdByCategory(String category) {
+        return categoryPatternRepository.findByCategory(category)
+                .orElseThrow(IllegalArgumentException::new)
+                .getId();
     }
 }

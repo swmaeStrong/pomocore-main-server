@@ -43,12 +43,11 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
     @Override
     public void addPattern(String category, PatternRequestDto patternRequestDto) {
-        if (!categoryPatternRepository.existsByCategory(category)) {
-            throw new IllegalArgumentException("존재하지 않는 카테고리");
-        }
+        CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
+                        .orElseThrow(IllegalArgumentException::new);
 
         categoryPatternRepository.addPattern(category, patternRequestDto.pattern());
-        patternMatcher.insert(patternRequestDto.pattern(), category);
+        patternMatcher.insert(patternRequestDto.pattern(), categoryPattern.getId());
     }
 
     @Override
@@ -90,6 +89,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
     @Override
     public void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto) {
+        //TODO: 중복 카테고리명에 대한 제한 만들기
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                 .orElseThrow(IllegalArgumentException::new);
 

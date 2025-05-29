@@ -36,6 +36,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
         CategoryPattern categoryPattern = CategoryPattern.builder()
                 .category(categoryRequestDto.category())
                 .color(categoryRequestDto.color())
+                .priority(categoryRequestDto.priority())
                 .build();
 
         categoryPatternRepository.save(categoryPattern);
@@ -73,10 +74,14 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
-    public CategoryResponseDto getCategoryByCategory(String category) {
-        CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
+    public CategoryPattern getEntityByCategory(String category) {
+        return categoryPatternRepository.findByCategory(category)
                 .orElseThrow(IllegalArgumentException::new);
-        return CategoryResponseDto.from(categoryPattern);
+    }
+
+    @Override
+    public CategoryResponseDto getCategoryPatternByCategory(String category) {
+        return CategoryResponseDto.from(getEntityByCategory(category));
     }
 
     @Override

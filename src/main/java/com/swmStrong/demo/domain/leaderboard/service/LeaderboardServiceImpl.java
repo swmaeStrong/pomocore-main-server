@@ -115,7 +115,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     @Override
     public Map<String, List<LeaderboardResponseDto>> getLeaderboards() {
-        Map<String, List<LeaderboardResponseDto>> response = new HashMap<>();
+        Map<String, List<LeaderboardResponseDto>> response = new LinkedHashMap<>();
 
         LocalDate date = LocalDate.now();
         List<String> categories = categoryProvider.getCategories();

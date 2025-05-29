@@ -3,6 +3,7 @@
     {
       "category": "Development",
       "color": "#6495ED",
+      "priority": 1,
       "patterns": [
         "vscode",
         "intellij",
@@ -21,12 +22,14 @@
         ".swift",
         ".c",
         ".py",
-        ".vue"
+        ".vue",
+        "stack overflow"
       ]
     },
     {
       "category": "Uncategorized",
       "color": "#CCCCCC",
+      "priority": 8,
       "patterns": [
 
       ]
@@ -34,6 +37,7 @@
     {
       "category": "SNS",
       "color": "#F39C12",
+      "priority": 7,
       "patterns": [
         "instagram",
         "kakaotalk",
@@ -47,6 +51,7 @@
     {
       "category": "YouTube",
       "color": "#E74C3C",
+      "priority": 6,
       "patterns": [
         "youtube",
         "yt studio",
@@ -56,17 +61,21 @@
     {
       "category": "Documentation",
       "color": "#3498DB",
+      "priority": 3,
       "patterns": [
         "notion",
         "obsidian",
         "google docs",
         "hackmd",
-        "evernote"
+        "evernote",
+        "google docs",
+        "google sheets"
       ]
     },
     {
       "category": "Design",
       "color": "#9B59B6",
+      "priority": 4,
       "patterns": [
         "figma",
         "adobe xd",
@@ -78,6 +87,7 @@
     {
       "category": "Communication",
       "color": "#27AE60",
+      "priority": 5,
       "patterns": [
         "slack",
         "discord",
@@ -90,6 +100,7 @@
     {
       "category": "LLM",
       "color": "#123456",
+      "priority": 2,
       "patterns": [
         "chatgpt",
         "claude"

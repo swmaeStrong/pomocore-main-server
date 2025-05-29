@@ -19,6 +19,7 @@ public class CategoryProviderImpl implements CategoryProvider {
     @Override
     public List<String> getCategories() {
         return categoryPatternRepository.findAll().stream()
+                .sorted()
                 .map(CategoryPattern::getCategory)
                 .toList();
     }

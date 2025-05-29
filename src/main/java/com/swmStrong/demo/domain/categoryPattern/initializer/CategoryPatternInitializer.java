@@ -44,7 +44,7 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
 
             CategoryPattern categoryPattern = categoryPatternService.getEntityByCategory(entry.getCategory());
 
-            if (!categoryPattern.getPriority().equals(entry.getPriority())) {
+            if (categoryPattern.getPriority() == null || !categoryPattern.getPriority().equals(entry.getPriority())) {
                 categoryPattern.setPriority(entry.getPriority());
 
                 categoryPatternRepository.save(categoryPattern);

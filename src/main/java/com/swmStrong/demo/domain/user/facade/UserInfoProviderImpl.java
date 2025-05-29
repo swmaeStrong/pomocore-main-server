@@ -19,4 +19,10 @@ public class UserInfoProviderImpl implements UserInfoProvider {
                 .map(User::getNickname)
                 .orElse("Unknown");
     }
+
+    @Override
+    public User getUserByUserId(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(IllegalArgumentException::new);
+    }
 }

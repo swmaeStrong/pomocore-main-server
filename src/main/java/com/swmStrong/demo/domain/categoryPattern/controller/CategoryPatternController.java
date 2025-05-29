@@ -63,8 +63,8 @@ public class CategoryPatternController {
                 "<p> 카테고리 내부의 패턴도 함께 출력된다. </p>"
     )
     @GetMapping("/{category}")
-    public ResponseEntity<CategoryResponseDto> getCategoryByCategory(@PathVariable String category) {
-        return ResponseEntity.ok(categoryPatternService.getCategoryByCategory(category));
+    public ResponseEntity<CategoryResponseDto> getCategoryPatternByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(categoryPatternService.getCategoryPatternByCategory(category));
     }
 
     @Operation(

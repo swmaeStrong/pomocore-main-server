@@ -13,6 +13,7 @@ public class CategoryPatternJSONDto {
     public static class CategoryPatternEntry {
         private String category;
         private String color;
+        private Integer priority;
         private Set<String> patterns;
     }
 }

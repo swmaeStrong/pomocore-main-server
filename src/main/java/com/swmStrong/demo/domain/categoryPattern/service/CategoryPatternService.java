@@ -4,6 +4,7 @@ import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 
 import java.util.List;
 
@@ -12,7 +13,8 @@ public interface CategoryPatternService {
     void addPattern(String category, PatternRequestDto patternRequestDto);
     void deletePatternByCategory(String category, PatternRequestDto patternRequestDto);
     void deleteCategory(String category);
-    CategoryResponseDto getCategoryByCategory(String category);
+    CategoryPattern getEntityByCategory(String category);
+    CategoryResponseDto getCategoryPatternByCategory(String category);
     List<CategoryResponseDto> getCategories();
     void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto);
     boolean existsByCategory(String category);

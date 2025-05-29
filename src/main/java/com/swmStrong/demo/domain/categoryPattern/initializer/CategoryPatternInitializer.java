@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.categoryPattern.initializer;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryPatternJSONDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import com.swmStrong.demo.infra.json.JsonLoader;
@@ -23,8 +24,8 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
             CategoryPatternRepository categoryPatternRepository,
             JsonLoader jsonLoader
     ) {
-        this.categoryPatternService = categoryPatternService;
         this.categoryPatternRepository = categoryPatternRepository;
+        this.categoryPatternService = categoryPatternService;
         this.jsonLoader = jsonLoader;
     }
 
@@ -33,14 +34,26 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
         init();
     }
 
+    //TODO: 트랜잭션으로 분리
     private void init() {
         CategoryPatternJSONDto jsonDto = jsonLoader.load("data/category-patterns.json", CategoryPatternJSONDto.class);
         for (CategoryPatternJSONDto.CategoryPatternEntry entry: jsonDto.getCategoryPatterns()) {
             if (!categoryPatternService.existsByCategory(entry.getCategory())) {
-                categoryPatternService.addCategory(CategoryRequestDto.of(entry.getCategory(), entry.getColor()));
+                categoryPatternService.addCategory(CategoryRequestDto.of(entry.getCategory(), entry.getPriority(), entry.getColor()));
             }
+
+            CategoryPattern categoryPattern = categoryPatternService.getEntityByCategory(entry.getCategory());
+
+            if (!categoryPattern.getPriority().equals(entry.getPriority())) {
+                categoryPattern.setPriority(entry.getPriority());
+
+                categoryPatternRepository.save(categoryPattern);
+            }
+
             Set<String> newPatterns = entry.getPatterns();
-            newPatterns.removeAll(categoryPatternRepository.findPatternsByCategory(entry.getCategory()));
+            if (categoryPattern.getPatterns() != null) {
+                newPatterns.removeAll(categoryPattern.getPatterns());
+            }
             for (String pattern: newPatterns) {
                 categoryPatternService.addPattern(entry.getCategory(), PatternRequestDto.of(pattern));
             }

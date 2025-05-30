@@ -6,8 +6,10 @@ import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,10 +26,12 @@ public class CategoryPatternController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "패턴 추가",
             description =
                 "<p> 카테고리에 해당하는 패턴을 추가한다. </p>"
     )
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/{category}")
     public ResponseEntity<Void> addPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
         categoryPatternService.addPattern(category, patternRequestDto);
@@ -35,9 +39,11 @@ public class CategoryPatternController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "패턴 삭제",
             description = "<p> 카테고리 안에 있는 패턴을 삭제한다. </p>"
     )
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{category}/pattern")
     public ResponseEntity<Void> deletePatternByCategoryAndPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
         categoryPatternService.deletePatternByCategory(category, patternRequestDto);
@@ -45,11 +51,13 @@ public class CategoryPatternController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "카테고리 전체 삭제",
             description =
                 "<p> 카테고리 전체를 삭제한다. </p>" +
                 "<p> 카테고리에 포함된 패턴도 전부 삭제된다. </p>"
     )
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{category}")
     public ResponseEntity<Void> deletePatternByCategory(@PathVariable String category) {
         categoryPatternService.deleteCategory(category);
@@ -79,12 +87,14 @@ public class CategoryPatternController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "카테고리 수정",
             description =
                 "<p> 카테고리의 이름과 색깔을 수정한다. </p>" +
                 "<p> 색깔은 #000000 ~ #FFFFFF 로 입력한다. </p>" +
                 "<p> 필요한 부분만 입력하고, 나머지는 비워둬도 된다. </p>"
     )
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{category}")
     public ResponseEntity<Void> updateCategory(@PathVariable String category, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto) {
         categoryPatternService.updateCategory(category, updateCategoryRequestDto);
@@ -92,10 +102,12 @@ public class CategoryPatternController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "카테고리 추가",
             description =
                 "<p> 카테고리를 추가한다. </p>"
     )
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<Void> addCategory(@RequestBody CategoryRequestDto categoryRequestDto) {
         categoryPatternService.addCategory(categoryRequestDto);

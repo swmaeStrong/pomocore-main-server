@@ -1,6 +1,6 @@
 package com.swmStrong.demo.config.security.principal;
 
-import com.swmStrong.demo.domain.user.entity.User;
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,17 +9,18 @@ import java.util.Collection;
 import java.util.List;
 
 @Getter
+@Builder
 public class SecurityPrincipal implements UserDetails {
+    private final String userId;
     private final String email;
     private final String password;
     private final GrantedAuthority grantedAuthority;
-    private final User user;
 
-    public SecurityPrincipal(String email, String password, GrantedAuthority grantedAuthority, User user) {
+    public SecurityPrincipal(String userId, String email, String password, GrantedAuthority grantedAuthority) {
+        this.userId = userId;
         this.email = email;
         this.password = password;
         this.grantedAuthority = grantedAuthority;
-        this.user = user;
     }
 
     @Override
@@ -36,5 +37,4 @@ public class SecurityPrincipal implements UserDetails {
     public String getPassword() {
         return password;
     }
-
 }

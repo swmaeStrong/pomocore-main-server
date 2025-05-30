@@ -43,7 +43,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
 
         String userAgent = request.getHeader("User-Agent");
 
-        TokenResponseDto tokenResponseDto = tokenUtil.getToken(principal.getEmail(), userAgent, role);
+        TokenResponseDto tokenResponseDto = tokenUtil.getToken(principal.getUserId(), userAgent, role);
 
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");

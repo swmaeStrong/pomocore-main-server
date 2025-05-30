@@ -1,5 +1,7 @@
 package com.swmStrong.demo.util.token;
 
+import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
+import com.swmStrong.demo.config.security.service.SecurityService;
 import com.swmStrong.demo.domain.global.Role;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
 import com.swmStrong.demo.util.redis.RedisUtil;
@@ -27,11 +29,13 @@ import static com.swmStrong.demo.util.redis.RedisUtil.REDIS_REFRESH_TOKEN_PREFIX
 public class TokenUtil {
     private final RedisUtil redisUtil;
     private final LoginCredentialRepository loginCredentialRepository;
+    private final SecurityService securityService;
 
 
-    public TokenUtil(RedisUtil redisUtil, LoginCredentialRepository loginCredentialRepository) {
+    public TokenUtil(RedisUtil redisUtil, LoginCredentialRepository loginCredentialRepository, SecurityService securityService) {
         this.redisUtil = redisUtil;
         this.loginCredentialRepository = loginCredentialRepository;
+        this.securityService = securityService;
     }
 
     @Value("${spring.jwt.salt}")
@@ -46,17 +50,17 @@ public class TokenUtil {
     }
 
     /**
-     * 유저의 이메일을 받아 토큰을 발급
+     * 유저의 userId을 받아 토큰을 발급
      *
-     * @param email     유저의 이메일
+     * @param userId 유저의 PK
      * @param tokenType 발급 받을 토큰 타입 (accessToken, refreshToken 중 하나)
      * @return accessToken, refreshToken 중 하나
      */
-    public String createToken(String email, TokenType tokenType, Role role) {
+    public String createToken(String userId, TokenType tokenType, Role role) {
         long expireTime = tokenType.getExpireTime() * 1000;
 
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expireTime))
                 .claim("role", role.getAuthority())
@@ -64,11 +68,11 @@ public class TokenUtil {
                 .compact();
     }
 
-    public String createToken(String email, TokenType tokenType, String userAgent) {
+    public String createToken(String userId, TokenType tokenType, String userAgent) {
         long expireTime = tokenType.getExpireTime() * 1000;
 
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId)
                 .claim("userAgent", userAgent)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + expireTime))
@@ -97,11 +101,11 @@ public class TokenUtil {
                     .parseClaimsJws(refreshToken)
                     .getBody();
 
-            String tokenEmail = claims.getSubject();
+            String tokenUserId = claims.getSubject();
             String tokenUserAgent = claims.get("userAgent", String.class);
 
             return parseToken(refreshToken) &&
-                    tokenEmail.equals(refreshTokenRequestDto.email()) &&
+                    tokenUserId.equals(refreshTokenRequestDto.userId()) &&
                     tokenUserAgent.equals(userAgent);
 
         } catch (Exception e) {
@@ -124,22 +128,22 @@ public class TokenUtil {
             throw new RuntimeException("토큰이 유효하지 않습니다.");
         }
 
-        Role role = loginCredentialRepository.findByEmail(refreshTokenRequestDto.email()).orElseThrow(RuntimeException::new).getRole();
+        Role role = loginCredentialRepository.findByEmail(refreshTokenRequestDto.userId()).orElseThrow(RuntimeException::new).getRole();
 
-        return getToken(refreshTokenRequestDto.email(), userAgent, role);
+        return getToken(refreshTokenRequestDto.userId(), userAgent, role);
     }
 
     /**
-     * 토큰을 만들고, 레디스와 DB에 저장
+     * 토큰을 만들고, refreshToken은 레디스에 저장
      *
-     * @param email 유저의 이메일
+     * @param userId 유저의 PK
      * @return 생성된 두 토큰을 반환
      */
-    public TokenResponseDto getToken(String email, String userAgent, Role role) {
-        String accessToken = createToken(email, TokenType.accessToken, role);
-        String refreshToken = createToken(email, TokenType.refreshToken, userAgent);
+    public TokenResponseDto getToken(String userId, String userAgent, Role role) {
+        String accessToken = createToken(userId, TokenType.accessToken, role);
+        String refreshToken = createToken(userId, TokenType.refreshToken, userAgent);
         try {
-            redisUtil.setDataWithExpire(REDIS_REFRESH_TOKEN_PREFIX + email, refreshToken, TokenType.refreshToken.getExpireTime());
+            redisUtil.setDataWithExpire(REDIS_REFRESH_TOKEN_PREFIX + userId, refreshToken, TokenType.refreshToken.getExpireTime());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -159,12 +163,13 @@ public class TokenUtil {
                 .parseClaimsJws(token)
                 .getBody();
 
-        String email = claims.getSubject();
-        String role = claims.get("role", String.class);
-        if (email != null && role != null) {
-            List<GrantedAuthority> authority = List.of(new SimpleGrantedAuthority(role));
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authority);
+        String userId = claims.getSubject();
+        String role = claims.get("role", String.class);
+        SecurityPrincipal principal = securityService.loadUserByUserId(userId);
+        if (userId != null && role != null) {
+            List<GrantedAuthority> authority = List.of(new SimpleGrantedAuthority(role));
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authority);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } else {
             throw new RuntimeException("인증 과정에서 문제가 발생했습니다.");

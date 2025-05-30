@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.loginCredential.facade;
 
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
+import com.swmStrong.demo.domain.global.Role;
 import com.swmStrong.demo.domain.loginCredential.entity.LoginCredential;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,5 +50,12 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
                 .orElseThrow(() -> new IllegalArgumentException("등록되지 않는 이메일입니다."));
 
         return passwordEncoder.matches(password, loginCredential.getPassword());
+    }
+
+    @Override
+    public Role loadRoleByUserId(String userId) {
+        LoginCredential loginCredential = loginCredentialRepository.findById(userId)
+                .orElseThrow(IllegalArgumentException::new);
+        return loginCredential.getRole();
     }
 }

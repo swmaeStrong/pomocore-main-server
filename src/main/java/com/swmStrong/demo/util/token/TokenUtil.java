@@ -1,9 +1,8 @@
 package com.swmStrong.demo.util.token;
 
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.config.security.service.SecurityService;
 import com.swmStrong.demo.domain.global.Role;
-import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
+import com.swmStrong.demo.domain.loginCredential.facade.LoginCredentialProvider;
 import com.swmStrong.demo.util.redis.RedisUtil;
 import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
@@ -28,14 +27,11 @@ import static com.swmStrong.demo.util.redis.RedisUtil.REDIS_REFRESH_TOKEN_PREFIX
 @Component
 public class TokenUtil {
     private final RedisUtil redisUtil;
-    private final LoginCredentialRepository loginCredentialRepository;
-    private final SecurityService securityService;
+    private final LoginCredentialProvider loginCredentialProvider;
 
-
-    public TokenUtil(RedisUtil redisUtil, LoginCredentialRepository loginCredentialRepository, SecurityService securityService) {
+    public TokenUtil(RedisUtil redisUtil, LoginCredentialProvider loginCredentialProvider) {
         this.redisUtil = redisUtil;
-        this.loginCredentialRepository = loginCredentialRepository;
-        this.securityService = securityService;
+        this.loginCredentialProvider = loginCredentialProvider;
     }
 
     @Value("${spring.jwt.salt}")
@@ -91,7 +87,7 @@ public class TokenUtil {
      * @param refreshTokenRequestDto 리프레시 토큰과 User-Agent
      * @return 토큰이 유효한지에 대한 boolean 값
      */
-    public boolean isTokenValid(RefreshTokenRequestDto refreshTokenRequestDto, String userAgent) {
+    public boolean isTokenValid(String userId, RefreshTokenRequestDto refreshTokenRequestDto, String userAgent) {
         String refreshToken = refreshTokenRequestDto.refreshToken();
 
         try {
@@ -105,7 +101,7 @@ public class TokenUtil {
             String tokenUserAgent = claims.get("userAgent", String.class);
 
             return parseToken(refreshToken) &&
-                    tokenUserId.equals(refreshTokenRequestDto.userId()) &&
+                    tokenUserId.equals(userId) &&
                     tokenUserAgent.equals(userAgent);
 
         } catch (Exception e) {
@@ -121,16 +117,16 @@ public class TokenUtil {
      * @throws RuntimeException 리프레시토큰도 만료되었거나, 리프레시 토큰을 통해 유저를 찾지 못하는 경우
      */
     public TokenResponseDto tokenRefresh(
+            String userId,
             RefreshTokenRequestDto refreshTokenRequestDto,
             String userAgent
     ) throws RuntimeException {
-        if (!isTokenValid(refreshTokenRequestDto, userAgent)) {
+        if (!isTokenValid(userId, refreshTokenRequestDto, userAgent)) {
             throw new RuntimeException("토큰이 유효하지 않습니다.");
         }
+        Role role = loginCredentialProvider.loadRoleByUserId(userId);
 
-        Role role = loginCredentialRepository.findByEmail(refreshTokenRequestDto.userId()).orElseThrow(RuntimeException::new).getRole();
-
-        return getToken(refreshTokenRequestDto.userId(), userAgent, role);
+        return getToken(userId, userAgent, role);
     }
 
     /**
@@ -163,10 +159,9 @@ public class TokenUtil {
                 .parseClaimsJws(token)
                 .getBody();
 
-
         String userId = claims.getSubject();
         String role = claims.get("role", String.class);
-        SecurityPrincipal principal = securityService.loadUserByUserId(userId);
+        SecurityPrincipal principal = loginCredentialProvider.loadPrincipalByUserId(userId);
         if (userId != null && role != null) {
             List<GrantedAuthority> authority = List.of(new SimpleGrantedAuthority(role));
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authority);

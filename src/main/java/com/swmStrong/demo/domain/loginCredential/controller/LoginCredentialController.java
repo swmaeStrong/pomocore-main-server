@@ -1,12 +1,16 @@
 package com.swmStrong.demo.domain.loginCredential.controller;
 
+import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.loginCredential.dto.LoginRequestDto;
 import com.swmStrong.demo.domain.loginCredential.dto.UpgradeRequestDto;
 import com.swmStrong.demo.domain.loginCredential.service.LoginCredentialService;
+import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +37,21 @@ public class LoginCredentialController {
     public ResponseEntity<Void> upgradeToMember(@RequestBody UpgradeRequestDto upgradeRequestDto) {
         loginCredentialService.upgradeToUser(upgradeRequestDto);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "토큰 리프레시",
+            description =
+                "<p> 리프레시 토큰을 주고, 리프레시토큰과 액세스 토큰을 재발급한다. </p>" +
+                "<p> User-Agent가 다르면 리프레시가 안된다. </p>"
+    )
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponseDto> tokenRefresh(
+            HttpServletRequest request,
+            @RequestBody RefreshTokenRequestDto refreshTokenRequestDto,
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal
+    ) {
+        return ResponseEntity.ok(loginCredentialService.tokenRefresh(securityPrincipal.getUserId(), request, refreshTokenRequestDto));
     }
 
     @Operation(

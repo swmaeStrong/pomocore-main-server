@@ -5,15 +5,18 @@ import com.swmStrong.demo.domain.loginCredential.entity.LoginCredential;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LoginCredentialProviderImpl implements LoginCredentialProvider {
 
     private final LoginCredentialRepository loginCredentialRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public LoginCredentialProviderImpl(LoginCredentialRepository loginCredentialRepository) {
+    public LoginCredentialProviderImpl(LoginCredentialRepository loginCredentialRepository, PasswordEncoder passwordEncoder) {
         this.loginCredentialRepository = loginCredentialRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -24,7 +27,6 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
         return SecurityPrincipal.builder()
                 .userId(loginCredential.getId())
                 .email(loginCredential.getEmail())
-                .password(loginCredential.getPassword())
                 .grantedAuthority(new SimpleGrantedAuthority(loginCredential.getRole().getAuthority()))
                 .build();
     }
@@ -37,8 +39,15 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
         return SecurityPrincipal.builder()
                 .userId(loginCredential.getId())
                 .email(loginCredential.getEmail())
-                .password(loginCredential.getPassword())
                 .grantedAuthority(new SimpleGrantedAuthority(loginCredential.getRole().getAuthority()))
                 .build();
+    }
+
+    @Override
+    public boolean isPasswordMatched(String email, String password) {
+        LoginCredential loginCredential = loginCredentialRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("등록되지 않는 이메일입니다."));
+
+        return passwordEncoder.matches(password, loginCredential.getPassword());
     }
 }

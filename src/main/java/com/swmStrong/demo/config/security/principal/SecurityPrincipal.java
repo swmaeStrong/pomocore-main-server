@@ -13,13 +13,11 @@ import java.util.List;
 public class SecurityPrincipal implements UserDetails {
     private final String userId;
     private final String email;
-    private final String password;
     private final GrantedAuthority grantedAuthority;
 
-    public SecurityPrincipal(String userId, String email, String password, GrantedAuthority grantedAuthority) {
+    public SecurityPrincipal(String userId, String email, GrantedAuthority grantedAuthority) {
         this.userId = userId;
         this.email = email;
-        this.password = password;
         this.grantedAuthority = grantedAuthority;
     }
 
@@ -35,6 +33,6 @@ public class SecurityPrincipal implements UserDetails {
 
     @Override
     public String getPassword() {
-        return password;
+        return "";
     }
 }

@@ -20,7 +20,7 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
     }
 
     @Override
-    public SecurityPrincipal loadLoginCredentialByUserId(String userId) {
+    public SecurityPrincipal loadPrincipalByUserId(String userId) {
         LoginCredential loginCredential = loginCredentialRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
 
@@ -32,7 +32,7 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
     }
 
     @Override
-    public SecurityPrincipal loadLoginCredentialByEmail(String email) {
+    public SecurityPrincipal loadPrincipalByEmail(String email) {
         LoginCredential loginCredential = loginCredentialRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 이메일 입니다."));
 

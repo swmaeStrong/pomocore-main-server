@@ -29,7 +29,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("비밀번호가 틀렸습니다.");
         }
 
-        SecurityPrincipal securityPrincipal = loginCredentialProvider.loadLoginCredentialByEmail(email);
+        SecurityPrincipal securityPrincipal = loginCredentialProvider.loadPrincipalByEmail(email);
         return new UsernamePasswordAuthenticationToken(securityPrincipal, null, securityPrincipal.getAuthorities());
     }
 

@@ -4,17 +4,17 @@ package com.swmStrong.demo.domain.user.controller;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
-import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "비회원")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/guest-users")
-
 public class UserController {
     private final UserService userService;
 

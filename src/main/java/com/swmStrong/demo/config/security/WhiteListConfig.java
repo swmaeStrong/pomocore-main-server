@@ -6,12 +6,12 @@ public class WhiteListConfig {
     public static final String[] WHITE_LIST = {
             PREFIX+"/auth/register",
             PREFIX+"/auth/login",
-//            PREFIX+"/guest-users",
             PREFIX+"/guest-users/**",
             PREFIX+"/user/unregistered-token",
             PREFIX+"/v3/api-docs/**",
             PREFIX+"/swagger-ui/**",
             PREFIX+"/swagger-ui.html",
+            PREFIX+"/leaderboard/**",
             "/favicon.ico"
     };
 }

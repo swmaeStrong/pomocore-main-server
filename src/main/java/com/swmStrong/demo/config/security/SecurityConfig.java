@@ -12,6 +12,7 @@ import com.swmStrong.demo.util.redis.RedisUtil;
 import com.swmStrong.demo.util.token.TokenType;
 import com.swmStrong.demo.util.token.TokenUtil;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -73,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers(WhiteListConfig.WHITE_LIST).permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(tokenAuthorizationFilter, LogoutFilter.class)
                 .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(tokenAuthorizationFilter, BasicAuthenticationFilter.class)
                 .logout(logout -> logout
@@ -136,6 +139,13 @@ public class SecurityConfig {
     @Bean
     public TokenAuthorizationFilter tokenAuthorizationFilter() {
         return new TokenAuthorizationFilter(tokenUtil);
+    }
+
+    @Bean
+    public FilterRegistrationBean<TokenAuthorizationFilter> disableTokenAuthFilter(TokenAuthorizationFilter filter) {
+        FilterRegistrationBean<TokenAuthorizationFilter> registrationBean = new FilterRegistrationBean<>(filter);
+        registrationBean.setEnabled(false);
+        return registrationBean;
     }
 
     @Bean

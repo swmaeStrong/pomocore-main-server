@@ -11,6 +11,8 @@ import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.temporal.ChronoUnit;
+
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
@@ -44,7 +46,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(unregisteredRequestDto.userId())
                 .orElseThrow(IllegalArgumentException::new);
 
-        if (!user.getCreatedAt().equals(unregisteredRequestDto.createdAt())) {
+        if (!user.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)
+                .equals(unregisteredRequestDto.createdAt().truncatedTo(ChronoUnit.MILLIS))
+        ) {
             throw new IllegalArgumentException("비정상적인 요청 입니다..");
         }
 

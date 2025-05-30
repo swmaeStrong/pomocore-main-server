@@ -5,4 +5,5 @@ import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 public interface LoginCredentialProvider {
     SecurityPrincipal loadLoginCredentialByUserId(String userId);
     SecurityPrincipal loadLoginCredentialByEmail(String email);
+    boolean isPasswordMatched(String email, String password);
 }

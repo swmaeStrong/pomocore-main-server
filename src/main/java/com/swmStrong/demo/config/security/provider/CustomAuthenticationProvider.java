@@ -7,17 +7,14 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    private final PasswordEncoder passwordEncoder;
     private final LoginCredentialProvider loginCredentialProvider;
 
-    public CustomAuthenticationProvider(PasswordEncoder passwordEncoder, LoginCredentialProvider loginCredentialProvider) {
-        this.passwordEncoder = passwordEncoder;
+    public CustomAuthenticationProvider(LoginCredentialProvider loginCredentialProvider) {
         this.loginCredentialProvider = loginCredentialProvider;
     }
 
@@ -28,12 +25,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String email = token.getName();
         String password = (String) token.getCredentials();
 
-        SecurityPrincipal securityPrincipal = loginCredentialProvider.loadLoginCredentialByEmail(email);
-
-        if (!passwordEncoder.matches(password, securityPrincipal.getPassword())) {
+        if (!loginCredentialProvider.isPasswordMatched(email, password)) {
             throw new BadCredentialsException("비밀번호가 틀렸습니다.");
         }
 
+        SecurityPrincipal securityPrincipal = loginCredentialProvider.loadLoginCredentialByEmail(email);
         return new UsernamePasswordAuthenticationToken(securityPrincipal, null, securityPrincipal.getAuthorities());
     }
 

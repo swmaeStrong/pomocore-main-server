@@ -1,6 +1,5 @@
 package com.swmStrong.demo.config.security.filter;
 
-import com.swmStrong.demo.config.security.WhiteListConfig;
 import com.swmStrong.demo.util.token.TokenUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -8,11 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 @Slf4j
 public class TokenAuthorizationFilter extends OncePerRequestFilter {
@@ -29,21 +26,6 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        log.info("Token Filter 요청 주소: {}", request.getRequestURI());
-
-        if (Arrays.stream(WhiteListConfig.WHITE_LIST)
-                .anyMatch(whiteList -> new AntPathRequestMatcher(whiteList).matches(request))) {
-            log.info("JWT FILTER PASS BY WHITELIST");
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if (request.getMethod().equalsIgnoreCase("OPTION")) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         // 토큰 처리 방식 변경
         // accessToken 을 헤더에서 가져온 후,
         // 토큰이 유효한 경우 필터를 통과

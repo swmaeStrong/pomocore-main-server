@@ -56,7 +56,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(
+    public SecurityFilterChain whiteListFilterChain(
+            HttpSecurity http
+    ) throws Exception {
+        return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .securityMatcher(WhiteListConfig.WHITE_LIST)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(WhiteListConfig.WHITE_LIST).permitAll()
+                )
+                .build();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             CustomAuthenticationFilter customAuthenticationFilter,
             TokenAuthorizationFilter tokenAuthorizationFilter,
@@ -67,12 +81,6 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .requestMatchers(WhiteListConfig.WHITE_LIST).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(tokenAuthorizationFilter, LogoutFilter.class)

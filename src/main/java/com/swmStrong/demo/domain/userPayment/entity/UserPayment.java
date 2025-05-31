@@ -7,14 +7,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserPayment extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private final String id = UUID.randomUUID().toString();
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User user; // 유저와 N:1 관계

@@ -7,13 +7,13 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @NoArgsConstructor()
 public class UserSubscription {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final String id = UUID.randomUUID().toString();
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;

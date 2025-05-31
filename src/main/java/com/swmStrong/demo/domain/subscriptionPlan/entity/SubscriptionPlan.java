@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.subscriptionPlan.entity;
 
+import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -9,13 +10,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
-@Builder
 @Getter
 @NoArgsConstructor
-public class SubscriptionPlan {
+public class SubscriptionPlan extends BaseEntity {
     @Id
-    private String subscriptionPlanId;
+    private String subscriptionPlanId = UUID.randomUUID().toString();
 
     @Enumerated(EnumType.STRING)
     private SubscriptionPlanType subscriptionPlanType;
@@ -28,16 +30,14 @@ public class SubscriptionPlan {
     private boolean isAvail;
 
     @Builder
-    public SubscriptionPlan(String subscriptionPlanId,
-                            SubscriptionPlanType subscriptionPlanType,
+    public SubscriptionPlan(SubscriptionPlanType subscriptionPlanType,
                             BillingCycle billingCycle,
                             Integer price,
                             boolean isAvail) {
-        this.subscriptionPlanId = subscriptionPlanId;
         this.subscriptionPlanType = subscriptionPlanType;
         this.billingCycle = billingCycle;
         this.price = price;
-        this.isAvail = true; // 처음 생성할 때에는 구독정책 항상 true
+        this.isAvail = isAvail; // 처음 생성할 때에는 구독정책 항상 true
     }
 
 

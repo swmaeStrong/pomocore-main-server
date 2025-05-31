@@ -5,13 +5,15 @@ import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.domain.userSubscription.dto.UserSubscriptionReq;
 import com.swmStrong.demo.domain.userSubscription.service.UserSubscriptionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor // Lombok
-@RequestMapping("/users")
+@RequestMapping("/users/subscriptions")
+@Tag(name = "유저 구독")
 public class UserSubscriptionController {
 
     private final UserSubscriptionService userSubscriptionService;
@@ -22,7 +24,7 @@ public class UserSubscriptionController {
                     "<p> 포트원 SDK를 이용해서 빌링키 발급을 한 후에 </p>" +
                     "<p> 구독한 플랜 정보와 빌링 키를 전달한다. </p>"
     )
-    @PostMapping("/subscriptions")
+    @PostMapping("")
     ResponseEntity<ApiResponse<Void>> createUserSubscription(@RequestBody UserSubscriptionReq req) {
         userSubscriptionService.createUserSubscription(req.userId(), req.subscriptionPlanId(), req.billingKey());
 
@@ -32,13 +34,24 @@ public class UserSubscriptionController {
     }
 
 
-    @DeleteMapping("/subscriptions")
-    ResponseEntity<ApiResponse<Void>> deleteUserSubscription(@RequestBody UserSubscriptionReq req) {
-        userSubscriptionService.createUserSubscription(req.userId(), req.subscriptionPlanId(), req.billingKey());
+    @PutMapping("/current")
+    ResponseEntity<ApiResponse<Void>> cancelCurrentSubscription(String userId, String userSubscriptionId) {
+        userSubscriptionService.cancelCurrentSubscription(userId, userSubscriptionId);
 
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())
                 .body(ApiResponse.success(SuccessCode._OK, null));
     }
+
+    @DeleteMapping("/scheduled")
+    ResponseEntity<ApiResponse<Void>> cancelScheduledSubscription(String userId, String userSubscriptionId) {
+        userSubscriptionService.cancelScheduledSubscription(userId, userSubscriptionId);
+
+        return ResponseEntity
+                .status(SuccessCode._OK.getHttpStatus())
+                .body(ApiResponse.success(SuccessCode._OK, null));
+    }
+
+
 
 }

@@ -5,8 +5,6 @@ import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.subscriptionPlan.repository.SubscriptionPlanRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
     private final SubscriptionPlanRepository subscriptionPlanRepository;
@@ -16,8 +14,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 
     public void addSubscriptionPlan(SubscriptionPlanReq req) {
         subscriptionPlanRepository.save(
-                SubscriptionPlan.builder().
-                        subscriptionPlanId(UUID.randomUUID().toString())
+                SubscriptionPlan.builder()
                         .subscriptionPlanType(req.subscriptionPlanType())
                         .billingCycle(req.billingCycle())
                         .price(req.price())

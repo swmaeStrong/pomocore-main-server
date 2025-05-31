@@ -88,6 +88,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     public List<CategoryResponseDto> getCategories() {
         List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
         return categoryPatterns.stream()
+                .sorted()
                 .map(CategoryResponseDto::from)
                 .toList();
     }

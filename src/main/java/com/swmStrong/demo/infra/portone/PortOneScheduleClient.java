@@ -2,6 +2,7 @@ package com.swmStrong.demo.infra.portone;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.domain.portone.dto.ScheduledPaymentResult;
+import com.swmStrong.demo.domain.subscriptionPlan.entity.BillingCycle;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -23,21 +24,21 @@ public class PortOneScheduleClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public ScheduledPaymentResult requestScheduledPaymentToPortOne(String paymentId, String billingKey, Integer amount, String userId) {
+    public ScheduledPaymentResult requestScheduledPaymentToPortOne(String paymentId, String billingKey, String userId, String orderName, Integer amount, BillingCycle billingCycle) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "PortOne " + secret);
 
         Map<String, Object> payment = Map.ofEntries(
                 Map.entry("billingKey", billingKey),
-                Map.entry("orderName", "구독 결제"),
-                Map.entry("customer", Map.of("id", userId)),
-                Map.entry("amount", Map.of("total", amount)),
+                Map.entry("orderName", orderName),
+                Map.entry("customer", userId),
+                Map.entry("amount", amount),
                 Map.entry("currency", "KRW")
         );
         Map<String, Object> body = new HashMap<>();
         body.put("payment", payment);
-        body.put("timeToPay", OffsetDateTime.now().plusMinutes(5)
+        body.put("timeToPay", OffsetDateTime.now().plusDays(billingCycle.getDays())
                 .withNano(0)
                 .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 
@@ -78,6 +79,7 @@ public class PortOneScheduleClient {
         }
     }
 
+    // 취소 쪽은 테스트를 못함 아직..
     public ScheduledPaymentResult cancelScheduledPaymentToPortOne(String billingKey, List<String> scheduledIds) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

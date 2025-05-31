@@ -18,7 +18,7 @@ public class PortOnePaymentClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public PaymentResult requestPaymentToPortOne(String billingKey, String userId, String orderName, Integer amount) {
+    public PaymentResult requestPaymentToPortOne(String paymentId, String billingKey, String userId, String orderName, Integer amount) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "PortOne " + secret);
@@ -33,7 +33,6 @@ public class PortOnePaymentClient {
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
         String url = "https://api.portone.io/payments/{paymentId}/billing-key";
-        String paymentId = UUID.randomUUID().toString();
 
         try {
             restTemplate.exchange(
@@ -67,6 +66,7 @@ public class PortOnePaymentClient {
         }
     }
 
+    // 취소 쪽은 테스트를 못함 아직..
     public PaymentResult cancelLastPaymentToPortOne(String paymentId, String reason) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

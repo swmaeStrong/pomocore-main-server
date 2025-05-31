@@ -18,7 +18,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
         if (userRepository.existsById(userId)){
-            throw new ApiException(ErrorCode.DUPLICATE_DEVICE_ID);
+            throw new ApiException(ErrorCode.DUPLICATE_USER_ID);
         }
         User user = User.builder()
                 .id(userId)

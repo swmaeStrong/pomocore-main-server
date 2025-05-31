@@ -3,9 +3,8 @@ package com.swmStrong.demo.domain.subscriptionPlan.controller;
 import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.domain.subscriptionPlan.dto.req.SubscriptionPlanReq;
-import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.subscriptionPlan.service.SubscriptionPlanService;
-import com.swmStrong.demo.domain.userSubscription.service.SubscriptionService;
+import com.swmStrong.demo.domain.userSubscription.service.UserSubscriptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +16,7 @@ public class SubscriptionPlanController {
 
     private final SubscriptionPlanService subscriptionPlanService;
 
-    public SubscriptionPlanController(SubscriptionService subscriptionService, SubscriptionPlanService subscriptionPlanService) {
+    public SubscriptionPlanController(UserSubscriptionService userSubscriptionService, SubscriptionPlanService subscriptionPlanService) {
         this.subscriptionPlanService = subscriptionPlanService;
     }
 

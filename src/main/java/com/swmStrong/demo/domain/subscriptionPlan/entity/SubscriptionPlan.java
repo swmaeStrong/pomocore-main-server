@@ -6,10 +6,12 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Builder
+@Getter
 @NoArgsConstructor
 public class SubscriptionPlan {
     @Id
@@ -35,7 +37,9 @@ public class SubscriptionPlan {
         this.subscriptionPlanType = subscriptionPlanType;
         this.billingCycle = billingCycle;
         this.price = price;
-        this.isAvail = true;
+        this.isAvail = true; // 처음 생성할 때에는 구독정책 항상 true
     }
+
+
 
 }

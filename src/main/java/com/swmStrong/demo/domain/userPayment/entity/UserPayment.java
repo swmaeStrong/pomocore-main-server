@@ -14,10 +14,9 @@ public class UserPayment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id; // PK
+    private Long id; // PK
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
     private User user; // 유저와 N:1 관계
 
     @Column(nullable = false, unique = true)

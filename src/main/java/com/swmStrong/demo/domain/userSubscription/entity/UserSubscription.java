@@ -55,4 +55,12 @@ public class UserSubscription {
         return subscriptionPlan;
     }
 
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public String getScheduledId() {
+        return scheduledId;
+    }
+
 }

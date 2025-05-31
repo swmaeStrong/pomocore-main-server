@@ -31,8 +31,8 @@ public class PortOneBillingClient {
         return portOnePaymentClient.cancelLastPaymentToPortOne(paymentId, reason);
     }
 
-    public ScheduledPaymentResult cancelScheduledPayment(String billingKey, List<String> scheduledIds) {
-        return portOneScheduleClient.cancelScheduledPaymentToPortOne(billingKey, scheduledIds);
+    public ScheduledPaymentResult cancelScheduledPayment(List<String> scheduledIds) {
+        return portOneScheduleClient.cancelScheduledPaymentToPortOne(scheduledIds);
     }
 
     public String getPaymentMethod(String billingKey) {

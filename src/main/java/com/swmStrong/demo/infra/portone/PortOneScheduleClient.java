@@ -80,13 +80,12 @@ public class PortOneScheduleClient {
     }
 
     // 취소 쪽은 테스트를 못함 아직..
-    public ScheduledPaymentResult cancelScheduledPaymentToPortOne(String billingKey, List<String> scheduledIds) {
+    public ScheduledPaymentResult cancelScheduledPaymentToPortOne(List<String> scheduledIds) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "PortOne " + secret);
 
         Map<String, Object> body = Map.ofEntries(
-                Map.entry("billingKey", billingKey),
                 Map.entry("scheduleIds", scheduledIds));
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);

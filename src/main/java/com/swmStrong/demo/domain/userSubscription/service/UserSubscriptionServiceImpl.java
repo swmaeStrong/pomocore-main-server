@@ -16,6 +16,7 @@ import com.swmStrong.demo.infra.portone.PortOneBillingClient;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -86,7 +87,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
     }
 
     @Transactional
-    public void extendUserSubscription(String userId, String paymentId){
+    public void scheduleUserSubscription(String userId, String paymentId){
         User user = userRepository.findById(userId).
                 orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
@@ -123,6 +124,33 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
                             endTime(LocalDateTime.now().plusDays(subscriptionPlan.getBillingCycle().getDays())).
                             userSubscriptionStatus(UserSubscriptionStatus.SCHEDULED).build();
             userSubscriptionRepository.save(newUserSubscription);
+        }
+    }
+
+    public void cancelCurrentSubscription(String userSubscriptionId, String reason){
+
+        UserSubscription userSubscription = userSubscriptionRepository.findById(userSubscriptionId).
+                orElseThrow(() -> new RuntimeException("subscription not found"));
+
+        PaymentResult paymentResult =
+                portOneBillingClient.cancelLastPayment(userSubscription.getPaymentId(), reason);
+
+        if (paymentResult.isSuccess()) {
+            userSubscription.setUserSubscriptionStatus(UserSubscriptionStatus.CANCELLED);
+            userSubscriptionRepository.save(userSubscription);
+        }
+    }
+
+
+    public void cancelScheduledSubscription(String userSubscriptionId){
+        UserSubscription userSubscription = userSubscriptionRepository.findById(userSubscriptionId).
+                orElseThrow(() -> new RuntimeException("subscription not found"));
+
+        ScheduledPaymentResult scheduledPaymentResult =
+                portOneBillingClient.cancelScheduledPayment(List.of(userSubscription.getScheduledId()));
+
+        if (scheduledPaymentResult.isSuccess()) {
+            userSubscriptionRepository.delete(userSubscription);
         }
     }
 }

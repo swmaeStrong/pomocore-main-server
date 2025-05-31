@@ -35,8 +35,8 @@ public class UserSubscriptionController {
 
 
     @PutMapping("/current")
-    ResponseEntity<ApiResponse<Void>> cancelCurrentSubscription(String userId, String userSubscriptionId) {
-        userSubscriptionService.cancelCurrentSubscription(userId, userSubscriptionId);
+    ResponseEntity<ApiResponse<Void>> cancelCurrentSubscription(String userSubscriptionId, String reason) {
+        userSubscriptionService.cancelCurrentSubscription(userSubscriptionId, reason);
 
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())
@@ -44,8 +44,8 @@ public class UserSubscriptionController {
     }
 
     @DeleteMapping("/scheduled")
-    ResponseEntity<ApiResponse<Void>> cancelScheduledSubscription(String userId, String userSubscriptionId) {
-        userSubscriptionService.cancelScheduledSubscription(userId, userSubscriptionId);
+    ResponseEntity<ApiResponse<Void>> cancelScheduledSubscription(String userSubscriptionId) {
+        userSubscriptionService.cancelScheduledSubscription(userSubscriptionId);
 
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())

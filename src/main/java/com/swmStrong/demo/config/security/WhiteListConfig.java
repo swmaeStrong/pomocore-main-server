@@ -14,4 +14,9 @@ public class WhiteListConfig {
             PREFIX+"/leaderboard/**",
             "/favicon.ico"
     };
+
+    public static final String[] WHITE_LIST_FOR_GET = {
+            PREFIX+"/category",
+            PREFIX+"/category/**"
+    };
 }

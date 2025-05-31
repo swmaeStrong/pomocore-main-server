@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -63,6 +64,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .securityMatcher(WhiteListConfig.WHITE_LIST)
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WhiteListConfig.WHITE_LIST).permitAll()
                 )
@@ -81,6 +83,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, WhiteListConfig.WHITE_LIST_FOR_GET).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(tokenAuthorizationFilter, LogoutFilter.class)

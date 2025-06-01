@@ -12,6 +12,7 @@ public class WhiteListConfig {
             PREFIX+"/swagger-ui/**",
             PREFIX+"/swagger-ui.html",
             PREFIX+"/leaderboard/**",
+            PREFIX+"/webhook/**",
             "/favicon.ico"
     };
 

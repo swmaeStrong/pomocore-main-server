@@ -81,7 +81,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
                     build();
             userSubscriptionRepository.save(userSubscription);
         } else {
-            throw new ApiException(ErrorCode.PAYMENT_FAILED);
+            throw new RuntimeException(paymentResult.getErrorType());
         }
 
     }
@@ -124,6 +124,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
                             endTime(LocalDateTime.now().plusDays(subscriptionPlan.getBillingCycle().getDays())).
                             userSubscriptionStatus(UserSubscriptionStatus.SCHEDULED).build();
             userSubscriptionRepository.save(newUserSubscription);
+        } else {
+            throw new RuntimeException(scheduledPaymentResult.getErrorType());
         }
     }
 

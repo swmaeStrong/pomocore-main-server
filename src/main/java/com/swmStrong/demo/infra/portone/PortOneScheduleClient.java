@@ -3,6 +3,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.domain.portone.dto.ScheduledPaymentResult;
 import com.swmStrong.demo.domain.subscriptionPlan.entity.BillingCycle;
+import com.swmStrong.demo.infra.json.JsonLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,12 @@ public class PortOneScheduleClient {
 
     @Value("${portone.secret}")
     private String secret;
-
+    private final JsonLoader jsonLoader;
     private final RestTemplate restTemplate = new RestTemplate();
+
+    public PortOneScheduleClient(JsonLoader jsonLoader) {
+        this.jsonLoader = jsonLoader;
+    }
 
     public ScheduledPaymentResult requestScheduledPaymentToPortOne(String paymentId, String billingKey, String userId, String orderName, Integer amount, BillingCycle billingCycle) {
         HttpHeaders headers = new HttpHeaders();
@@ -55,8 +60,7 @@ public class PortOneScheduleClient {
             );
 
             // Map → JsonNode 변환
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode resBody = objectMapper.valueToTree(res.getBody());
+            JsonNode resBody = jsonLoader.toJsonTree(res.getBody());
 
             JsonNode paymentRes = resBody.get("schedule");
             String scheduledId = paymentRes != null && paymentRes.has("id") ? paymentRes.get("id").asText() : "";
@@ -67,8 +71,7 @@ public class PortOneScheduleClient {
         } catch (HttpClientErrorException e) {
             String responseBody = e.getResponseBodyAsString();
             try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode errorJson = objectMapper.readTree(responseBody);
+                JsonNode errorJson = jsonLoader.toJsonTree(responseBody);
 
                 String errorType = errorJson.has("type") ? errorJson.get("type").asText() : "UNKNOWN";
                 String errorMessage = errorJson.has("message") ? errorJson.get("message").asText() : "";
@@ -99,8 +102,7 @@ public class PortOneScheduleClient {
                     Map.class
             );
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode resBody = objectMapper.valueToTree(res.getBody());
+            JsonNode resBody = jsonLoader.toJsonTree(res.getBody());
 
             // revokedScheduleIds가 배열 형태로 응답
             List<String> revokedScheduleIds = new ArrayList<>();
@@ -116,9 +118,7 @@ public class PortOneScheduleClient {
         } catch (HttpClientErrorException e) {
             String responseBody = e.getResponseBodyAsString();
             try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode errorJson = objectMapper.readTree(responseBody);
-
+                JsonNode errorJson = jsonLoader.toJsonTree(responseBody);
                 String errorType = errorJson.has("type") ? errorJson.get("type").asText() : "UNKNOWN";
                 String errorMessage = errorJson.has("message") ? errorJson.get("message").asText() : "";
                 return ScheduledPaymentResult.of(false, List.of(""), errorType + (errorMessage.isEmpty() ? "" : " : " + errorMessage));

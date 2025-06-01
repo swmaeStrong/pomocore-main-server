@@ -2,6 +2,7 @@ package com.swmStrong.demo.infra.portone;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.domain.portone.dto.PaymentResult;
+import com.swmStrong.demo.infra.json.JsonLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,11 @@ public class PortOnePaymentClient {
     private String secret;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final JsonLoader jsonLoader;
+
+    public PortOnePaymentClient(JsonLoader jsonLoader) {
+        this.jsonLoader = jsonLoader;
+    }
 
     public PaymentResult requestPaymentToPortOne(String paymentId, String billingKey, String userId, String orderName, Integer amount) {
         HttpHeaders headers = new HttpHeaders();
@@ -50,9 +56,7 @@ public class PortOnePaymentClient {
             String responseBody = e.getResponseBodyAsString();
 
             try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode errorNode = objectMapper.readTree(responseBody);
-
+                JsonNode errorNode = jsonLoader.toJsonTree(responseBody);
                 // 예: type, message, code 등 원하는 필드 꺼내기
                 String errorType = errorNode.has("type") ? errorNode.get("type").asText() : "UNKNOWN";
                 String errorMessage = errorNode.has("message") ? errorNode.get("message").asText() : "No message";
@@ -87,8 +91,7 @@ public class PortOnePaymentClient {
                     paymentId
             );
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode resBody = objectMapper.valueToTree(res.getBody());
+            JsonNode resBody = jsonLoader.toJsonTree(res.getBody());
             System.out.println("resBody = " + resBody);
 
             // cancellation 객체 꺼내기 (null 체크 안전!)
@@ -109,9 +112,7 @@ public class PortOnePaymentClient {
         } catch (HttpClientErrorException e) {
             String responseBody = e.getResponseBodyAsString();
             try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode errorJson = objectMapper.readTree(responseBody);
-
+                JsonNode errorJson = jsonLoader.toJsonTree(responseBody);
                 String errorType = errorJson.has("type") ? errorJson.get("type").asText() : "UNKNOWN";
                 String errorMessage = errorJson.has("message") ? errorJson.get("message").asText() : "No message";
                 String errorCode = errorJson.has("code") ? errorJson.get("code").asText() : "";
@@ -140,8 +141,7 @@ public class PortOnePaymentClient {
                     billingKey
             );
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode root = objectMapper.valueToTree(res.getBody());
+            JsonNode root = jsonLoader.toJsonTree(res.getBody());
 
             // pgBillingKeyIssueResponses 배열 접근
             JsonNode responses = root.get("pgBillingKeyIssueResponses");

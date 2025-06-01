@@ -7,8 +7,7 @@ import com.swmStrong.demo.domain.web.entity.WebhookLog;
 import com.swmStrong.demo.domain.web.repository.WebhookLogRepository;
 import com.swmStrong.demo.infra.json.JsonLoader;
 import org.springframework.stereotype.Service;
-
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -42,8 +41,8 @@ public class WebhookServiceImpl implements WebhookService {
             WebhookLog log = WebhookLog.builder()
                     .type(type)
                     .timestamp(timestamp)
-                    .body(root.asText()) // 원본 그대로 저장
-                    .receivedAt(OffsetDateTime.now())
+                    .body(root.toString()) // 원본 그대로 저장
+                    .receivedAt(LocalDateTime.now())
                     .build();
 
             webhookLogRepository.save(log);

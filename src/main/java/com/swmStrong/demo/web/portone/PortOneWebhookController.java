@@ -1,6 +1,7 @@
 package com.swmStrong.demo.web.portone;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swmStrong.demo.domain.userSubscription.entity.UserSubscription;
 import com.swmStrong.demo.domain.userSubscription.repository.UserSubscriptionRepository;
 import com.swmStrong.demo.domain.userSubscription.service.UserSubscriptionService;
 import com.swmStrong.demo.domain.web.entity.WebhookLog;
@@ -53,12 +54,13 @@ public class PortOneWebhookController {
 
             JsonNode dataNode = root.get("data");
             String paymentId = dataNode.get("paymentId").asText();
-            String userId = "나중에 토큰으로 까서 가져오는 걸로 교체";
+            UserSubscription userSubscription = userSubscriptionRepository.findByPaymentId(paymentId);
+
             switch (type){
                 case "Transaction.Paid":
                     // 구독제 요금 결제 완료일 경우에는 이후 다음 구독 예약 결제 로직 수행
-                    if (userSubscriptionRepository.existsByPaymentId(paymentId)) {
-                        userSubscriptionService.scheduleUserSubscription(userId, paymentId);
+                    if (userSubscription != null) {
+                        userSubscriptionService.scheduleUserSubscription(userSubscription.getUser().getId(), paymentId);
                     }
             }
 

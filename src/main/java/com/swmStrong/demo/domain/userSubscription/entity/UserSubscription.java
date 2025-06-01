@@ -4,12 +4,14 @@ import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Getter
 @NoArgsConstructor()
 public class UserSubscription {
     @Id
@@ -49,18 +51,6 @@ public class UserSubscription {
 
     public void setUserSubscriptionStatus(UserSubscriptionStatus userSubscriptionStatus) {
         this.userSubscriptionStatus = userSubscriptionStatus;
-    }
-
-    public SubscriptionPlan getSubscriptionPlan() {
-        return subscriptionPlan;
-    }
-
-    public String getPaymentId() {
-        return paymentId;
-    }
-
-    public String getScheduledId() {
-        return scheduledId;
     }
 
 }

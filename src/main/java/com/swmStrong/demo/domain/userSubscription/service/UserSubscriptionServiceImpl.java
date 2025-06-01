@@ -50,14 +50,16 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         SubscriptionPlan subscriptionPlan = subscriptionPlanRepository.findById(subscriptionPlanId)
                 .orElseThrow(() -> new ApiException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
 
-        // billingKey로 paymentMethod 획득 및 결제 수단 등록
-        String paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
-        userPaymentRepository.save(
-                UserPayment.builder().
-                        user(user).
-                        billingKey(billingKey).
-                        paymentMethod(paymentMethod).
-                        build());
+        // 등록되지 않았던 결제수단이었을 경우에는 billingKey로 paymentMethod 획득 및 결제 수단 등록
+        if (!userPaymentRepository.existsByBillingKeyAndUserId(billingKey, userId)) {
+            String paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
+            userPaymentRepository.save(
+                    UserPayment.builder().
+                            user(user).
+                            billingKey(billingKey).
+                            paymentMethod(paymentMethod).
+                            build());
+        }
 
         // 결제 수단 이용해서 결제 로직 진행
         PaymentResult paymentResult =

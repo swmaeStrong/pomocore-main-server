@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserPaymentRepository extends JpaRepository<UserPayment, String> {
     UserPayment findByUser(User user);
+    boolean existsByBillingKeyAndUserId(String billingKey, String userId);
 }

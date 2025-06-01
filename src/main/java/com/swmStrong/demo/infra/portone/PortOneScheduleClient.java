@@ -37,8 +37,8 @@ public class PortOneScheduleClient {
         Map<String, Object> payment = Map.ofEntries(
                 Map.entry("billingKey", billingKey),
                 Map.entry("orderName", orderName),
-                Map.entry("customer", userId),
-                Map.entry("amount", amount),
+                Map.entry("customer", Map.of("id", userId)),
+                Map.entry("amount", Map.of("total", amount)),
                 Map.entry("currency", "KRW")
         );
         Map<String, Object> body = new HashMap<>();

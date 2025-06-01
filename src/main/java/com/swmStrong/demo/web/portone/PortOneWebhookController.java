@@ -19,21 +19,10 @@ import java.util.Map;
 @Tag(name = "포트원 웹훅 컨트롤러")
 @RestController
 public class PortOneWebhookController {
-    private final UserSubscriptionRepository userSubscriptionRepository;
-    private final WebhookLogRepository webhookLogRepository;
-    private final UserSubscriptionService userSubscriptionService;
-    private final JsonLoader jsonLoader;
     private final WebhookService webhookService;
 
     public PortOneWebhookController(
-            WebhookLogRepository webhookLogRepository,
-            UserSubscriptionService userSubscriptionService,
-            UserSubscriptionRepository userSubscriptionRepository,
-            JsonLoader jsonLoader, WebhookService webhookService) {
-        this.webhookLogRepository = webhookLogRepository;
-        this.userSubscriptionService = userSubscriptionService;
-        this.userSubscriptionRepository = userSubscriptionRepository;
-        this.jsonLoader = jsonLoader;
+            WebhookService webhookService) {
         this.webhookService = webhookService;
     }
     @Operation(

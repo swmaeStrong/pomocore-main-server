@@ -22,7 +22,7 @@ public class WebhookServiceImpl implements WebhookService {
             WebhookLogRepository webhookLogRepository,
             UserSubscriptionService userSubscriptionService,
             UserSubscriptionRepository userSubscriptionRepository,
-            JsonLoader jsonLoader, WebhookService webhookService) {
+            JsonLoader jsonLoader) {
         this.webhookLogRepository = webhookLogRepository;
         this.userSubscriptionService = userSubscriptionService;
         this.userSubscriptionRepository = userSubscriptionRepository;

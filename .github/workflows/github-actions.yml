@@ -86,6 +86,7 @@ jobs:
             echo "MONGO_URL=${{ secrets.MONGO_URL }}" >> .env
             echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
             echo "PORTONE_API_SECRET=${{ secrets.PORTONE_API_SECRET }}" >> .env
+            echo "JWT_SALT=${{ secrets.JWT_SALT }}" >> .env
             echo "REDIS_HOST=redis" >> .env
 
             # Run the new container

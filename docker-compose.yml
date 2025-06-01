@@ -33,6 +33,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       PORTONE_API_SECRET: ${PORTONE_API_SECRET}
+      JWT_SALT: ${JWT_SALT}
     networks:
       - backend
 

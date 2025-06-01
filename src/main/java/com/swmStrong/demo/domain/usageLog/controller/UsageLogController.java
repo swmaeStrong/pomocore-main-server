@@ -1,13 +1,16 @@
 package com.swmStrong.demo.domain.usageLog.controller;
 
+import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
 import com.swmStrong.demo.domain.usageLog.service.UsageLogService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -25,27 +28,36 @@ public class UsageLogController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "유저 사용 로그 저장",
             description =
                 "<p> 유저의 사용 로그를 저장한다. </p>"+
                 "<p> 배열 안에 json이 있는 형태로 보내면 된다.</p>"
     )
     @PostMapping
-    public ResponseEntity<Void> saveUsageLog(@RequestBody List<SaveUsageLogDto> usageLogDtoList) {
-        usageLogService.saveAll(usageLogDtoList);
+    public ResponseEntity<Void> saveUsageLog(
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
+            @RequestBody List<SaveUsageLogDto> usageLogDtoList
+    ) {
+        usageLogService.saveAll(securityPrincipal.getUserId(), usageLogDtoList);
         return ResponseEntity.ok().build();
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "유저 사용 로그 조회 (전체)",
             description =
                 "<p> 유저의 전체 사용 로그를 조회한다. </p>" +
                 "<p> 정리되지 않은 로우 데이터를 반환한다. </p>"
     )
     @GetMapping("/all")
-    public ResponseEntity<List<UsageLogResponseDto>> getUsageLogById(@RequestParam String userId) {
-        return ResponseEntity.ok(usageLogService.getUsageLogByUserId(userId));
+    public ResponseEntity<List<UsageLogResponseDto>> getUsageLogById(
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal
+    ) {
+        return ResponseEntity.ok(usageLogService.getUsageLogByUserId(securityPrincipal.getUserId()));
     }
+
+
 
     @Operation(
             summary = "날짜별 유저 사용 로그 조회",

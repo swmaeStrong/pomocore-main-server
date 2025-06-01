@@ -23,14 +23,14 @@ public class LeaderboardController {
     }
 
     @Operation(
-            summary = "리더보드 조회",
+            summary = "리더보드 조회(일별)",
             description =
                 "<p> 카테고리별로 N등 까지의 유저와 점수, 순위를 출력한다. </p>" +
                 "<p> page 의 기본값은 1이다. </p>" +
                 "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
     )
-    @GetMapping("/{category}")
-    public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategory(
+    @GetMapping("/{category}/daily")
+    public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategoryDaily(
             @PathVariable String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -38,7 +38,45 @@ public class LeaderboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
             ) {
-        return ResponseEntity.ok(leaderboardService.getLeaderboardPage(category, page, size, date));
+        return ResponseEntity.ok(leaderboardService.getLeaderboardPageDaily(category, page, size, date));
+    }
+
+    @Operation(
+            summary = "리더보드 조회(주간)",
+            description =
+                "<p> 카테고리별로 N등 까지의 유저와 점수, 순위를 출력한다. </p>" +
+                "<p> page 의 기본값은 1이다. </p>" +
+                "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
+    )
+    @GetMapping("/{category}/weely")
+    public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategoryWeely(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return ResponseEntity.ok(leaderboardService.getLeaderboardPageWeekly(category, page, size, date));
+    }
+
+    @Operation(
+            summary = "리더보드 조회(월간)",
+            description =
+                "<p> 카테고리별로 N등 까지의 유저와 점수, 순위를 출력한다. </p>" +
+                "<p> page 의 기본값은 1이다. </p>" +
+                "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
+    )
+    @GetMapping("/{category}/monthly")
+    public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategoryMonthly(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return ResponseEntity.ok(leaderboardService.getLeaderboardPageMonthly(category, page, size, date));
     }
 
     @Operation(

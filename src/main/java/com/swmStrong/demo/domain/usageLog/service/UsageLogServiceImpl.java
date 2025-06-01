@@ -40,14 +40,14 @@ public class UsageLogServiceImpl implements UsageLogService {
 
     //TODO: 문제가 발생할 가능성도 있으니 try - except 구조로 변경
     @Override
-    public void saveAll(List<SaveUsageLogDto> saveUsageLogDtoList) {
+    public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
         for (SaveUsageLogDto saveUsageLogDto : saveUsageLogDtoList) {
-            save(saveUsageLogDto);
+            save(userId, saveUsageLogDto);
         }
     }
 
 
-    private void save(SaveUsageLogDto saveUsageLogDto) {
+    private void save(String userId, SaveUsageLogDto saveUsageLogDto) {
         //TODO: 현재 데이터 라벨링 관련 논의 시 app이 우선권을 가짐. 이후 변경되는 점 업데이트 필요
         Set<ObjectId> categories = patternMatcher.search(saveUsageLogDto.app());
         if (categories.isEmpty()) {
@@ -59,7 +59,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         }
 
         UsageLog usageLog = UsageLog.builder()
-                .userId(saveUsageLogDto.userId())
+                .userId(userId)
                 .app(saveUsageLogDto.app())
                 .title(saveUsageLogDto.title())
                 .categories(categories)

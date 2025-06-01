@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
 import java.util.*;
 
 @Slf4j
@@ -39,35 +40,45 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         ObjectId categoryObjectId = new ObjectId(categoryId);
         String category = categoryProvider.getCategoryById(categoryObjectId);
 
-        String key = generateKey(category, day);
-        log.info("Increase score for user {} to {}", userId, duration);
-        leaderboardRepository.increaseScoreByUserId(key, userId, duration);
+        String dailyKey = generateDailyKey(category, day);
+        log.info("Increase score for user {} to {} for daily", userId, duration);
+        leaderboardRepository.increaseScoreByUserId(dailyKey, userId, duration);
+        String weeklyKey = generateWeeklyKey(category, day);
+        log.info("Increase score for user {} to {} for weekly", userId, duration);
+        leaderboardRepository.increaseScoreByUserId(weeklyKey, userId, duration);
+        String monthlyKey = generateMonthlyKey(category, day);
+        log.info("Increase score for user {} to {} for monthly", userId, duration);
+        leaderboardRepository.increaseScoreByUserId(monthlyKey, userId, duration);
     }
 
     @Override
-    public List<LeaderboardResponseDto> getLeaderboardPage(String category, int page, int size, LocalDate date) {
+    public List<LeaderboardResponseDto> getLeaderboardPageDaily(String category, int page, int size, LocalDate date) {
         if (date == null) {
             date = LocalDate.now();
         }
 
-        String key = generateKey(category, date);
-        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findPageWithSize(key, page, size);
+        String key = generateDailyKey(category, date);
+        return getPageByKey(key, page, size);
+    }
 
-        List<LeaderboardResponseDto> response = new ArrayList<>();
-        long rank = (long) (page-1) * size + 1;
-        for (ZSetOperations.TypedTuple<String> tuple : tuples) {
-            String userId = tuple.getValue();
-            double score = Optional.ofNullable(tuple.getScore()).orElse(0.0);
-            response.add(
-                    LeaderboardResponseDto.builder()
-                            .userId(userId)
-                            .nickname(userInfoProvider.getNicknameByUserId(userId))
-                            .score(score)
-                            .rank(rank++)
-                            .build()
-            );
+
+    @Override
+    public List<LeaderboardResponseDto> getLeaderboardPageWeekly(String category, int page, int size, LocalDate date) {
+        if (date == null) {
+            date = LocalDate.now();
         }
-        return response;
+
+        String key = generateWeeklyKey(category, date);
+        return getPageByKey(key, page, size);
+    }
+
+    @Override
+    public List<LeaderboardResponseDto> getLeaderboardPageMonthly(String category, int page, int size, LocalDate date) {
+        if (date == null) {
+            date = LocalDate.now();
+        }
+        String key = generateMonthlyKey(category, date);
+        return getPageByKey(key, page, size);
     }
 
     @Override
@@ -76,7 +87,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             date = LocalDate.now();
         }
 
-        String key = generateKey(category, date);
+        String key = generateDailyKey(category, date);
 
         return LeaderboardResponseDto.builder()
                 .userId(userId)
@@ -92,7 +103,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             date = LocalDate.now();
         }
 
-        String key = generateKey(category, date);
+        String key = generateDailyKey(category, date);
         Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findAll(key);
 
         long rank = 1;
@@ -121,13 +132,46 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         List<String> categories = categoryProvider.getCategories();
 
         for (String category : categories) {
-            response.put(category, getLeaderboardPage(category, 1, 10, date));
+            response.put(category, getLeaderboardPageDaily(category, 1, 10, date));
         }
         return response;
     }
 
-    private String generateKey(String category, LocalDate day) {
-        return LEADERBOARD_KEY_PREFIX + category + ":" + day.toString();
+    private String generateDailyKey(String category, LocalDate day) {
+        return String.format("%s:%s:%s", LEADERBOARD_KEY_PREFIX, category, day);
+    }
+
+    private String generateWeeklyKey(String category, LocalDate day) {
+        WeekFields weekFields = WeekFields.ISO;
+        int year = day.get(weekFields.weekBasedYear());
+        int weekNumber = day.get(weekFields.weekOfWeekBasedYear());
+        return String.format("%s:%s:%d-W%d", LEADERBOARD_KEY_PREFIX, category, year, weekNumber);
+    }
+
+    private String generateMonthlyKey(String category, LocalDate day) {
+        int year = day.getYear();
+        int month = day.getMonthValue();
+        return String.format("%s:%s:%d-M%d", LEADERBOARD_KEY_PREFIX, category, year, month);
+    }
+
+    private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size) {
+        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findPageWithSize(key, page, size);
+
+        List<LeaderboardResponseDto> response = new ArrayList<>();
+        long rank = (long) (page - 1) * size + 1;
+        for (ZSetOperations.TypedTuple<String> tuple : tuples) {
+            String userId = tuple.getValue();
+            double score = Optional.ofNullable(tuple.getScore()).orElse(0.0);
+            response.add(
+                    LeaderboardResponseDto.builder()
+                            .userId(userId)
+                            .nickname(userInfoProvider.getNicknameByUserId(userId))
+                            .score(score)
+                            .rank(rank++)
+                            .build()
+            );
+        }
+        return response;
     }
 }
 

@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface UsageLogService {
-    void saveAll(List<SaveUsageLogDto> saveUsageLogDtoList);
+    void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList);
     List<UsageLogResponseDto> getUsageLogByUserId(String userId);
     List<CategoryUsageDto> getUsageLogByUserIdAndDate(String userId, LocalDate date);
 }

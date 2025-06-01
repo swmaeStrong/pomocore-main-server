@@ -1,4 +1,4 @@
-package com.swmStrong.demo.domain.userPayment.entity;
+package com.swmStrong.demo.domain.userPaymentMethod.entity;
 import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import com.swmStrong.demo.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserPayment extends BaseEntity {
+public class UserPaymentMethod extends BaseEntity {
 
     @Id
     private final String id = UUID.randomUUID().toString();
@@ -26,7 +26,7 @@ public class UserPayment extends BaseEntity {
     private String paymentMethod;
 
     @Builder
-    public UserPayment(User user, String billingKey, String paymentMethod) {
+    public UserPaymentMethod(User user, String billingKey, String paymentMethod) {
         this.user = user;
         this.billingKey = billingKey;
         this.paymentMethod = paymentMethod;

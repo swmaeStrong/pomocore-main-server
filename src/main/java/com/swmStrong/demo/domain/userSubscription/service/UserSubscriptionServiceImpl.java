@@ -6,8 +6,8 @@ import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.subscriptionPlan.repository.SubscriptionPlanRepository;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
-import com.swmStrong.demo.domain.userPayment.entity.UserPayment;
-import com.swmStrong.demo.domain.userPayment.repository.UserPaymentRepository;
+import com.swmStrong.demo.domain.userPaymentMethod.entity.UserPaymentMethod;
+import com.swmStrong.demo.domain.userPaymentMethod.repository.UserPaymentMethodRepository;
 import com.swmStrong.demo.domain.userSubscription.entity.UserSubscription;
 import com.swmStrong.demo.domain.userSubscription.entity.UserSubscriptionStatus;
 import com.swmStrong.demo.domain.userSubscription.repository.UserSubscriptionRepository;
@@ -25,18 +25,18 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
     private final UserRepository userRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final PortOneBillingClient portOneBillingClient;
-    private final UserPaymentRepository userPaymentRepository;
+    private final UserPaymentMethodRepository userPaymentMethodRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
 
     public UserSubscriptionServiceImpl(UserRepository userRepository,
                                        SubscriptionPlanRepository subscriptionPlanRepository,
                                        PortOneBillingClient portOneBillingClient,
-                                       UserPaymentRepository userPaymentRepository,
+                                       UserPaymentMethodRepository userPaymentMethodRepository,
                                        UserSubscriptionRepository userSubscriptionRepository) {
         this.userRepository = userRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.portOneBillingClient = portOneBillingClient;
-        this.userPaymentRepository = userPaymentRepository;
+        this.userPaymentMethodRepository = userPaymentMethodRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
     }
 
@@ -51,10 +51,10 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
                 .orElseThrow(() -> new ApiException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
 
         // 등록되지 않았던 결제수단이었을 경우에는 billingKey로 paymentMethod 획득 및 결제 수단 등록
-        if (!userPaymentRepository.existsByBillingKeyAndUserId(billingKey, userId)) {
+        if (!userPaymentMethodRepository.existsByBillingKeyAndUserId(billingKey, userId)) {
             String paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
-            userPaymentRepository.save(
-                    UserPayment.builder().
+            userPaymentMethodRepository.save(
+                    UserPaymentMethod.builder().
                             user(user).
                             billingKey(billingKey).
                             paymentMethod(paymentMethod).
@@ -100,8 +100,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 
 
         // 기존 유저 결제 정보 및 구독 정보 가져오기
-        UserPayment userPayment = userPaymentRepository.findByUser(user);
-        String billingKey = userPayment.getBillingKey();
+        UserPaymentMethod userPaymentMethod = userPaymentMethodRepository.findByUser(user);
+        String billingKey = userPaymentMethod.getBillingKey();
 
         SubscriptionPlan subscriptionPlan = userSubscription.getSubscriptionPlan();
         String newPaymentId = UUID.randomUUID().toString();

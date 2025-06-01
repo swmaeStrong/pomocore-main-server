@@ -24,9 +24,15 @@ public enum ErrorCode implements BaseCode {
 
 
     // 커스텀 에러
+    USER_NOT_FOUND("4041", "존재하지 않는 유저입니다", HttpStatus.NOT_FOUND),
+    SUBSCRIPTION_PLAN_NOT_FOUND("4042", "존재하지 않는 구독 플랜입니다", HttpStatus.NOT_FOUND),
     DUPLICATE_NICKNAME("4091", "이미 존재하는 닉네임입니다.", HttpStatus.CONFLICT),
-    DUPLICATE_DEVICE_ID("4092", "이미 등록된 기기입니다.", HttpStatus.CONFLICT);
+    DUPLICATE_USER_ID("4092", "이미 등록된 유저 아이디입니다.", HttpStatus.CONFLICT),
 
+
+    // 결제 관련 에러
+    PAYMENT_FAILED("5001", "결제에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    PAYMENT_CANCELLATION_FAILED("5002", "결제 취소가 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     private final String code;

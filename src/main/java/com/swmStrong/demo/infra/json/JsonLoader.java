@@ -1,5 +1,6 @@
 package com.swmStrong.demo.infra.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -20,4 +21,13 @@ public class JsonLoader {
             throw new RuntimeException(e);
         }
     }
+
+    public JsonNode toJsonTree(Object obj) {
+        try {
+            return objectMapper.valueToTree(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

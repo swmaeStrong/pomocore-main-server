@@ -32,6 +32,7 @@ services:
       MONGO_URL: ${MONGO_URL}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      PORTONE_API_SECRET: ${PORTONE_API_SECRET}
     networks:
       - backend
 

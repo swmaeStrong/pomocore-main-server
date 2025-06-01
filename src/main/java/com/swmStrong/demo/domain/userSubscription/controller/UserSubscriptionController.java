@@ -34,6 +34,11 @@ public class UserSubscriptionController {
     }
 
 
+    @Operation(
+            summary = "현재 구독한 플랜을 결제 취소한다 ( 이미 결제한 경우 )",
+            description =
+                    "<p> 구독 중인 플랜 결제를 취소한다. </p>"
+    )
     @PutMapping("/current")
     ResponseEntity<ApiResponse<Void>> cancelCurrentSubscription(String userSubscriptionId, String reason) {
         userSubscriptionService.cancelCurrentSubscription(userSubscriptionId, reason);
@@ -43,6 +48,13 @@ public class UserSubscriptionController {
                 .body(ApiResponse.success(SuccessCode._OK, null));
     }
 
+
+    @Operation(
+            summary = " 구독 예정인 플랜을 자동 결제 취소한다 ",
+            description =
+                    "<p> 현재 유저가 플랜 구독중일 때 </p>" +
+                    "<p> 구독 예정되어있던 플랜을 자동 결제 취소한다. </p>"
+    )
     @DeleteMapping("/scheduled")
     ResponseEntity<ApiResponse<Void>> cancelScheduledSubscription(String userSubscriptionId) {
         userSubscriptionService.cancelScheduledSubscription(userSubscriptionId);

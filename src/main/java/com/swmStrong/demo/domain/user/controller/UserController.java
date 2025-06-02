@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.user.controller;
 
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.exception.code.SuccessCode;
+import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.domain.user.dto.UnregisteredRequestDto;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
 import com.swmStrong.demo.domain.user.dto.UserResponseDto;
@@ -27,11 +28,12 @@ public class UserController {
             description =
                     "<p> 새로운 유저를 생성한다.</p>"
     )
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ApiResponse<UserResponseDto>> createGuestUser(@RequestBody UserRequestDto userRequestDto) {
-        return ResponseEntity
-                .status(SuccessCode._CREATED.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._CREATED, userService.registerGuestNickname(userRequestDto)));
+        return CustomResponseEntity.of(
+                SuccessCode._CREATED,
+                userService.registerGuestNickname(userRequestDto)
+        );
     }
 
     @Operation(
@@ -41,10 +43,10 @@ public class UserController {
     )
     @GetMapping("/is-nickname-duplicated")
     public ResponseEntity<ApiResponse<Boolean>> isGuestNicknameRegistered(@RequestParam(required = true) String nickname) {
-        Boolean result = userService.isGuestNicknameDuplicated(nickname);
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, result));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                userService.isGuestNicknameDuplicated(nickname)
+        );
     }
 
     @Operation(
@@ -55,7 +57,10 @@ public class UserController {
                 "<p> 등록일시같은 추가적인 유저 구분 수단을 반드시 보관하고 있고, 토큰 발급 시 넣어야 한다.</p>"
     )
     @PostMapping("/get-token")
-    public ResponseEntity<TokenResponseDto> getToken(HttpServletRequest request, @RequestBody UnregisteredRequestDto unregisteredRequestDto) {
-        return ResponseEntity.ok(userService.getToken(request, unregisteredRequestDto));
+    public ResponseEntity<ApiResponse<TokenResponseDto>> getToken(HttpServletRequest request, @RequestBody UnregisteredRequestDto unregisteredRequestDto) {
+        return CustomResponseEntity.of(
+                SuccessCode._CREATED,
+                userService.getToken(request, unregisteredRequestDto)
+        );
     }
 }

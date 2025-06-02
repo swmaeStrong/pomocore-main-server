@@ -1,5 +1,8 @@
 package com.swmStrong.demo.domain.loginCredential.controller;
 
+import com.swmStrong.demo.common.exception.code.SuccessCode;
+import com.swmStrong.demo.common.response.ApiResponse;
+import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.loginCredential.dto.LoginRequestDto;
 import com.swmStrong.demo.domain.loginCredential.dto.UpgradeRequestDto;
@@ -31,9 +34,9 @@ public class LoginCredentialController {
                 "<p> 당장은 바로 회원 가입하는 기능이 없다. (추가 예정) </p>"
     )
     @PostMapping("/register")
-    public ResponseEntity<Void> upgradeToMember(@RequestBody UpgradeRequestDto upgradeRequestDto) {
+    public ResponseEntity<ApiResponse<Void>> upgradeToMember(@RequestBody UpgradeRequestDto upgradeRequestDto) {
         loginCredentialService.upgradeToUser(upgradeRequestDto);
-        return ResponseEntity.ok().build();
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
     @Operation(
@@ -43,12 +46,15 @@ public class LoginCredentialController {
                 "<p> User-Agent가 다르면 리프레시가 안된다. </p>"
     )
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDto> tokenRefresh(
+    public ResponseEntity<ApiResponse<TokenResponseDto>> tokenRefresh(
             HttpServletRequest request,
             @RequestBody RefreshTokenRequestDto refreshTokenRequestDto,
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal
     ) {
-        return ResponseEntity.ok(loginCredentialService.tokenRefresh(securityPrincipal.getUserId(), request, refreshTokenRequestDto));
+        return CustomResponseEntity.of(
+                SuccessCode._CREATED,
+                loginCredentialService.tokenRefresh(securityPrincipal.getUserId(), request, refreshTokenRequestDto)
+        );
     }
 
     @Operation(
@@ -58,8 +64,11 @@ public class LoginCredentialController {
                 "<p> 해당 기능은 spring security로 선언해 service 레이어에서 찾을 수 없다. </p>"
     )
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponse<TokenResponseDto>> login(@RequestBody LoginRequestDto loginRequestDto) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                new TokenResponseDto(null, null)
+        );
     }
 
     @Operation(
@@ -69,8 +78,8 @@ public class LoginCredentialController {
                 "<p> 해당 기능은 spring security로 선언해 service 레이어에서 찾을 수 없다. </p>"
     )
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 }
 

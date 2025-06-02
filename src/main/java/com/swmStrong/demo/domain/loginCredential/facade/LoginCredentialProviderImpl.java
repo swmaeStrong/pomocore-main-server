@@ -21,6 +21,7 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
     }
 
     @Override
+    //TODO: loginCredential을 기반으로 조회하면 비회원은 조회당하지 못합니다.
     public SecurityPrincipal loadPrincipalByUserId(String userId) {
         LoginCredential loginCredential = loginCredentialRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));

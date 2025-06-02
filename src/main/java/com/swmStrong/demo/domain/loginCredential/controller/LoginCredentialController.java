@@ -53,7 +53,7 @@ public class LoginCredentialController {
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._CREATED,
-                loginCredentialService.tokenRefresh(securityPrincipal.getUserId(), request, refreshTokenRequestDto)
+                loginCredentialService.tokenRefresh(securityPrincipal.userId(), request, refreshTokenRequestDto)
         );
     }
 

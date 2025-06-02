@@ -8,22 +8,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Getter
-@Builder
-public class SecurityPrincipal implements UserDetails {
-    private final String userId;
-    private final String email;
-    private final GrantedAuthority grantedAuthority;
 
-    public SecurityPrincipal(String userId, String email, GrantedAuthority grantedAuthority) {
-        this.userId = userId;
-        this.email = email;
-        this.grantedAuthority = grantedAuthority;
-    }
+@Builder
+public record SecurityPrincipal(
+        String userId,
+        String nickname,
+        GrantedAuthority grantedAuthority
+) implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return nickname;
     }
 
     @Override

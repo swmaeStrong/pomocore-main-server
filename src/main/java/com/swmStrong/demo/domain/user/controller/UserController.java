@@ -5,6 +5,7 @@ import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.domain.user.dto.UnregisteredRequestDto;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
+import com.swmStrong.demo.domain.user.dto.UserResponseDto;
 import com.swmStrong.demo.domain.user.service.UserService;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,11 +28,10 @@ public class UserController {
                     "<p> 새로운 유저를 생성한다.</p>"
     )
     @PostMapping()
-    public ResponseEntity<ApiResponse<Void>> createGuestUser(@RequestBody UserRequestDto userRequestDto) {
-        userService.registerGuestNickname(userRequestDto.userId(), userRequestDto.nickname());
+    public ResponseEntity<ApiResponse<UserResponseDto>> createGuestUser(@RequestBody UserRequestDto userRequestDto) {
         return ResponseEntity
                 .status(SuccessCode._CREATED.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._CREATED, null));
+                .body(ApiResponse.success(SuccessCode._CREATED, userService.registerGuestNickname(userRequestDto)));
     }
 
     @Operation(

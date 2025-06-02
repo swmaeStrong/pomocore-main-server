@@ -18,12 +18,6 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role = Role.UNREGISTERED;
 
-    public User(String id, String nickname, Role role) {
-        this.id = id;
-        this.nickname = nickname;
-        this.role = role;
-    }
-
     public static User of(UserRequestDto userRequestDto) {
         return new User(
                 userRequestDto.userId(),
@@ -34,5 +28,9 @@ public class User extends BaseEntity {
     public User(String id, String nickname) {
         this.id = id;
         this.nickname = nickname;
+    }
+
+    public void updateRole(Role role) {
+        this.role = role;
     }
 }

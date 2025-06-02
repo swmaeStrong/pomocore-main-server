@@ -10,7 +10,6 @@ public record UserResponseDto(
         LocalDateTime createdAt
 ) {
     public static UserResponseDto of(User user) {
-        System.out.println(user.getCreatedAt());
         return new UserResponseDto(
                 user.getId(),
                 user.getNickname(),

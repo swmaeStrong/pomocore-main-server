@@ -4,6 +4,8 @@ import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.global.Role;
 import com.swmStrong.demo.domain.user.dto.UnregisteredRequestDto;
+import com.swmStrong.demo.domain.user.dto.UserRequestDto;
+import com.swmStrong.demo.domain.user.dto.UserResponseDto;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
 import com.swmStrong.demo.util.token.TokenUtil;
@@ -24,16 +26,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void registerGuestNickname(String userId, String nickname) {
+    public UserResponseDto registerGuestNickname(UserRequestDto userRequestDto) {
 
-        if (userRepository.existsByNickname(nickname)){
+        if (userRepository.existsByNickname(userRequestDto.nickname())){
             throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
-        if (userRepository.existsById(userId)){
+        if (userRepository.existsById(userRequestDto.userId())){
             throw new ApiException(ErrorCode.DUPLICATE_USER_ID);
         }
+        User user = userRepository.save(User.of(userRequestDto));
 
-        userRepository.save(new User(userId, nickname));
+        return UserResponseDto.of(user);
     }
 
     @Override

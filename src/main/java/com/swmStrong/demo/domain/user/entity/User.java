@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.user.entity;
 
 import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import com.swmStrong.demo.domain.global.Role;
+import com.swmStrong.demo.domain.user.dto.UserRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,15 +18,21 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role = Role.UNREGISTERED;
 
-
-    public User(String id, String nickname) {
-        this.id = id;
-        this.nickname = nickname;
-    }
-
     public User(String id, String nickname, Role role) {
         this.id = id;
         this.nickname = nickname;
         this.role = role;
+    }
+
+    public static User of(UserRequestDto userRequestDto) {
+        return new User(
+                userRequestDto.userId(),
+                userRequestDto.nickname()
+        );
+    }
+
+    public User(String id, String nickname) {
+        this.id = id;
+        this.nickname = nickname;
     }
 }

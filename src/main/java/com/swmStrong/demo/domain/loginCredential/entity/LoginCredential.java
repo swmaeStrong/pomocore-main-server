@@ -1,6 +1,5 @@
 package com.swmStrong.demo.domain.loginCredential.entity;
 
-import com.swmStrong.demo.domain.global.Role;
 import com.swmStrong.demo.domain.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
@@ -19,9 +18,14 @@ public class LoginCredential extends User {
 
     private String password;
 
+    private void setUser(User user) {
+        this.id = user.getId();
+        this.nickname = user.getNickname();
+    }
+
     @Builder
     public LoginCredential(User user, String email, String password) {
-        super(user.getId(), user.getNickname(), Role.USER);
+        setUser(user);
         this.email = email;
         this.password = password;
     }

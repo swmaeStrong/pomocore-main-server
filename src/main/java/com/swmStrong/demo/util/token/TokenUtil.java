@@ -3,6 +3,7 @@ package com.swmStrong.demo.util.token;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.global.Role;
 import com.swmStrong.demo.domain.loginCredential.facade.LoginCredentialProvider;
+import com.swmStrong.demo.domain.user.facade.UserDetailsProvider;
 import com.swmStrong.demo.util.redis.RedisUtil;
 import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
@@ -28,10 +29,12 @@ import static com.swmStrong.demo.util.redis.RedisUtil.REDIS_REFRESH_TOKEN_PREFIX
 public class TokenUtil {
     private final RedisUtil redisUtil;
     private final LoginCredentialProvider loginCredentialProvider;
+    private final UserDetailsProvider userDetailsProvider;
 
-    public TokenUtil(RedisUtil redisUtil, LoginCredentialProvider loginCredentialProvider) {
+    public TokenUtil(RedisUtil redisUtil, LoginCredentialProvider loginCredentialProvider, UserDetailsProvider userDetailsProvider) {
         this.redisUtil = redisUtil;
         this.loginCredentialProvider = loginCredentialProvider;
+        this.userDetailsProvider = userDetailsProvider;
     }
 
     @Value("${spring.jwt.salt}")
@@ -161,7 +164,7 @@ public class TokenUtil {
 
         String userId = claims.getSubject();
         String role = claims.get("role", String.class);
-        SecurityPrincipal principal = loginCredentialProvider.loadPrincipalByUserId(userId);
+        SecurityPrincipal principal = userDetailsProvider.loadPrincipalByUserId(userId);
         if (userId != null && role != null) {
             List<GrantedAuthority> authority = List.of(new SimpleGrantedAuthority(role));
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authority);

@@ -21,26 +21,13 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
     }
 
     @Override
-    //TODO: loginCredential을 기반으로 조회하면 비회원은 조회당하지 못합니다.
-    public SecurityPrincipal loadPrincipalByUserId(String userId) {
-        LoginCredential loginCredential = loginCredentialRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
-
-        return SecurityPrincipal.builder()
-                .userId(loginCredential.getId())
-                .email(loginCredential.getEmail())
-                .grantedAuthority(new SimpleGrantedAuthority(loginCredential.getRole().getAuthority()))
-                .build();
-    }
-
-    @Override
     public SecurityPrincipal loadPrincipalByEmail(String email) {
         LoginCredential loginCredential = loginCredentialRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("등록되지 않은 이메일 입니다."));
 
         return SecurityPrincipal.builder()
                 .userId(loginCredential.getId())
-                .email(loginCredential.getEmail())
+                .nickname(loginCredential.getNickname())
                 .grantedAuthority(new SimpleGrantedAuthority(loginCredential.getRole().getAuthority()))
                 .build();
     }

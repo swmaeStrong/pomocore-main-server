@@ -42,7 +42,7 @@ public class UsageLogController {
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
             @RequestBody List<SaveUsageLogDto> usageLogDtoList
     ) {
-        usageLogService.saveAll(securityPrincipal.getUserId(), usageLogDtoList);
+        usageLogService.saveAll(securityPrincipal.userId(), usageLogDtoList);
         return CustomResponseEntity.of(SuccessCode._OK);
     }
 
@@ -59,7 +59,7 @@ public class UsageLogController {
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                usageLogService.getUsageLogByUserId(securityPrincipal.getUserId())
+                usageLogService.getUsageLogByUserId(securityPrincipal.userId())
         );
     }
 

@@ -10,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
@@ -38,20 +39,28 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         Role role = Role.valueOf(principal.getAuthorities().stream()
                 .findFirst()
                 .map(GrantedAuthority::getAuthority)
-                .orElseThrow(() -> new IllegalStateException("권한이 존재하지 않습니다."))
+                .orElseThrow(() -> new AuthenticationException("유저에게 포함된 권한을 찾을 수 없습니다.") {
+                })
         );
 
-        String userAgent = request.getHeader("User-Agent");
 
+        String userAgent = request.getHeader("User-Agent");
         TokenResponseDto tokenResponseDto = tokenUtil.getToken(principal.getUserId(), userAgent, role);
 
+        response.setStatus(HttpServletResponse.SC_OK);
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
 
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put(TokenType.accessToken.toString(), tokenResponseDto.accessToken());
-        responseBody.put(TokenType.refreshToken.toString(), tokenResponseDto.refreshToken());
 
+        Map<String,Object> tokenMap = new HashMap<>();
+        tokenMap.put(TokenType.accessToken.toString(), tokenResponseDto.accessToken());
+        tokenMap.put(TokenType.refreshToken.toString(), tokenResponseDto.refreshToken());
+
+        responseBody.put("isSuccess", true);
+        responseBody.put("code", "200A");
+        responseBody.put("message", "로그인 되었습니다.");
+        responseBody.put("data", tokenMap);
         objectMapper.writeValue(response.getWriter(), responseBody);
     }
 }

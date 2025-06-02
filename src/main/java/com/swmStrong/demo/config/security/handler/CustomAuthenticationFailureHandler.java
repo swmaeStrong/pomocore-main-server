@@ -28,9 +28,13 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-
         Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("failMessage", exception.getMessage());
+
+        responseMap.put("isSuccess", false);
+        responseMap.put("code", "401A");
+        responseMap.put("message", exception.getMessage());
+        responseMap.put("data", null);
+
         objectMapper.writeValue(response.getOutputStream(), responseMap);
     }
 }

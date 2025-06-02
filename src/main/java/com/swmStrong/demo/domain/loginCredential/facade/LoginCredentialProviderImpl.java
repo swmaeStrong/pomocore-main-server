@@ -35,7 +35,7 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
     @Override
     public SecurityPrincipal loadPrincipalByEmail(String email) {
         LoginCredential loginCredential = loginCredentialRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 이메일 입니다."));
+                .orElseThrow(() -> new UsernameNotFoundException("등록되지 않은 이메일 입니다."));
 
         return SecurityPrincipal.builder()
                 .userId(loginCredential.getId())
@@ -47,7 +47,7 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
     @Override
     public boolean isPasswordMatched(String email, String password) {
         LoginCredential loginCredential = loginCredentialRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("등록되지 않는 이메일입니다."));
+                .orElseThrow(() -> new UsernameNotFoundException("등록되지 않은 이메일입니다."));
 
         return passwordEncoder.matches(password, loginCredential.getPassword());
     }

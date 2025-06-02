@@ -1,7 +1,6 @@
 package com.swmStrong.demo.domain.subscriptionPlan.entity;
 
 public enum SubscriptionPlanType {
-    FREE("무료 플랜"),
     BASIC("기본 플랜"),
     PREMIUM("프리미엄 플랜");
 

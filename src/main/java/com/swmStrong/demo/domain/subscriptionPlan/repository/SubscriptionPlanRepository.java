@@ -19,5 +19,5 @@ import java.util.List;
 )
 
 public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPlan, String> {
-    List<SubscriptionPlan> findAllByAvail(boolean isAvail);
+    List<SubscriptionPlan> findAllByAvailability(boolean availability);
 }

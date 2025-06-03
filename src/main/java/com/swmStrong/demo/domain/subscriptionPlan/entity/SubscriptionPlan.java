@@ -27,17 +27,17 @@ public class SubscriptionPlan extends BaseEntity {
 
     private Integer price;
 
-    private boolean isAvail;
+    private boolean availability;
 
     @Builder
     public SubscriptionPlan(SubscriptionPlanType subscriptionPlanType,
                             BillingCycle billingCycle,
                             Integer price,
-                            boolean isAvail) {
+                            boolean availability) {
         this.subscriptionPlanType = subscriptionPlanType;
         this.billingCycle = billingCycle;
         this.price = price;
-        this.isAvail = isAvail; // 처음 생성할 때에는 구독정책 항상 true
+        this.availability = availability; // 처음 생성할 때에는 구독정책 항상 true
     }
 
 

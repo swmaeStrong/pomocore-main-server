@@ -23,13 +23,13 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                         .subscriptionPlanType(req.subscriptionPlanType())
                         .billingCycle(req.billingCycle())
                         .price(req.price())
-                        .isAvail(true)
+                        .availability(true)
                         .build());
 
     }
 
     public List<SubscriptionPlanRes> getSubscriptionPlans(){
-        List<SubscriptionPlan> subscriptionPlans = subscriptionPlanRepository.findAllByAvail(true);
+        List<SubscriptionPlan> subscriptionPlans = subscriptionPlanRepository.findAllByAvailability(true);
         return subscriptionPlans.stream()
                 .map(SubscriptionPlanRes::from)
                 .collect(Collectors.toList());

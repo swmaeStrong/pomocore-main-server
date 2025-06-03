@@ -29,7 +29,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
     }
 
     public List<SubscriptionPlanRes> getSubscriptionPlans(){
-        List<SubscriptionPlan> subscriptionPlans = subscriptionPlanRepository.findAll();
+        List<SubscriptionPlan> subscriptionPlans = subscriptionPlanRepository.findAllByAvail(true);
         return subscriptionPlans.stream()
                 .map(SubscriptionPlanRes::from)
                 .collect(Collectors.toList());

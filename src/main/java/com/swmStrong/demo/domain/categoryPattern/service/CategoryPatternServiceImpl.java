@@ -33,8 +33,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
             throw new ApiException(ErrorCode.DUPLICATE_CATEGORY);
         }
 
-        //TODO: 색깔에 대한 정규표현식 만들어두기 (#000000 - #FFFFFF)
-
         CategoryPattern categoryPattern = CategoryPattern.builder()
                 .category(categoryRequestDto.category())
                 .color(categoryRequestDto.color())

@@ -11,6 +11,7 @@ import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -107,7 +108,7 @@ public class CategoryPatternController {
     @PatchMapping("/{category}")
     public ResponseEntity<ApiResponse<Void>> updateCategory(
             @PathVariable String category,
-            @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto
+            @RequestBody @Valid UpdateCategoryRequestDto updateCategoryRequestDto
     ) {
         categoryPatternService.updateCategory(category, updateCategoryRequestDto);
         return CustomResponseEntity.of(SuccessCode._OK);
@@ -121,7 +122,7 @@ public class CategoryPatternController {
     )
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> addCategory(@RequestBody CategoryRequestDto categoryRequestDto) {
+    public ResponseEntity<ApiResponse<Void>> addCategory(@RequestBody @Valid CategoryRequestDto categoryRequestDto) {
         categoryPatternService.addCategory(categoryRequestDto);
         return CustomResponseEntity.of(SuccessCode._OK);
     }

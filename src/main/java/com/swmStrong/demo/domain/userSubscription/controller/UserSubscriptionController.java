@@ -32,7 +32,7 @@ public class UserSubscriptionController {
     ResponseEntity<ApiResponse<Void>> createUserSubscription(
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
             @RequestBody UserSubscriptionReq req) {
-        userSubscriptionService.createUserSubscription(securityPrincipal.getUserId(), req.subscriptionPlanId(), req.billingKey());
+        userSubscriptionService.createUserSubscription(securityPrincipal.userId(), req.subscriptionPlanId(), req.billingKey());
 
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())

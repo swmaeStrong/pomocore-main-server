@@ -9,6 +9,7 @@ import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
 import com.swmStrong.demo.domain.userPaymentMethod.entity.UserPaymentMethod;
 import com.swmStrong.demo.domain.userPaymentMethod.repository.UserPaymentMethodRepository;
+import com.swmStrong.demo.domain.userPaymentMethod.service.UserPaymentMethodService;
 import com.swmStrong.demo.domain.userSubscription.entity.UserSubscription;
 import com.swmStrong.demo.domain.userSubscription.entity.UserSubscriptionStatus;
 import com.swmStrong.demo.domain.userSubscription.repository.UserSubscriptionRepository;
@@ -28,17 +29,19 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
     private final PortOneBillingClient portOneBillingClient;
     private final UserPaymentMethodRepository userPaymentMethodRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
-
+    private final UserPaymentMethodService userPaymentMethodService;
     public UserSubscriptionServiceImpl(UserRepository userRepository,
                                        SubscriptionPlanRepository subscriptionPlanRepository,
                                        PortOneBillingClient portOneBillingClient,
                                        UserPaymentMethodRepository userPaymentMethodRepository,
-                                       UserSubscriptionRepository userSubscriptionRepository) {
+                                       UserSubscriptionRepository userSubscriptionRepository,
+                                       UserPaymentMethodService userPaymentMethodService) {
         this.userRepository = userRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.portOneBillingClient = portOneBillingClient;
         this.userPaymentMethodRepository = userPaymentMethodRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
+        this.userPaymentMethodService = userPaymentMethodService;
     }
 
     @Transactional
@@ -58,18 +61,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         }
 
         // 3. 결제수단 등록 (없는 경우만)
-        userPaymentMethodRepository.findByBillingKeyAndUserId(billingKey, userId)
-                .orElseGet(() -> {
-                    PaymentMethod paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
-                    return userPaymentMethodRepository.save(
-                            UserPaymentMethod.builder()
-                                    .user(user)
-                                    .billingKey(billingKey)
-                                    .pgProvider(paymentMethod.pgProvider())
-                                    .issuer(paymentMethod.issuer())
-                                    .number(paymentMethod.number())
-                                    .build());
-                });
+        userPaymentMethodService.storeMyPaymentMethod(userId, billingKey);
 
         // 4. 결제 시도
         PaymentResult result = portOneBillingClient.requestPayment(

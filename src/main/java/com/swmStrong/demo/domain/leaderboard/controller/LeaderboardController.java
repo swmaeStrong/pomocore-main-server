@@ -1,5 +1,8 @@
 package com.swmStrong.demo.domain.leaderboard.controller;
 
+import com.swmStrong.demo.common.exception.code.SuccessCode;
+import com.swmStrong.demo.common.response.ApiResponse;
+import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.service.LeaderboardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +33,7 @@ public class LeaderboardController {
                 "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
     )
     @GetMapping("/{category}/daily")
-    public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategoryDaily(
+    public ResponseEntity<ApiResponse<List<LeaderboardResponseDto>>> getTopUsersByCategoryDaily(
             @PathVariable String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -38,7 +41,10 @@ public class LeaderboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
             ) {
-        return ResponseEntity.ok(leaderboardService.getLeaderboardPageDaily(category, page, size, date));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getLeaderboardPageDaily(category, page, size, date)
+        );
     }
 
     @Operation(
@@ -48,8 +54,8 @@ public class LeaderboardController {
                 "<p> page 의 기본값은 1이다. </p>" +
                 "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
     )
-    @GetMapping("/{category}/weely")
-    public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategoryWeely(
+    @GetMapping("/{category}/weekly")
+    public ResponseEntity<ApiResponse<List<LeaderboardResponseDto>>> getTopUsersByCategoryWeekly(
             @PathVariable String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -57,7 +63,10 @@ public class LeaderboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        return ResponseEntity.ok(leaderboardService.getLeaderboardPageWeekly(category, page, size, date));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getLeaderboardPageWeekly(category, page, size, date)
+        );
     }
 
     @Operation(
@@ -68,7 +77,7 @@ public class LeaderboardController {
                 "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>"
     )
     @GetMapping("/{category}/monthly")
-    public ResponseEntity<List<LeaderboardResponseDto>> getTopUsersByCategoryMonthly(
+    public ResponseEntity<ApiResponse<List<LeaderboardResponseDto>>> getTopUsersByCategoryMonthly(
             @PathVariable String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -76,7 +85,10 @@ public class LeaderboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        return ResponseEntity.ok(leaderboardService.getLeaderboardPageMonthly(category, page, size, date));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getLeaderboardPageMonthly(category, page, size, date)
+        );
     }
 
     @Operation(
@@ -86,13 +98,16 @@ public class LeaderboardController {
                 "<p> 페이징 없는 버전이다. </p>"
     )
     @GetMapping("/{category}/all")
-    public ResponseEntity<List<LeaderboardResponseDto>> getUsersByCategory(
+    public ResponseEntity<ApiResponse<List<LeaderboardResponseDto>>> getUsersByCategory(
             @PathVariable String category,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        return ResponseEntity.ok(leaderboardService.getAllLeaderboard(category, date));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getAllLeaderboard(category, date)
+        );
     }
 
     @Operation(
@@ -104,14 +119,17 @@ public class LeaderboardController {
 
     )
     @GetMapping("/{category}/user-info")
-    public ResponseEntity<LeaderboardResponseDto> getUserInfo(
+    public ResponseEntity<ApiResponse<LeaderboardResponseDto>> getUserInfo(
             @PathVariable String category,
             @RequestParam String userId,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        return ResponseEntity.ok(leaderboardService.getUserScoreInfo(category, userId, date));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getUserScoreInfo(category, userId, date)
+        );
     }
 
     @Operation(
@@ -121,7 +139,10 @@ public class LeaderboardController {
                 "<p> 일단 당일만 조회 가능하다. </p>"
     )
     @GetMapping("/top-users")
-    public ResponseEntity<Map<String, List<LeaderboardResponseDto>>> getLeaderboards() {
-        return ResponseEntity.ok(leaderboardService.getLeaderboards());
+    public ResponseEntity<ApiResponse<Map<String, List<LeaderboardResponseDto>>>> getLeaderboards() {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getLeaderboards()
+        );
     }
 }

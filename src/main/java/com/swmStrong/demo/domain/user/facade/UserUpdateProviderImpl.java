@@ -1,5 +1,7 @@
 package com.swmStrong.demo.domain.user.facade;
 
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.global.Role;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
@@ -23,6 +25,6 @@ public class UserUpdateProviderImpl implements UserUpdateProvider {
     @Override
     public User getUserByUserId(String userId) {
         return userRepository.findById(userId)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
     }
 }

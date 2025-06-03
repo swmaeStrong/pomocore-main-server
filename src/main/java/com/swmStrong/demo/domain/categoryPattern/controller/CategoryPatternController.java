@@ -1,5 +1,8 @@
 package com.swmStrong.demo.domain.categoryPattern.controller;
 
+import com.swmStrong.demo.common.exception.code.SuccessCode;
+import com.swmStrong.demo.common.response.ApiResponse;
+import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
@@ -33,9 +36,9 @@ public class CategoryPatternController {
     )
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/{category}")
-    public ResponseEntity<Void> addPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
+    public ResponseEntity<ApiResponse<Void>> addPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
         categoryPatternService.addPattern(category, patternRequestDto);
-        return ResponseEntity.ok().build();
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
     @Operation(
@@ -45,9 +48,9 @@ public class CategoryPatternController {
     )
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{category}/pattern")
-    public ResponseEntity<Void> deletePatternByCategoryAndPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
+    public ResponseEntity<ApiResponse<Void>> deletePatternByCategoryAndPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
         categoryPatternService.deletePatternByCategory(category, patternRequestDto);
-        return ResponseEntity.ok().build();
+        return CustomResponseEntity.of(SuccessCode._NO_CONTENT);
     }
 
     @Operation(
@@ -59,9 +62,9 @@ public class CategoryPatternController {
     )
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{category}")
-    public ResponseEntity<Void> deletePatternByCategory(@PathVariable String category) {
+    public ResponseEntity<ApiResponse<Void>> deletePatternByCategory(@PathVariable String category) {
         categoryPatternService.deleteCategory(category);
-        return ResponseEntity.ok().build();
+        return CustomResponseEntity.of(SuccessCode._NO_CONTENT);
     }
 
     @Operation(
@@ -71,8 +74,11 @@ public class CategoryPatternController {
                 "<p> 카테고리 내부의 패턴도 함께 출력된다. </p>"
     )
     @GetMapping("/{category}")
-    public ResponseEntity<CategoryResponseDto> getCategoryPatternByCategory(@PathVariable String category) {
-        return ResponseEntity.ok(categoryPatternService.getCategoryPatternByCategory(category));
+    public ResponseEntity<ApiResponse<CategoryResponseDto>> getCategoryPatternByCategory(@PathVariable String category) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                categoryPatternService.getCategoryPatternByCategory(category)
+        );
     }
 
     @Operation(
@@ -82,8 +88,11 @@ public class CategoryPatternController {
                 "<p> 카테고리 내부의 패턴도 함께 출력된다. </p>"
     )
     @GetMapping
-    public ResponseEntity<List<CategoryResponseDto>> getAllCategories() {
-        return ResponseEntity.ok(categoryPatternService.getCategories());
+    public ResponseEntity<ApiResponse<List<CategoryResponseDto>>> getAllCategories() {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                categoryPatternService.getCategories()
+        );
     }
 
     @Operation(
@@ -96,9 +105,12 @@ public class CategoryPatternController {
     )
     @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{category}")
-    public ResponseEntity<Void> updateCategory(@PathVariable String category, @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto) {
+    public ResponseEntity<ApiResponse<Void>> updateCategory(
+            @PathVariable String category,
+            @RequestBody UpdateCategoryRequestDto updateCategoryRequestDto
+    ) {
         categoryPatternService.updateCategory(category, updateCategoryRequestDto);
-        return ResponseEntity.ok().build();
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
     @Operation(
@@ -109,8 +121,8 @@ public class CategoryPatternController {
     )
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<Void> addCategory(@RequestBody CategoryRequestDto categoryRequestDto) {
+    public ResponseEntity<ApiResponse<Void>> addCategory(@RequestBody CategoryRequestDto categoryRequestDto) {
         categoryPatternService.addCategory(categoryRequestDto);
-        return ResponseEntity.ok().build();
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 }

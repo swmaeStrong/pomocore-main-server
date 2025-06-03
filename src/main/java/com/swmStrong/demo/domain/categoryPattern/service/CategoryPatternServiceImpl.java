@@ -1,5 +1,7 @@
 package com.swmStrong.demo.domain.categoryPattern.service;
 
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
@@ -28,7 +30,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     @Override
     public void addCategory(CategoryRequestDto categoryRequestDto) {
         if (categoryPatternRepository.existsByCategory(categoryRequestDto.category())) {
-            throw new IllegalArgumentException("이미 존재하는 카테고리");
+            throw new ApiException(ErrorCode.DUPLICATE_CATEGORY);
         }
 
         //TODO: 색깔에 대한 정규표현식 만들어두기 (#000000 - #FFFFFF)
@@ -45,7 +47,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     @Override
     public void addPattern(String category, PatternRequestDto patternRequestDto) {
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
-                        .orElseThrow(IllegalArgumentException::new);
+                        .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
         categoryPatternRepository.addPattern(category, patternRequestDto.pattern());
         patternMatcher.insert(patternRequestDto.pattern(), categoryPattern.getId());
@@ -54,10 +56,10 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     @Override
     public void deletePatternByCategory(String category, PatternRequestDto patternRequestDto) {
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
         if (!categoryPattern.getPatterns().contains(patternRequestDto.pattern())) {
-            throw new IllegalArgumentException("존재하지 않는 패턴");
+            throw new ApiException(ErrorCode.PATTERN_NOT_FOUND);
         }
 
         categoryPatternRepository.removePattern(category, patternRequestDto.pattern());
@@ -67,7 +69,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     @Override
     public void deleteCategory(String category) {
         if (!categoryPatternRepository.existsByCategory(category)) {
-            throw new IllegalArgumentException("존재하지 않는 카테고리");
+            throw new ApiException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         categoryPatternRepository.deletePatternCategoryByCategory(category);
         patternMatcher.init();
@@ -76,7 +78,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     @Override
     public CategoryPattern getEntityByCategory(String category) {
         return categoryPatternRepository.findByCategory(category)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
     @Override
@@ -97,7 +99,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     public void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto) {
         //TODO: 중복 카테고리명에 대한 제한 만들기
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
         if (updateCategoryRequestDto.category() != null) {
             categoryPattern.setCategory(updateCategoryRequestDto.category());

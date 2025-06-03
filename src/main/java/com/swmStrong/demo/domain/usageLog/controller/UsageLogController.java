@@ -1,5 +1,8 @@
 package com.swmStrong.demo.domain.usageLog.controller;
 
+import com.swmStrong.demo.common.exception.code.SuccessCode;
+import com.swmStrong.demo.common.response.ApiResponse;
+import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
@@ -35,12 +38,12 @@ public class UsageLogController {
                 "<p> 배열 안에 json이 있는 형태로 보내면 된다.</p>"
     )
     @PostMapping
-    public ResponseEntity<Void> saveUsageLog(
+    public ResponseEntity<ApiResponse<Void>> saveUsageLog(
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
             @RequestBody List<SaveUsageLogDto> usageLogDtoList
     ) {
-        usageLogService.saveAll(securityPrincipal.getUserId(), usageLogDtoList);
-        return ResponseEntity.ok().build();
+        usageLogService.saveAll(securityPrincipal.userId(), usageLogDtoList);
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
     @Operation(
@@ -51,10 +54,13 @@ public class UsageLogController {
                 "<p> 정리되지 않은 로우 데이터를 반환한다. </p>"
     )
     @GetMapping("/all")
-    public ResponseEntity<List<UsageLogResponseDto>> getUsageLogById(
+    public ResponseEntity<ApiResponse<List<UsageLogResponseDto>>> getUsageLogById(
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal
     ) {
-        return ResponseEntity.ok(usageLogService.getUsageLogByUserId(securityPrincipal.getUserId()));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                usageLogService.getUsageLogByUserId(securityPrincipal.userId())
+        );
     }
 
 
@@ -67,13 +73,16 @@ public class UsageLogController {
                 "<p> 날짜를 입력하지 않으면 당일 날짜로 들어간다. </p>"
     )
     @GetMapping
-    public ResponseEntity<List<CategoryUsageDto>> getUsageLogByIdToday(
+    public ResponseEntity<ApiResponse<List<CategoryUsageDto>>> getUsageLogByIdToday(
             @RequestParam
             String userId,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        return ResponseEntity.ok(usageLogService.getUsageLogByUserIdAndDate(userId, date));
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                usageLogService.getUsageLogByUserIdAndDate(userId, date)
+        );
     }
 }

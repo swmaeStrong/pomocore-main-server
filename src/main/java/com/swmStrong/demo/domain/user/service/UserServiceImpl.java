@@ -47,12 +47,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public TokenResponseDto getToken(HttpServletRequest request, UnregisteredRequestDto unregisteredRequestDto) {
         User user = userRepository.findById(unregisteredRequestDto.userId())
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         if (!user.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)
                 .equals(unregisteredRequestDto.createdAt().truncatedTo(ChronoUnit.MILLIS))
         ) {
-            throw new IllegalArgumentException("비정상적인 요청 입니다..");
+            throw new ApiException(ErrorCode.USER_MISMATCH);
         }
 
         return tokenUtil.getToken(unregisteredRequestDto.userId(),  request.getHeader("User-Agent"), Role.UNREGISTERED);

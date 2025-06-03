@@ -1,5 +1,7 @@
 package com.swmStrong.demo.domain.loginCredential.service;
 
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.loginCredential.dto.UpgradeRequestDto;
 import com.swmStrong.demo.domain.loginCredential.entity.LoginCredential;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
@@ -38,7 +40,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         User user = userUpdateProvider.getUserByUserId(upgradeRequestDto.userId());
 
         if (user instanceof LoginCredential) {
-            throw new IllegalArgumentException("가입된 회원");
+            throw new ApiException(ErrorCode.USER_ALREADY_REGISTERED);
         }
 
         loginCredentialRepository.insertLoginCredential(

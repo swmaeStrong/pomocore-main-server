@@ -73,7 +73,6 @@ public class PortOnePaymentClient {
         }
     }
 
-    // 취소 쪽은 테스트를 못함 아직..
     public PaymentResult cancelLastPaymentToPortOne(String paymentId, String reason) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

@@ -65,7 +65,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         }
 
         // 3. 결제수단 등록 (없는 경우만)
-        userPaymentMethodService.storeMyPaymentMethod(userId, billingKey);
+        UserPaymentMethod userPaymentMethod = userPaymentMethodService.
+                storeMyPaymentMethod(userId, billingKey);
 
         // 4. 결제 시도
         PaymentResult result = portOneBillingClient.requestPayment(
@@ -81,6 +82,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
             UserSubscription subscription = UserSubscription.builder()
                     .user(user)
                     .subscriptionPlan(plan)
+                    .autoUpdate(true)
+                    .userPaymentMethod(userPaymentMethod)
                     .paymentId(result.getPaymentId())
                     .userSubscriptionStatus(UserSubscriptionStatus.ACTIVE)
                     .startTime(LocalDateTime.now())
@@ -127,6 +130,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
             UserSubscription subscription = UserSubscription.builder()
                     .user(user)
                     .subscriptionPlan(plan)
+                    .userPaymentMethod(userPaymentMethod)
+                    .autoUpdate(true)
                     .paymentId(result.getPaymentId())
                     .userSubscriptionStatus(UserSubscriptionStatus.ACTIVE)
                     .startTime(LocalDateTime.now())
@@ -136,75 +141,22 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         } else {
             throw new RuntimeException(result.getErrorType());
         }
-
     }
-
-
 
     @Transactional
-    public void scheduleUserSubscription(String userId, String paymentId){
-        User user = userRepository.findById(userId).
-                orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        // ACTIVE, SCHEDULED, PENDING 한 상태들 다 가져옴
-        List<UserSubscriptionStatus> searchStatuses = List.of(
-                UserSubscriptionStatus.ACTIVE,
-                UserSubscriptionStatus.SCHEDULED,
-                UserSubscriptionStatus.PENDING
-        );
-
-        List<UserSubscription> userSubscriptions =
-                userSubscriptionRepository.findByUserSubscriptionStatusInAndUserId(searchStatuses, user.getId());
-
-        // (ACTIVE => EXPIRED), (SCHEDULED || PENDING => ACTIVE)
-        for (UserSubscription sub : userSubscriptions) {
-            UserSubscriptionStatus current = sub.getUserSubscriptionStatus();
-            UserSubscriptionStatus newStatus =
-                    (current == UserSubscriptionStatus.SCHEDULED || current == UserSubscriptionStatus.PENDING)
-                            ? UserSubscriptionStatus.ACTIVE
-                            : UserSubscriptionStatus.EXPIRED;
-            sub.setUserSubscriptionStatus(newStatus);
-        }
-        // 모두 저장
-        userSubscriptionRepository.saveAll(userSubscriptions);
-
-
-        UserSubscription userSubscription = userSubscriptionRepository.findByPaymentId(paymentId);
-        userSubscription.setScheduledId("");
-        userSubscription.setUserSubscriptionStatus(UserSubscriptionStatus.ACTIVE);
-
-
-        // 기존 유저 결제 정보 및 구독 정보 가져오기
-        UserPaymentMethod userPaymentMethod = userPaymentMethodRepository.findByUser(user);
-        String billingKey = userPaymentMethod.getBillingKey();
-
-        SubscriptionPlan subscriptionPlan = userSubscription.getSubscriptionPlan();
-        String newPaymentId = UUID.randomUUID().toString();
-
-        // 새로운 예약 신청 생성
-        ScheduledPaymentResult scheduledPaymentResult = portOneBillingClient.requestScheduledPayment(
-                newPaymentId,
-                billingKey,
-                user.getId(),
-                subscriptionPlan.getSubscriptionPlanType().getDescription(),
-                subscriptionPlan.getPrice(),
-                subscriptionPlan.getBillingCycle());
-
-        if (scheduledPaymentResult.isSuccess()) {
-            UserSubscription newUserSubscription =
-                    UserSubscription.builder().
-                            user(user).
-                            subscriptionPlan(subscriptionPlan).
-                            paymentId(newPaymentId).
-                            scheduledId(scheduledPaymentResult.getScheduledIds().get(0)).
-                            startTime(LocalDateTime.now()).
-                            endTime(LocalDateTime.now().plusDays(subscriptionPlan.getBillingCycle().getDays())).
-                            userSubscriptionStatus(UserSubscriptionStatus.SCHEDULED).build();
-            userSubscriptionRepository.save(newUserSubscription);
-        } else {
-            throw new RuntimeException(scheduledPaymentResult.getErrorType());
+    public void extendUserSubscriptions(List<UserSubscription> userSubscriptions) {
+        for (UserSubscription userSubscription : userSubscriptions) {
+            UserPaymentMethod userPaymentMethod = userSubscription.getUserPaymentMethod();
+            if (!userPaymentMethod.isDeleted()) {
+                String userPaymentMethodId = userPaymentMethod.getId();
+                String subscriptionPlanId = userSubscription.getSubscriptionPlan().getId();
+                String userId = userSubscription.getUser().getId();
+                createUserSubscriptionWithPaymentMethod(userId, subscriptionPlanId, userPaymentMethodId);
+            }
         }
     }
+
+
 
     public void cancelCurrentSubscription(String userSubscriptionId, String reason){
 
@@ -217,19 +169,6 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         if (paymentResult.isSuccess()) {
             userSubscription.setUserSubscriptionStatus(UserSubscriptionStatus.CANCELLED);
             userSubscriptionRepository.save(userSubscription);
-        }
-    }
-
-
-    public void cancelScheduledSubscription(String userSubscriptionId){
-        UserSubscription userSubscription = userSubscriptionRepository.findById(userSubscriptionId).
-                orElseThrow(() -> new RuntimeException("subscription not found"));
-
-        ScheduledPaymentResult scheduledPaymentResult =
-                portOneBillingClient.cancelScheduledPayment(List.of(userSubscription.getScheduledId()));
-
-        if (scheduledPaymentResult.isSuccess()) {
-            userSubscriptionRepository.delete(userSubscription);
         }
     }
 

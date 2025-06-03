@@ -34,7 +34,7 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
                 .collect(Collectors.toList());
     }
 
-    public void storeMyPaymentMethod(String userId, String billingKey) {
+    public UserPaymentMethod storeMyPaymentMethod(String userId, String billingKey) {
 
         User user = userRepository.findById(userId).
                 orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
@@ -47,14 +47,15 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
         }
 
         PaymentMethod paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
-        userPaymentMethodRepository.save(
-                UserPaymentMethod.builder()
-                        .user(user)
-                        .billingKey(billingKey)
-                        .pgProvider(paymentMethod.pgProvider())
-                        .issuer(paymentMethod.issuer())
-                        .number(paymentMethod.number())
-                        .build());
+        UserPaymentMethod userPaymentMethod = UserPaymentMethod.builder()
+                .user(user)
+                .billingKey(billingKey)
+                .pgProvider(paymentMethod.pgProvider())
+                .issuer(paymentMethod.issuer())
+                .number(paymentMethod.number())
+                .build();
+        userPaymentMethodRepository.save(userPaymentMethod);
+        return userPaymentMethod;
     }
 
     public void deleteMyPaymentMethod(String userPaymentMethodId){

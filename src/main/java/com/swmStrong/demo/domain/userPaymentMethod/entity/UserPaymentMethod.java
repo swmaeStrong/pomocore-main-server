@@ -25,12 +25,20 @@ public class UserPaymentMethod extends BaseEntity {
     @Convert(converter = BillingKeyCryptoConverter.class)
     private String billingKey;
 
-    private String paymentMethod;
+    private String pgProvider;
+
+    private String issuer;
+
+    @Column(name = "number")
+    @Convert(converter = BillingKeyCryptoConverter.class)
+    private String number;
 
     @Builder
-    public UserPaymentMethod(User user, String billingKey, String paymentMethod) {
+    public UserPaymentMethod(User user, String billingKey, String pgProvider, String issuer, String number) {
         this.user = user;
         this.billingKey = billingKey;
-        this.paymentMethod = paymentMethod;
+        this.pgProvider = pgProvider;
+        this.issuer = issuer;
+        this.number = number;
     }
 }

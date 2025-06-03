@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.userSubscription.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.portone.dto.PaymentMethod;
 import com.swmStrong.demo.domain.portone.dto.ScheduledPaymentResult;
 import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.subscriptionPlan.repository.SubscriptionPlanRepository;
@@ -59,12 +60,14 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         // 3. 결제수단 등록 (없는 경우만)
         userPaymentMethodRepository.findByBillingKeyAndUserId(billingKey, userId)
                 .orElseGet(() -> {
-                    String paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
+                    PaymentMethod paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
                     return userPaymentMethodRepository.save(
                             UserPaymentMethod.builder()
                                     .user(user)
                                     .billingKey(billingKey)
-                                    .paymentMethod(paymentMethod)
+                                    .pgProvider(paymentMethod.pgProvider())
+                                    .issuer(paymentMethod.issuer())
+                                    .number(paymentMethod.number())
                                     .build());
                 });
 

@@ -2,7 +2,6 @@ package com.swmStrong.demo.domain.userPaymentMethod.converter;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import org.jasypt.util.text.AES256TextEncryptor;
-import org.springframework.beans.factory.annotation.Value;
 
 @Converter
 public class BillingKeyCryptoConverter implements AttributeConverter<String, String> {

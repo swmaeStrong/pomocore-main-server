@@ -1,4 +1,5 @@
 package com.swmStrong.demo.infra.portone;
+import com.swmStrong.demo.domain.portone.dto.PaymentMethod;
 import com.swmStrong.demo.domain.portone.dto.PaymentResult;
 import com.swmStrong.demo.domain.portone.dto.ScheduledPaymentResult;
 import com.swmStrong.demo.domain.subscriptionPlan.entity.BillingCycle;
@@ -35,7 +36,7 @@ public class PortOneBillingClient {
         return portOneScheduleClient.cancelScheduledPaymentToPortOne(scheduledIds);
     }
 
-    public String getPaymentMethod(String billingKey) {
+    public PaymentMethod getPaymentMethod(String billingKey) {
         return portOnePaymentClient.getPaymentMethodFromPortOne(billingKey);
     }
 

@@ -4,12 +4,15 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.portone.dto.PaymentMethod;
 import com.swmStrong.demo.domain.portone.dto.ScheduledPaymentResult;
 import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
+import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlanType;
 import com.swmStrong.demo.domain.subscriptionPlan.repository.SubscriptionPlanRepository;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
+import com.swmStrong.demo.domain.userPaymentMethod.dto.UserPaymentMethodRes;
 import com.swmStrong.demo.domain.userPaymentMethod.entity.UserPaymentMethod;
 import com.swmStrong.demo.domain.userPaymentMethod.repository.UserPaymentMethodRepository;
 import com.swmStrong.demo.domain.userPaymentMethod.service.UserPaymentMethodService;
+import com.swmStrong.demo.domain.userSubscription.dto.UserSubscriptionRes;
 import com.swmStrong.demo.domain.userSubscription.entity.UserSubscription;
 import com.swmStrong.demo.domain.userSubscription.entity.UserSubscriptionStatus;
 import com.swmStrong.demo.domain.userSubscription.repository.UserSubscriptionRepository;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -228,4 +232,23 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
             userSubscriptionRepository.delete(userSubscription);
         }
     }
+
+    public UserSubscriptionRes getCurrentSubscription(String userId){
+        UserSubscription userSubscription =
+                userSubscriptionRepository.findUserSubscriptionByUserSubscriptionStatus(
+                        UserSubscriptionStatus.ACTIVE).
+                        orElseThrow(() -> new ApiException(ErrorCode.USER_SUBSCRIPTION_NOT_FOUND) );
+
+        return UserSubscriptionRes.from(userSubscription, userSubscription.getSubscriptionPlan());
+    }
+
+    public List<UserSubscriptionRes> getAllSubscriptions(String userId){
+        List<UserSubscription> userSubscriptions=
+        userSubscriptionRepository.findUserSubscriptionByUserId(userId);
+
+        return userSubscriptions.stream()
+                .map(us -> UserSubscriptionRes.from(us, us.getSubscriptionPlan()))
+                .toList();
+    }
+
 }

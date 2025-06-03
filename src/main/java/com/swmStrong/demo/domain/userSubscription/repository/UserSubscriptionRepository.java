@@ -8,13 +8,16 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserSubscriptionRepository extends JpaRepository<UserSubscription, String> {
     UserSubscription findByPaymentId(String paymentId);
-    UserSubscription findByUserId(String userId);
+
+    Optional<UserSubscription> findUserSubscriptionByUserSubscriptionStatus(UserSubscriptionStatus userSubscriptionStatus);
     List<UserSubscription> findByUserSubscriptionStatusAndEndTimeBefore(UserSubscriptionStatus userSubscriptionStatus, LocalDateTime now);
     boolean existsByUserSubscriptionStatusAndUserId(UserSubscriptionStatus userSubscriptionStatus, String userId);
     List<UserSubscription> findByUserSubscriptionStatusInAndUserId(
             List<UserSubscriptionStatus> userSubscriptionStatusList, String userId);
+    List<UserSubscription> findUserSubscriptionByUserId(String userId);
 }

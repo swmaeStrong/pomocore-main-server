@@ -7,4 +7,5 @@ import java.util.List;
 public interface UserPaymentMethodService {
     List<UserPaymentMethodRes> getMyPaymentMethods(String userId);
     void storeMyPaymentMethod(String userId, String billingKey);
+    void deleteMyPaymentMethod(String userPaymentMethodId);
 }

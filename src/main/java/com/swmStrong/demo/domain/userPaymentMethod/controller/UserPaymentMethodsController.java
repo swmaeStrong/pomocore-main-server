@@ -14,6 +14,7 @@ import com.swmStrong.demo.domain.userPaymentMethod.service.UserPaymentMethodServ
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.hibernate.query.QueryParameter;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -70,6 +71,19 @@ public class UserPaymentMethodsController {
         return CustomResponseEntity.of(SuccessCode._OK);
     }
 
-
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저가 결제 수단 삭제",
+            description =
+                    "<p> 유저가 현재 보유한 결제 수단을 삭제한다. </p>"
+    )
+    @DeleteMapping("")
+    public ResponseEntity<ApiResponse<Void>> deleteMyPaymentMethod(
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
+            @RequestParam String userPaymentMethodId
+    ) {
+        userPaymentMethodService.deleteMyPaymentMethod(userPaymentMethodId);
+        return CustomResponseEntity.of(SuccessCode._NO_CONTENT);
+    }
 
 }

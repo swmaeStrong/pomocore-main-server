@@ -33,8 +33,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
             throw new ApiException(ErrorCode.DUPLICATE_CATEGORY);
         }
 
-        //TODO: 색깔에 대한 정규표현식 만들어두기 (#000000 - #FFFFFF)
-
         CategoryPattern categoryPattern = CategoryPattern.builder()
                 .category(categoryRequestDto.category())
                 .color(categoryRequestDto.color())
@@ -97,14 +95,19 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
     @Override
     public void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto) {
-        //TODO: 중복 카테고리명에 대한 제한 만들기
+
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                 .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        if (categoryPatternRepository.existsByCategory(updateCategoryRequestDto.category())) {
+            throw new ApiException(ErrorCode.DUPLICATE_CATEGORY);
+        }
 
         if (updateCategoryRequestDto.category() != null) {
             categoryPattern.setCategory(updateCategoryRequestDto.category());
             patternMatcher.init();
         }
+
         if (updateCategoryRequestDto.color() != null) {
             categoryPattern.setColor(updateCategoryRequestDto.color());
         }

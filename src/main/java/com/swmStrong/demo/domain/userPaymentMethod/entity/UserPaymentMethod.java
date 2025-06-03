@@ -44,4 +44,8 @@ public class UserPaymentMethod extends BaseEntity {
         this.number = number;
         this.isDeleted = false;
     }
+
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
 }

@@ -61,7 +61,7 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
     public void deleteMyPaymentMethod(String userPaymentMethodId){
         UserPaymentMethod userPaymentMethod = userPaymentMethodRepository.findById(userPaymentMethodId).
                 orElseThrow(() -> new ApiException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
-        userPaymentMethodRepository.delete(userPaymentMethod);
+        userPaymentMethod.setIsDeleted(true);
     }
 
 }

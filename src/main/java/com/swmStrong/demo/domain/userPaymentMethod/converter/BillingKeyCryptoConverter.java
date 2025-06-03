@@ -5,12 +5,13 @@ import org.jasypt.util.text.AES256TextEncryptor;
 
 @Converter
 public class BillingKeyCryptoConverter implements AttributeConverter<String, String> {
-    private static final AES256TextEncryptor encryptor = new AES256TextEncryptor();
 
-    static {
-        String key = System.getenv("BILLINGKEY_ENCRYPT_KEY"); // 환경변수에서 가져오기
-        encryptor.setPassword(key);
-        System.out.println("key = " + key);
+    private final AES256TextEncryptor encryptor;
+
+    public BillingKeyCryptoConverter(
+            AES256TextEncryptor encryptor
+    ) {
+        this.encryptor = encryptor;
     }
 
     @Override

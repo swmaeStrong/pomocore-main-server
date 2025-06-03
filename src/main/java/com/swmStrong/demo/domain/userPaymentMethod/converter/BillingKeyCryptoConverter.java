@@ -10,7 +10,6 @@ public class BillingKeyCryptoConverter implements AttributeConverter<String, Str
     static {
         String key = System.getenv("BILLINGKEY_ENCRYPT_KEY"); // 환경변수에서 가져오기
         encryptor.setPassword(key);
-        System.out.println("key = " + key);
     }
 
     @Override

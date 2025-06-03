@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.userSubscription.controller;
 
 import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
+import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.userSubscription.dto.ExistingUserSubscriptionReq;
 import com.swmStrong.demo.domain.userSubscription.dto.NewUserSubscriptionReq;
@@ -41,9 +42,7 @@ public class UserSubscriptionController {
                 req.subscriptionPlanId(),
                 req.billingKey());
 
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, null));
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
     @Operation(
@@ -60,12 +59,8 @@ public class UserSubscriptionController {
                 securityPrincipal.userId(),
                 req.subscriptionPlanId(),
                 req.userPaymentMethodId());
-
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, null));
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
-
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
@@ -77,9 +72,7 @@ public class UserSubscriptionController {
     ResponseEntity<ApiResponse<Void>> cancelCurrentSubscription(String userSubscriptionId, String reason) {
         userSubscriptionService.cancelCurrentSubscription(userSubscriptionId, reason);
 
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, null));
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
 
@@ -94,9 +87,7 @@ public class UserSubscriptionController {
     ResponseEntity<ApiResponse<Void>> cancelScheduledSubscription(String userSubscriptionId) {
         userSubscriptionService.cancelScheduledSubscription(userSubscriptionId);
 
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, null));
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
 
@@ -112,9 +103,7 @@ public class UserSubscriptionController {
         UserSubscriptionRes userSubscriptionRes =
                 userSubscriptionService.getCurrentSubscription(securityPrincipal.userId());
 
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, userSubscriptionRes));
+        return CustomResponseEntity.of(SuccessCode._OK, userSubscriptionRes);
     }
 
     @Operation(
@@ -129,9 +118,8 @@ public class UserSubscriptionController {
         List <UserSubscriptionRes> userSubscriptionResList =
                 userSubscriptionService.getAllSubscriptions(securityPrincipal.userId());
 
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, userSubscriptionResList));
+
+        return CustomResponseEntity.of(SuccessCode._OK, userSubscriptionResList);
     }
 
 

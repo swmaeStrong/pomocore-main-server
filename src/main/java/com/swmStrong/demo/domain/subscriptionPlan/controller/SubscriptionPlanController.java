@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.subscriptionPlan.controller;
 
 import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
+import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.domain.subscriptionPlan.dto.req.SubscriptionPlanReq;
 import com.swmStrong.demo.domain.subscriptionPlan.dto.req.SubscriptionPlanRes;
 import com.swmStrong.demo.domain.subscriptionPlan.service.SubscriptionPlanService;
@@ -37,10 +38,7 @@ public class SubscriptionPlanController {
     ResponseEntity<ApiResponse<Void>> createSubscriptionPlan(@RequestBody SubscriptionPlanReq SubscriptionPlanReq) {
 
         subscriptionPlanService.addSubscriptionPlan(SubscriptionPlanReq);
-
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, null));
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 
     @Operation(
@@ -56,9 +54,8 @@ public class SubscriptionPlanController {
         List<SubscriptionPlanRes> subscriptionPlanResList =
                 subscriptionPlanService.getSubscriptionPlans();
 
-        return ResponseEntity
-                .status(SuccessCode._OK.getHttpStatus())
-                .body(ApiResponse.success(SuccessCode._OK, subscriptionPlanResList));
+
+        return CustomResponseEntity.of(SuccessCode._OK, subscriptionPlanResList);
     }
 
 }

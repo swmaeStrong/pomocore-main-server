@@ -27,6 +27,7 @@ public enum ErrorCode implements BaseCode {
     CATEGORY_NOT_FOUND("4044", "존재하지 않는 카테고리입니다.", HttpStatus.NOT_FOUND),
     PATTERN_NOT_FOUND("4045", "존재하지 않는 패턴입니다.", HttpStatus.NOT_FOUND),
     BILLING_KEY_NOT_FOUND("4046", "존재하지 않는 빌링키입니다.", HttpStatus.NOT_FOUND),
+    PAYMENT_METHOD_NOT_FOUND("4047", "존재하지 않는 결제 수단입니다.", HttpStatus.NOT_FOUND),
 
 
     // --- 409 CONFLICT ---

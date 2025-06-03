@@ -3,7 +3,8 @@ package com.swmStrong.demo.domain.userSubscription.controller;
 import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.userSubscription.dto.UserSubscriptionReq;
+import com.swmStrong.demo.domain.userSubscription.dto.ExistingUserSubscriptionReq;
+import com.swmStrong.demo.domain.userSubscription.dto.NewUserSubscriptionReq;
 import com.swmStrong.demo.domain.userSubscription.service.UserSubscriptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -23,16 +24,39 @@ public class UserSubscriptionController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "서버에 구독한 플랜 정보와 빌링 키를 전달한다.",
+            summary = "새로 등록한 빌링키를 이용하여 바로 결제를 진행한다.",
             description =
                     "<p> 포트원 SDK를 이용해서 빌링키 발급을 한 후에 </p>" +
                     "<p> 구독한 플랜 정보와 빌링 키를 전달한다. </p>"
     )
-    @PostMapping("")
+    @PostMapping("/new")
+    ResponseEntity<ApiResponse<Void>> createUserSubscriptionWithNewBillingKey(
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
+            @RequestBody NewUserSubscriptionReq req) {
+        userSubscriptionService.createUserSubscriptionWithBillingKey(
+                securityPrincipal.userId(),
+                req.subscriptionPlanId(),
+                req.billingKey());
+
+        return ResponseEntity
+                .status(SuccessCode._OK.getHttpStatus())
+                .body(ApiResponse.success(SuccessCode._OK, null));
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "기존의 결제 수단을 이용해서 바로 결제를 진행한다.",
+            description =
+                    "<p> 기존의 결제수단과 구독할 플랜의 아이디를 전달한다 </p>"
+    )
+    @PostMapping("/existing")
     ResponseEntity<ApiResponse<Void>> createUserSubscription(
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
-            @RequestBody UserSubscriptionReq req) {
-        userSubscriptionService.createUserSubscription(securityPrincipal.userId(), req.subscriptionPlanId(), req.billingKey());
+            @RequestBody ExistingUserSubscriptionReq req) {
+        userSubscriptionService.createUserSubscriptionWithPaymentMethod(
+                securityPrincipal.userId(),
+                req.subscriptionPlanId(),
+                req.userPaymentMethodId());
 
         return ResponseEntity
                 .status(SuccessCode._OK.getHttpStatus())

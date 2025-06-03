@@ -151,12 +151,17 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
     @Transactional
     public void extendUserSubscriptions(List<UserSubscription> userSubscriptions) {
         for (UserSubscription userSubscription : userSubscriptions) {
-            UserPaymentMethod userPaymentMethod = userSubscription.getUserPaymentMethod();
-            if (!userPaymentMethod.isDeleted()) {
-                String userPaymentMethodId = userPaymentMethod.getId();
-                String subscriptionPlanId = userSubscription.getSubscriptionPlan().getId();
-                String userId = userSubscription.getUser().getId();
-                createUserSubscriptionWithPaymentMethod(userId, subscriptionPlanId, userPaymentMethodId);
+            try {
+                UserPaymentMethod userPaymentMethod = userSubscription.getUserPaymentMethod();
+                if (!userPaymentMethod.isDeleted()) {
+                    String userPaymentMethodId = userPaymentMethod.getId();
+                    String subscriptionPlanId = userSubscription.getSubscriptionPlan().getId();
+                    String userId = userSubscription.getUser().getId();
+                    createUserSubscriptionWithPaymentMethod(userId, subscriptionPlanId, userPaymentMethodId);
+                }
+            } catch (Exception e) {
+                // 오류 생길 만한 부분이 결제 쪽인데, 웹훅 및 포트원 관리자 콘솔을 통해 로깅이 되어서 큰 문제가 없다고 판단
+                ;
             }
         }
     }

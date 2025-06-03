@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.userSubscription.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.portone.dto.PaymentMethod;
 import com.swmStrong.demo.domain.portone.dto.ScheduledPaymentResult;
 import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.subscriptionPlan.repository.SubscriptionPlanRepository;
@@ -43,47 +44,55 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
     @Transactional
     public void createUserSubscription(String userId, String subscriptionPlanId, String billingKey){
 
-        // validation 로직
+        // 1. 유저, 플랜 조회 (예외는 그대로)
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        SubscriptionPlan subscriptionPlan = subscriptionPlanRepository.findById(subscriptionPlanId)
+        SubscriptionPlan plan = subscriptionPlanRepository.findById(subscriptionPlanId)
                 .orElseThrow(() -> new ApiException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
 
-        // 등록되지 않았던 결제수단이었을 경우에는 billingKey로 paymentMethod 획득 및 결제 수단 등록
-        if (!userPaymentMethodRepository.existsByBillingKeyAndUserId(billingKey, userId)) {
-            String paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
-            userPaymentMethodRepository.save(
-                    UserPaymentMethod.builder().
-                            user(user).
-                            billingKey(billingKey).
-                            paymentMethod(paymentMethod).
-                            build());
+        // 2. 중복 구독 검사
+        if (userSubscriptionRepository.existsByUserSubscriptionStatusAndUserId(
+                UserSubscriptionStatus.ACTIVE, userId)) {
+            throw new RuntimeException("User already has an active subscription");
         }
 
-        // 결제 수단 이용해서 결제 로직 진행
-        PaymentResult paymentResult =
-                portOneBillingClient.requestPayment(
-                        UUID.randomUUID().toString(),
-                        billingKey,
-                        userId,
-                        subscriptionPlan.getSubscriptionPlanType().getDescription(),
-                        subscriptionPlan.getPrice());
+        // 3. 결제수단 등록 (없는 경우만)
+        userPaymentMethodRepository.findByBillingKeyAndUserId(billingKey, userId)
+                .orElseGet(() -> {
+                    PaymentMethod paymentMethod = portOneBillingClient.getPaymentMethod(billingKey);
+                    return userPaymentMethodRepository.save(
+                            UserPaymentMethod.builder()
+                                    .user(user)
+                                    .billingKey(billingKey)
+                                    .pgProvider(paymentMethod.pgProvider())
+                                    .issuer(paymentMethod.issuer())
+                                    .number(paymentMethod.number())
+                                    .build());
+                });
 
-        // 유저 구독 정보 새로 등록
-        if (paymentResult.isSuccess()){
-            UserSubscription userSubscription = UserSubscription.
-                    builder().
-                    user(user).
-                    subscriptionPlan(subscriptionPlan).
-                    paymentId(paymentResult.getPaymentId()).
-                    userSubscriptionStatus(UserSubscriptionStatus.ACTIVE).
-                    startTime(LocalDateTime.now()).
-                    endTime(LocalDateTime.now().plusDays(subscriptionPlan.getBillingCycle().getDays())).
-                    build();
-            userSubscriptionRepository.save(userSubscription);
+        // 4. 결제 시도
+        PaymentResult result = portOneBillingClient.requestPayment(
+                UUID.randomUUID().toString(),
+                billingKey,
+                userId,
+                plan.getSubscriptionPlanType().getDescription(),
+                plan.getPrice()
+        );
+
+        // 5. 결제 성공시 구독 등록
+        if (result.isSuccess()) {
+            UserSubscription subscription = UserSubscription.builder()
+                    .user(user)
+                    .subscriptionPlan(plan)
+                    .paymentId(result.getPaymentId())
+                    .userSubscriptionStatus(UserSubscriptionStatus.ACTIVE)
+                    .startTime(LocalDateTime.now())
+                    .endTime(LocalDateTime.now().plusDays(plan.getBillingCycle().getDays()))
+                    .build();
+            userSubscriptionRepository.save(subscription);
         } else {
-            throw new RuntimeException(paymentResult.getErrorType());
+            throw new RuntimeException(result.getErrorType());
         }
 
     }
@@ -93,7 +102,29 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         User user = userRepository.findById(userId).
                 orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        // 기존 예약 구독내역 활성화로 변경
+        // ACTIVE, SCHEDULED, PENDING 한 상태들 다 가져옴
+        List<UserSubscriptionStatus> searchStatuses = List.of(
+                UserSubscriptionStatus.ACTIVE,
+                UserSubscriptionStatus.SCHEDULED,
+                UserSubscriptionStatus.PENDING
+        );
+
+        List<UserSubscription> userSubscriptions =
+                userSubscriptionRepository.findByUserSubscriptionStatusInAndUserId(searchStatuses, user.getId());
+
+        // (ACTIVE => EXPIRED), (SCHEDULED || PENDING => ACTIVE)
+        for (UserSubscription sub : userSubscriptions) {
+            UserSubscriptionStatus current = sub.getUserSubscriptionStatus();
+            UserSubscriptionStatus newStatus =
+                    (current == UserSubscriptionStatus.SCHEDULED || current == UserSubscriptionStatus.PENDING)
+                            ? UserSubscriptionStatus.ACTIVE
+                            : UserSubscriptionStatus.EXPIRED;
+            sub.setUserSubscriptionStatus(newStatus);
+        }
+        // 모두 저장
+        userSubscriptionRepository.saveAll(userSubscriptions);
+
+
         UserSubscription userSubscription = userSubscriptionRepository.findByPaymentId(paymentId);
         userSubscription.setScheduledId("");
         userSubscription.setUserSubscriptionStatus(UserSubscriptionStatus.ACTIVE);

@@ -1,6 +1,8 @@
 package com.swmStrong.demo.infra.portone;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.domain.portone.dto.PaymentMethod;
 import com.swmStrong.demo.domain.portone.dto.PaymentResult;
 import com.swmStrong.demo.infra.json.JsonLoader;
 import org.springframework.beans.factory.annotation.Value;
@@ -124,7 +126,7 @@ public class PortOnePaymentClient {
         }
     }
 
-    public String getPaymentMethodFromPortOne(String billingKey) {
+    public PaymentMethod getPaymentMethodFromPortOne(String billingKey) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "PortOne " + secret);
@@ -145,19 +147,23 @@ public class PortOnePaymentClient {
 
             // pgBillingKeyIssueResponses 배열 접근
             JsonNode responses = root.get("pgBillingKeyIssueResponses");
-            if (responses != null && responses.isArray() && !responses.isEmpty()) {
-                JsonNode firstResponse = responses.get(0);
 
-                // channel 객체에서 pgProvider 추출
-                JsonNode channel = firstResponse.get("channel");
-                if (channel != null && channel.has("pgProvider")) {
-                    return channel.get("pgProvider").asText();
-                }
+            if (responses.get("method").get("type").asText().equals("BillingKeyPaymentMethodCard"))
+            {
+                String pgProvider = responses.get("channel").get("pgProvider").asText();
+                String issuer = responses.get("method").get("issuer").asText();
+                String number = responses.get("method").get("number").asText();
+                return PaymentMethod.of(pgProvider, issuer, number);
             }
-            return "";
+            if (responses.get("method").get("type").asText().equals("BillingKeyPaymentMethodEasyPay")) {
+                String pgProvider = responses.get("channel").get("pgProvider").asText();
+                return PaymentMethod.of(pgProvider, "", "");
+            }
+
+            throw new RuntimeException("결제 수단 조회 실패");
 
         } catch (HttpClientErrorException e) {
-            return "";
+            throw new RuntimeException("결제 수단 조회 실패");
         }
     }
 }

@@ -48,6 +48,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         this.userPaymentMethodService = userPaymentMethodService;
     }
 
+
     @Transactional
     public void createUserSubscriptionWithBillingKey(String userId, String subscriptionPlanId, String billingKey){
 
@@ -61,7 +62,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         // 2. 중복 구독 검사
         if (userSubscriptionRepository.existsByUserSubscriptionStatusAndUserId(
                 UserSubscriptionStatus.ACTIVE, userId)) {
-            throw new RuntimeException("User already has an active subscription");
+            throw new ApiException(ErrorCode.DUPLICATE_USER_SUBSCRIPTION);
         }
 
         // 3. 결제수단 등록 (없는 경우만)
@@ -96,7 +97,11 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 
     }
 
-    public void createUserSubscriptionWithPaymentMethod(String userId, String subscriptionPlanId, String userPaymentMethodId){
+    //TODO: 결제에 대한 응답이 error 응답인 경우에는 구독 연장이 되지 않는데, 다음에 재시도 로직 넣으면 좋을 것 같다.
+    public void createUserSubscriptionWithPaymentMethod(
+            String userId,
+            String subscriptionPlanId,
+            String userPaymentMethodId){
 
         // 1. 유저, 플랜 조회 (예외는 그대로)
         User user = userRepository.findById(userId)
@@ -108,7 +113,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         // 2. 중복 구독 검사
         if (userSubscriptionRepository.existsByUserSubscriptionStatusAndUserId(
                 UserSubscriptionStatus.ACTIVE, userId)) {
-            throw new RuntimeException("User already has an active subscription");
+            throw new ApiException(ErrorCode.DUPLICATE_USER_SUBSCRIPTION);
         }
 
         // 3. 결제 수단 로드
@@ -157,7 +162,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
     }
 
 
-
+    //TODO: 외부 API 문서상으로는 바로 결제 취소가 되지 않을 수 있고 결제 취소 요청중인 상태가 될 수 있다고 한다.
+    //TODO: 아직까지는 바로 취소 응답이 오기 때문에 이 부분도 추후 처리
     public void cancelCurrentSubscription(String userSubscriptionId, String reason){
 
         UserSubscription userSubscription = userSubscriptionRepository.findById(userSubscriptionId).

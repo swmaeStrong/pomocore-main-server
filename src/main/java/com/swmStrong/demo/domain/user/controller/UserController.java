@@ -53,7 +53,6 @@ public class UserController {
             summary = "비회원용 토큰 발급",
             description =
                 "<p> 비회원용 토큰 발급 수단이다. </p>" +
-                "<p> TODO: 추가적인 수단이 반드시 필요하다.</p>" +
                 "<p> 등록일시같은 추가적인 유저 구분 수단을 반드시 보관하고 있고, 토큰 발급 시 넣어야 한다.</p>"
     )
     @PostMapping("/get-token")

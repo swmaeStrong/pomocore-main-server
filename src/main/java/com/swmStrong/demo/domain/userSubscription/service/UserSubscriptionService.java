@@ -6,4 +6,5 @@ public interface UserSubscriptionService {
     void scheduleUserSubscription(String userId, String paymentId);
     void cancelCurrentSubscription(String userSubscriptionId, String reason);
     void cancelScheduledSubscription(String userSubscriptionId);
+
 }

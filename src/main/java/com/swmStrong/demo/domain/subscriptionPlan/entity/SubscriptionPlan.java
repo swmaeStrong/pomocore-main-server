@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class SubscriptionPlan extends BaseEntity {
     @Id
-    private String subscriptionPlanId = UUID.randomUUID().toString();
+    private final String id = UUID.randomUUID().toString();
 
     @Enumerated(EnumType.STRING)
     private SubscriptionPlanType subscriptionPlanType;

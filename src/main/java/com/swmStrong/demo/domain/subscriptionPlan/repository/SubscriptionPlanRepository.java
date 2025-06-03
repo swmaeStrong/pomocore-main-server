@@ -6,6 +6,8 @@ import jakarta.persistence.UniqueConstraint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @Table(
     uniqueConstraints = {

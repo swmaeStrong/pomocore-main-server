@@ -1,9 +1,14 @@
 package com.swmStrong.demo.domain.subscriptionPlan.service;
 
 import com.swmStrong.demo.domain.subscriptionPlan.dto.req.SubscriptionPlanReq;
+import com.swmStrong.demo.domain.subscriptionPlan.dto.req.SubscriptionPlanRes;
 import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.subscriptionPlan.repository.SubscriptionPlanRepository;
+import com.swmStrong.demo.domain.userPaymentMethod.dto.UserPaymentMethodRes;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
@@ -22,4 +27,12 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
                         .build());
 
     }
+
+    public List<SubscriptionPlanRes> getSubscriptionPlans(){
+        List<SubscriptionPlan> subscriptionPlans = subscriptionPlanRepository.findAll();
+        return subscriptionPlans.stream()
+                .map(SubscriptionPlanRes::from)
+                .collect(Collectors.toList());
+    }
+
 }

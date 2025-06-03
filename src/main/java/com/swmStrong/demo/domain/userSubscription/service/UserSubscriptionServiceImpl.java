@@ -45,7 +45,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
     }
 
     @Transactional
-    public void createUserSubscription(String userId, String subscriptionPlanId, String billingKey){
+    public void createUserSubscriptionWithBillingKey(String userId, String subscriptionPlanId, String billingKey){
 
         // 1. 유저, 플랜 조회 (예외는 그대로)
         User user = userRepository.findById(userId)
@@ -88,6 +88,54 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
         }
 
     }
+
+    public void createUserSubscriptionWithPaymentMethod(String userId, String subscriptionPlanId, String userPaymentMethodId){
+
+        // 1. 유저, 플랜 조회 (예외는 그대로)
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        SubscriptionPlan plan = subscriptionPlanRepository.findById(subscriptionPlanId)
+                .orElseThrow(() -> new ApiException(ErrorCode.SUBSCRIPTION_PLAN_NOT_FOUND));
+
+        // 2. 중복 구독 검사
+        if (userSubscriptionRepository.existsByUserSubscriptionStatusAndUserId(
+                UserSubscriptionStatus.ACTIVE, userId)) {
+            throw new RuntimeException("User already has an active subscription");
+        }
+
+        // 3. 결제 수단 로드
+        UserPaymentMethod userPaymentMethod =
+                userPaymentMethodRepository.findById(userPaymentMethodId).
+                        orElseThrow(()-> new ApiException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
+
+        // 4. 결제 시도
+        PaymentResult result = portOneBillingClient.requestPayment(
+                UUID.randomUUID().toString(),
+                userPaymentMethod.getBillingKey(),
+                userId,
+                plan.getSubscriptionPlanType().getDescription(),
+                plan.getPrice()
+        );
+
+        // 5. 결제 성공시 구독 등록
+        if (result.isSuccess()) {
+            UserSubscription subscription = UserSubscription.builder()
+                    .user(user)
+                    .subscriptionPlan(plan)
+                    .paymentId(result.getPaymentId())
+                    .userSubscriptionStatus(UserSubscriptionStatus.ACTIVE)
+                    .startTime(LocalDateTime.now())
+                    .endTime(LocalDateTime.now().plusDays(plan.getBillingCycle().getDays()))
+                    .build();
+            userSubscriptionRepository.save(subscription);
+        } else {
+            throw new RuntimeException(result.getErrorType());
+        }
+
+    }
+
+
 
     @Transactional
     public void scheduleUserSubscription(String userId, String paymentId){

@@ -29,6 +29,8 @@ public class UserPaymentMethod extends BaseEntity {
 
     private String issuer;
 
+    private boolean isDeleted;
+
     @Column(name = "number")
     @Convert(converter = BillingKeyCryptoConverter.class)
     private String number;
@@ -40,5 +42,10 @@ public class UserPaymentMethod extends BaseEntity {
         this.pgProvider = pgProvider;
         this.issuer = issuer;
         this.number = number;
+        this.isDeleted = false;
+    }
+
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

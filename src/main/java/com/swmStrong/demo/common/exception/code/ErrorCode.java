@@ -26,7 +26,9 @@ public enum ErrorCode implements BaseCode {
     SUBSCRIPTION_PLAN_NOT_FOUND("4042", "존재하지 않는 구독 플랜입니다", HttpStatus.NOT_FOUND),
     CATEGORY_NOT_FOUND("4044", "존재하지 않는 카테고리입니다.", HttpStatus.NOT_FOUND),
     PATTERN_NOT_FOUND("4045", "존재하지 않는 패턴입니다.", HttpStatus.NOT_FOUND),
-
+    BILLING_KEY_NOT_FOUND("4046", "존재하지 않는 빌링키입니다.", HttpStatus.NOT_FOUND),
+    PAYMENT_METHOD_NOT_FOUND("4047", "존재하지 않는 결제 수단입니다.", HttpStatus.NOT_FOUND),
+    USER_SUBSCRIPTION_NOT_FOUND("4048", "구독 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 
     // --- 409 CONFLICT ---
     _CONFLICT("4090", "이미 존재하는 리소스입니다.", HttpStatus.CONFLICT),
@@ -34,7 +36,8 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_USER_ID("4092", "이미 등록된 유저 아이디입니다.", HttpStatus.CONFLICT),
     USER_ALREADY_REGISTERED("4093", "이미 가입된 회원입니다.", HttpStatus.CONFLICT),
     DUPLICATE_CATEGORY("4094", "이미 존재하는 카테고리입니다.", HttpStatus.CONFLICT),
-
+    DUPLICATE_BILLING_KEY("4095", "이미 등록된 결제 수단입니다.", HttpStatus.CONFLICT),
+    DUPLICATE_USER_SUBSCRIPTION("4096", "이미 구독중인 플랜이 있습니다.", HttpStatus.CONFLICT),
 
     // --- 500 INTERNAL SERVER ERROR ---
     _INTERNAL_SERVER_ERROR("5000", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),

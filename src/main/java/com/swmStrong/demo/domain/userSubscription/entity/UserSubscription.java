@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.userSubscription.entity;
 
 import com.swmStrong.demo.domain.subscriptionPlan.entity.SubscriptionPlan;
 import com.swmStrong.demo.domain.user.entity.User;
+import com.swmStrong.demo.domain.userPaymentMethod.entity.UserPaymentMethod;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,9 +24,12 @@ public class UserSubscription {
     @ManyToOne(fetch = FetchType.LAZY)
     private SubscriptionPlan subscriptionPlan;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserPaymentMethod userPaymentMethod;
+
     private String paymentId;
 
-    private String scheduledId;
+    private boolean autoUpdate;
 
     @Enumerated(EnumType.STRING)
     private UserSubscriptionStatus userSubscriptionStatus;
@@ -35,22 +39,31 @@ public class UserSubscription {
     private LocalDateTime endTime;
 
     @Builder
-    public UserSubscription(User user, SubscriptionPlan subscriptionPlan, String paymentId, String scheduledId, UserSubscriptionStatus userSubscriptionStatus, LocalDateTime startTime, LocalDateTime endTime) {
+    public UserSubscription(User user,
+                            SubscriptionPlan subscriptionPlan,
+                            String paymentId,
+                            UserPaymentMethod userPaymentMethod,
+                            boolean autoUpdate,
+                            UserSubscriptionStatus userSubscriptionStatus,
+                            LocalDateTime startTime,
+                            LocalDateTime endTime) {
         this.user = user;
         this.subscriptionPlan = subscriptionPlan;
         this.paymentId = paymentId;
-        this.scheduledId = scheduledId;
+        this.userPaymentMethod = userPaymentMethod;
+        this.autoUpdate = autoUpdate;
         this.userSubscriptionStatus = userSubscriptionStatus;
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    public void setScheduledId(String scheduledId) {
-        this.scheduledId = scheduledId;
-    }
-
     public void setUserSubscriptionStatus(UserSubscriptionStatus userSubscriptionStatus) {
         this.userSubscriptionStatus = userSubscriptionStatus;
     }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
 
 }

@@ -2,6 +2,7 @@ package com.swmStrong.demo.infra.portone;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.portone.dto.PaymentMethod;
 import com.swmStrong.demo.domain.portone.dto.PaymentResult;
 import com.swmStrong.demo.infra.json.JsonLoader;
@@ -72,7 +73,6 @@ public class PortOnePaymentClient {
         }
     }
 
-    // 취소 쪽은 테스트를 못함 아직..
     public PaymentResult cancelLastPaymentToPortOne(String paymentId, String reason) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -108,7 +108,7 @@ public class PortOnePaymentClient {
                 case "SUCCEEDED":
                     return PaymentResult.of(true, paymentId, "결제 취소 성공");
                 default:
-                    return PaymentResult.of(true, paymentId, "");
+                    return PaymentResult.of(false, paymentId, "");
             }
 
         } catch (HttpClientErrorException e) {
@@ -144,26 +144,45 @@ public class PortOnePaymentClient {
             );
 
             JsonNode root = jsonLoader.toJsonTree(res.getBody());
-
-            // pgBillingKeyIssueResponses 배열 접근
             JsonNode responses = root.get("pgBillingKeyIssueResponses");
 
-            if (responses.get("method").get("type").asText().equals("BillingKeyPaymentMethodCard"))
-            {
-                String pgProvider = responses.get("channel").get("pgProvider").asText();
-                String issuer = responses.get("method").get("issuer").asText();
-                String number = responses.get("method").get("number").asText();
-                return PaymentMethod.of(pgProvider, issuer, number);
-            }
-            if (responses.get("method").get("type").asText().equals("BillingKeyPaymentMethodEasyPay")) {
-                String pgProvider = responses.get("channel").get("pgProvider").asText();
-                return PaymentMethod.of(pgProvider, "", "");
-            }
 
-            throw new RuntimeException("결제 수단 조회 실패");
+            if (responses != null && responses.isArray()) {
+                for (JsonNode response : responses) {
+                    JsonNode methodNode = response.get("method");
+                    JsonNode channelNode = response.get("channel");
+
+                    if (methodNode == null || channelNode == null) continue;
+
+                    String methodType = methodNode.has("type") ? methodNode.get("type").asText() : "";
+                    String pgProvider = channelNode.has("pgProvider") ? channelNode.get("pgProvider").asText() : "";
+                    switch (methodType) {
+                        // 이지 페이 수단을 사용하는 경우
+                        case "BillingKeyPaymentMethodEasyPay":
+                            return PaymentMethod.of(pgProvider, "", "");
+
+                        // 카드 정보를 등록한 경우 카드사, 카드번호 정보까지 더 가져옴
+                        case "BillingKeyPaymentMethodCard":
+                            JsonNode cardNode = methodNode.get("card");
+                            String issuer = "";
+                            String number = "";
+                            if (cardNode != null) {
+                                issuer = cardNode.has("issuer") ? cardNode.get("issuer").asText() : "";
+                                number = cardNode.has("number") ? cardNode.get("number").asText() : "";
+                            }
+                            return PaymentMethod.of(pgProvider, issuer, number);
+                        default:
+                            // 필요시 알 수 없는 타입 처리
+                            break;
+                    }
+
+
+                }
+            }
+            throw new ApiException(ErrorCode.BILLING_KEY_NOT_FOUND);
 
         } catch (HttpClientErrorException e) {
-            throw new RuntimeException("결제 수단 조회 실패");
+            throw new ApiException(ErrorCode.BILLING_KEY_NOT_FOUND);
         }
     }
 }

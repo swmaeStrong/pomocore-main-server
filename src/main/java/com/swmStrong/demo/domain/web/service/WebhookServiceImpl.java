@@ -57,7 +57,7 @@ public class WebhookServiceImpl implements WebhookService {
                 case "Transaction.Paid":
                     // 구독제 요금 결제 완료일 경우에는 이후 다음 구독 예약 결제 로직 수행
                     if (userSubscription != null) {
-                        userSubscriptionService.scheduleUserSubscription(userSubscription.getUser().getId(), paymentId);
+                        ;
                     }
             }
 

@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.userPaymentMethod.entity;
 import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import com.swmStrong.demo.domain.user.entity.User;
+import com.swmStrong.demo.domain.userPaymentMethod.converter.BillingKeyCryptoConverter;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,7 +21,8 @@ public class UserPaymentMethod extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private User user; // 유저와 N:1 관계
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "billing_key")
+    @Convert(converter = BillingKeyCryptoConverter.class)
     private String billingKey;
 
     private String paymentMethod;

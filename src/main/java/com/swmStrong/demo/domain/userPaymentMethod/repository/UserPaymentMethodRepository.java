@@ -9,6 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface UserPaymentMethodRepository extends JpaRepository<UserPaymentMethod, String> {
-    UserPaymentMethod findByUser(User user);
-    List<UserPaymentMethod> findByUserId(String userId);
+    List<UserPaymentMethod> findByUserIdAndIsDeleted(String userId, boolean isDeleted);
 }

@@ -27,7 +27,7 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
     }
 
     public List<UserPaymentMethodRes> getMyPaymentMethods(String userId) {
-        List<UserPaymentMethod> userPaymentMethods = userPaymentMethodRepository.findByUserId(userId);
+        List<UserPaymentMethod> userPaymentMethods = userPaymentMethodRepository.findByUserIdAndIsDeleted(userId, false);
 
         return userPaymentMethods.stream()
                 .map(UserPaymentMethodRes::from)
@@ -39,7 +39,7 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
         User user = userRepository.findById(userId).
                 orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        List<UserPaymentMethod> paymentMethods = userPaymentMethodRepository.findByUserId(userId);
+        List<UserPaymentMethod> paymentMethods = userPaymentMethodRepository.findByUserIdAndIsDeleted(userId, false);
         for (UserPaymentMethod paymentMethod : paymentMethods) {
             if (paymentMethod.getBillingKey().equals(billingKey)) {
                 throw new ApiException(ErrorCode.DUPLICATE_BILLING_KEY);

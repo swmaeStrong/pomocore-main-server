@@ -91,7 +91,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
         return LeaderboardResponseDto.builder()
                 .userId(userId)
-                .nickname(userInfoProvider.getNicknameByUserId(userId))
+                .nickname(userInfoProvider.loadNicknameByUserId(userId))
                 .score(leaderboardRepository.findScoreByUserId(key, userId))
                 .rank(leaderboardRepository.findRankByUserId(key, userId) + 1)
                 .build();
@@ -106,6 +106,12 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         String key = generateDailyKey(category, date);
         Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findAll(key);
 
+        Map<String, String> userNicknames = userInfoProvider.loadNicknamesByUserIds(
+                tuples.stream()
+                        .map(ZSetOperations.TypedTuple::getValue)
+                        .toList()
+        );
+
         long rank = 1;
         List<LeaderboardResponseDto> response = new ArrayList<>();
         for (ZSetOperations.TypedTuple<String> tuple : tuples) {
@@ -114,8 +120,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             response.add(
                     LeaderboardResponseDto.builder()
                             .userId(userId)
-                            //TODO: 미리 닉네임을 레디스에 올려두기
-                            .nickname(userInfoProvider.getNicknameByUserId(userId))
+                            .nickname(userNicknames.getOrDefault(userId, "Unknown"))
                             .score(score)
                             .rank(rank++)
                             .build()
@@ -157,6 +162,12 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size) {
         Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findPageWithSize(key, page, size);
 
+        Map<String, String> userNicknames = userInfoProvider.loadNicknamesByUserIds(
+                tuples.stream()
+                        .map(ZSetOperations.TypedTuple::getValue)
+                        .toList()
+        );
+
         List<LeaderboardResponseDto> response = new ArrayList<>();
         long rank = (long) (page - 1) * size + 1;
         for (ZSetOperations.TypedTuple<String> tuple : tuples) {
@@ -165,7 +176,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             response.add(
                     LeaderboardResponseDto.builder()
                             .userId(userId)
-                            .nickname(userInfoProvider.getNicknameByUserId(userId))
+                            .nickname(userNicknames.getOrDefault(userId, "Unknown"))
                             .score(score)
                             .rank(rank++)
                             .build()

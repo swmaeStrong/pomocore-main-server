@@ -4,6 +4,10 @@ import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class UserInfoProviderImpl implements UserInfoProvider {
 
@@ -14,9 +18,19 @@ public class UserInfoProviderImpl implements UserInfoProvider {
     }
 
     @Override
-    public String getNicknameByUserId(String userId) {
+    public String loadNicknameByUserId(String userId) {
         return userRepository.findById(userId)
                 .map(User::getNickname)
                 .orElse("Unknown");
+    }
+
+    @Override
+    public Map<String, String> loadNicknamesByUserIds(List<String> userIds) {
+        List<User> users = userRepository.findAllById(userIds);
+        Map<String, String> nicknames = new HashMap<>();
+        for (User user : users) {
+            nicknames.put(user.getNickname(), user.getNickname());
+        }
+        return nicknames;
     }
 }

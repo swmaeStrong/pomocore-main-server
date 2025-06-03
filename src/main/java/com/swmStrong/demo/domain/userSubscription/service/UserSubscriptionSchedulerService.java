@@ -26,7 +26,7 @@ public class UserSubscriptionSchedulerService {
         List<UserSubscription> expiredList = userSubscriptionRepository.
                 findByUserSubscriptionStatusAndEndTimeBefore(
                         UserSubscriptionStatus.ACTIVE, now);
-        List<UserSubscription> userSubscriptions = new java.util.ArrayList<>(List.of());
+        List<UserSubscription> userSubscriptions = new java.util.ArrayList<>();
 
         for (UserSubscription sub : expiredList) {
             if (sub.isAutoUpdate()) {

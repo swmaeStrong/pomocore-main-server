@@ -38,6 +38,7 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_CATEGORY("4094", "이미 존재하는 카테고리입니다.", HttpStatus.CONFLICT),
     DUPLICATE_BILLING_KEY("4095", "이미 등록된 결제 수단입니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_SUBSCRIPTION("4096", "이미 구독중인 플랜이 있습니다.", HttpStatus.CONFLICT),
+    DUPLICATE_USER_EMAIL("4097", "이미 가입된 이메일입니다.", HttpStatus.CONFLICT),
 
     // --- 500 INTERNAL SERVER ERROR ---
     _INTERNAL_SERVER_ERROR("5000", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),

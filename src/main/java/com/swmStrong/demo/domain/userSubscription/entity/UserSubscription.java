@@ -61,5 +61,9 @@ public class UserSubscription {
         this.userSubscriptionStatus = userSubscriptionStatus;
     }
 
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
 
 }

@@ -168,6 +168,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 
         if (paymentResult.isSuccess()) {
             userSubscription.setUserSubscriptionStatus(UserSubscriptionStatus.CANCELLED);
+            userSubscription.setEndTime(LocalDateTime.now());
             userSubscriptionRepository.save(userSubscription);
         }
     }

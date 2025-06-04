@@ -22,7 +22,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
 
-    private static final String LEADERBOARD_KEY_PREFIX = "leaderboard:";
+    private static final String LEADERBOARD_KEY_PREFIX = "leaderboard";
 
     public LeaderboardServiceImpl(
             LeaderboardRepository leaderboardRepository,

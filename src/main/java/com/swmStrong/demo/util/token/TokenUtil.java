@@ -1,7 +1,7 @@
 package com.swmStrong.demo.util.token;
 
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.global.Role;
+import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.loginCredential.facade.LoginCredentialProvider;
 import com.swmStrong.demo.domain.user.facade.UserDetailsProvider;
 import com.swmStrong.demo.util.redis.RedisUtil;

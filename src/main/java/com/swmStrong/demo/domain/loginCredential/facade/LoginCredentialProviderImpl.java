@@ -1,7 +1,7 @@
 package com.swmStrong.demo.domain.loginCredential.facade;
 
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.global.Role;
+import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.loginCredential.entity.LoginCredential;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
 import org.springframework.security.authentication.BadCredentialsException;

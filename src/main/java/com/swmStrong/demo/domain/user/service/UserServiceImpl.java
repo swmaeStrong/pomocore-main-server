@@ -2,7 +2,7 @@ package com.swmStrong.demo.domain.user.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
-import com.swmStrong.demo.domain.global.Role;
+import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.UnregisteredRequestDto;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
 import com.swmStrong.demo.domain.user.dto.UserResponseDto;

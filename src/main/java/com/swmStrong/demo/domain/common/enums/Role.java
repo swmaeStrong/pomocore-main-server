@@ -1,4 +1,4 @@
-package com.swmStrong.demo.domain.global;
+package com.swmStrong.demo.domain.common.enums;
 
 public enum Role {
     UNREGISTERED, USER, ADMIN;

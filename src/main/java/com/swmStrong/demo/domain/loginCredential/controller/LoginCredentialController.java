@@ -12,6 +12,7 @@ import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,7 @@ public class LoginCredentialController {
                 "<p> 당장은 바로 회원 가입하는 기능이 없다. (추가 예정) </p>"
     )
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Void>> upgradeToMember(@RequestBody UpgradeRequestDto upgradeRequestDto) {
+    public ResponseEntity<ApiResponse<Void>> upgradeToMember(@RequestBody @Valid UpgradeRequestDto upgradeRequestDto) {
         loginCredentialService.upgradeToUser(upgradeRequestDto);
         return CustomResponseEntity.of(SuccessCode._OK);
     }

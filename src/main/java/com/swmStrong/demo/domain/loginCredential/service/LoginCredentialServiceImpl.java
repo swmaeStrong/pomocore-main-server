@@ -37,6 +37,10 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 
     @Transactional
     public void upgradeToUser(UpgradeRequestDto upgradeRequestDto) {
+        if (loginCredentialRepository.existsByEmail(upgradeRequestDto.email())) {
+            throw new ApiException(ErrorCode.DUPLICATE_USER_EMAIL);
+        }
+
         User user = userUpdateProvider.getUserByUserId(upgradeRequestDto.userId());
 
         if (user instanceof LoginCredential) {

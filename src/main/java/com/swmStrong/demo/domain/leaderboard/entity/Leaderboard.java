@@ -1,12 +1,12 @@
 package com.swmStrong.demo.domain.leaderboard.entity;
 
-import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,9 +17,8 @@ import java.util.UUID;
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Leaderboard extends BaseEntity {
+public class Leaderboard {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String userId;
@@ -31,18 +30,21 @@ public class Leaderboard extends BaseEntity {
 
     private String periodKey;
 
-    private Integer rank;
+    private Integer ranking;
 
     private double score;
 
+    private LocalDateTime createdAt;
+
     @Builder
-    public Leaderboard(String userId, String categoryId, PeriodType periodType, String periodKey, Integer rank, double score) {
+    public Leaderboard(String userId, String categoryId, PeriodType periodType, String periodKey, Integer ranking, double score) {
         this.id = UUID.randomUUID().toString();
         this.userId = userId;
         this.categoryId = categoryId;
         this.periodType = periodType;
         this.periodKey = periodKey;
-        this.rank = rank;
+        this.ranking = ranking;
         this.score = score;
+        this.createdAt = LocalDateTime.now();
     }
 }

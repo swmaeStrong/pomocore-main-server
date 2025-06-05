@@ -29,7 +29,7 @@ public class UserInfoProviderImpl implements UserInfoProvider {
         List<User> users = userRepository.findAllById(userIds);
         Map<String, String> nicknames = new HashMap<>();
         for (User user : users) {
-            nicknames.put(user.getNickname(), user.getNickname());
+            nicknames.put(user.getId(), user.getNickname());
         }
         return nicknames;
     }

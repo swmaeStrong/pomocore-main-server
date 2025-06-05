@@ -8,6 +8,7 @@ import com.swmStrong.demo.domain.loginCredential.facade.LoginCredentialProvider;
 import com.swmStrong.demo.domain.user.facade.UserDetailsProvider;
 import com.swmStrong.demo.util.redis.RedisUtil;
 import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
+import com.swmStrong.demo.util.token.dto.SubjectResponseDto;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -196,7 +197,7 @@ public class TokenUtil {
         return false;
     }
 
-    public String loadSubjectByToken(String token) {
+    public SubjectResponseDto loadSubjectByToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getKey())
@@ -204,8 +205,9 @@ public class TokenUtil {
                     .parseClaimsJws(token)
                     .getBody();
 
-            return claims.getSubject();
+            return SubjectResponseDto.of(claims.getSubject(), claims.get("email", String.class));
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new ApiException(ErrorCode._INVALID_TOKEN);
         }
     }

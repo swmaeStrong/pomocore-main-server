@@ -195,4 +195,18 @@ public class TokenUtil {
         }
         return false;
     }
+
+    public String loadSubjectByToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return claims.getSubject();
+        } catch (Exception e) {
+            throw new ApiException(ErrorCode._INVALID_TOKEN);
+        }
+    }
 }

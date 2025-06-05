@@ -1,5 +1,7 @@
 package com.swmStrong.demo.util.token;
 
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.loginCredential.facade.LoginCredentialProvider;
@@ -11,6 +13,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -125,7 +128,7 @@ public class TokenUtil {
             String userAgent
     ) throws RuntimeException {
         if (!isTokenValid(userId, refreshTokenRequestDto, userAgent)) {
-            throw new RuntimeException("토큰이 유효하지 않습니다.");
+            throw new ApiException(ErrorCode._INVALID_TOKEN);
         }
         Role role = loginCredentialProvider.loadRoleByUserId(userId);
 
@@ -170,7 +173,7 @@ public class TokenUtil {
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authority);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } else {
-            throw new RuntimeException("인증 과정에서 문제가 발생했습니다.");
+            throw new BadCredentialsException("인증 과정 중 문제가 발생했습니다.");
         }
     }
 

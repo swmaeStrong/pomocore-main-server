@@ -5,16 +5,14 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.leaderboard.entity.Leaderboard;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.*;
 
 import static com.swmStrong.demo.domain.leaderboard.service.LeaderboardServiceImpl.LEADERBOARD_KEY_PREFIX;
 
@@ -33,18 +31,35 @@ public class LeaderboardSyncScheduler {
     }
 
     @Scheduled(cron = "0 0 3 * * ?")
-    @Transactional
     public void syncLeaderboard() {
         Set<String> keys = stringRedisTemplate.keys(LEADERBOARD_KEY_PREFIX+":*");
         if (keys.isEmpty()) {
             return;
         }
 
+        LocalDate now = LocalDate.now();
+        WeekFields weekFields = WeekFields.ISO;
+        int weekNumber = now.get(weekFields.weekOfWeekBasedYear());
+        int year = now.getYear();
+        int month = now.getMonthValue();
+
+        Set<String> excludes = new HashSet<>();
+        for (int i=0; i<7; i++) {
+            excludes.add(now.minusDays(i).toString());
+        }
+
+        excludes.add(String.format("%d-M%d", year, month));
+        excludes.add(String.format("%d-W%d", year, weekNumber));
+
         List<Leaderboard> leaderboards = new ArrayList<>();
         for (String key: keys) {
             String[] parts = key.split(":");
             String categoryId = parts[1];
             String periodKey = parts[2];
+            if (excludes.stream().anyMatch(periodKey::contains)) {
+                continue;
+            }
+
             PeriodType periodType = resolvePeriodType(periodKey);
 
             Set<ZSetOperations.TypedTuple<String>> rankings = stringRedisTemplate.opsForZSet().rangeWithScores(key, 0, -1);
@@ -66,7 +81,7 @@ public class LeaderboardSyncScheduler {
                                 .categoryId(categoryId)
                                 .periodType(periodType)
                                 .periodKey(periodKey)
-                                .rank(rank++)
+                                .ranking(rank++)
                                 .score(score)
                                 .build()
                 );

@@ -4,4 +4,7 @@ public record UserRequestDto(
         String userId,
         String nickname
 ) {
+    public static UserRequestDto of(String userId, String nickname) {
+        return new UserRequestDto(userId, nickname);
+    }
 }

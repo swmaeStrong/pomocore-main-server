@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.loginCredential.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.loginCredential.dto.SocialLoginRequestDto;
 import com.swmStrong.demo.domain.loginCredential.dto.UpgradeRequestDto;
 import com.swmStrong.demo.domain.loginCredential.entity.LoginCredential;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
@@ -9,6 +10,7 @@ import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserUpdateProvider;
 import com.swmStrong.demo.util.token.TokenUtil;
 import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
+import com.swmStrong.demo.util.token.dto.SubjectResponseDto;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -58,5 +60,29 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
     @Override
     public TokenResponseDto tokenRefresh(String userId, HttpServletRequest request, RefreshTokenRequestDto refreshTokenRequestDto) {
         return tokenUtil.tokenRefresh(userId, refreshTokenRequestDto, request.getHeader("User-Agent"));
+    }
+
+    @Override
+    public TokenResponseDto socialLogin(HttpServletRequest request, SocialLoginRequestDto socialLoginRequestDto) {
+
+        String supabaseToken = socialLoginRequestDto.accessToken();
+
+        if (!tokenUtil.isTokenValid(supabaseToken)) {
+            throw new ApiException(ErrorCode._INVALID_TOKEN);
+        }
+
+        SubjectResponseDto subjectResponseDto = tokenUtil.loadSubjectByToken(supabaseToken);
+        String email = subjectResponseDto.email();
+        String supabaseId = subjectResponseDto.supabaseId();
+
+        LoginCredential loginCredential = loginCredentialRepository.findBySocialId(supabaseId)
+                .orElseGet(() ->
+                        loginCredentialRepository.findByEmail(email)
+                                .map(existing -> existing.connectSocialAccount(supabaseId))
+                                .orElseGet(() -> LoginCredential.createSocialLoginCredential(email, supabaseId)));
+
+        loginCredentialRepository.save(loginCredential);
+
+        return tokenUtil.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole());
     }
 }

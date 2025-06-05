@@ -5,6 +5,7 @@ import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.loginCredential.dto.LoginRequestDto;
+import com.swmStrong.demo.domain.loginCredential.dto.SocialLoginRequestDto;
 import com.swmStrong.demo.domain.loginCredential.dto.UpgradeRequestDto;
 import com.swmStrong.demo.domain.loginCredential.service.LoginCredentialService;
 import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
@@ -81,6 +82,22 @@ public class LoginCredentialController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout() {
         return CustomResponseEntity.of(SuccessCode._OK);
+    }
+
+    @Operation(
+            summary = "소셜 로그인",
+            description =
+                "<p> supabase에서 받아온 토큰을 기반으로 로그인한다. </p>" +
+                "<p> 1. supabase에서 받아온 socialId가 이미 연동되어 있으면 바로 로그인한다. </p>" +
+                "<p> 2. supabase에서 가져온 이메일이 이미 우리 서버에 등록되어 있으면 그 아이디와 연동한다. </p>" +
+                "<p> 3. 신규유저의 경우 새로 아이디를 만들어 준다. //TODO: 이 경우 일반 로그인은 불가능하게 처리한다. </p>"
+    )
+    @PostMapping("/social-login")
+    public ResponseEntity<ApiResponse<TokenResponseDto>> socialLogin(HttpServletRequest request, @RequestBody SocialLoginRequestDto socialLoginRequestDto) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                loginCredentialService.socialLogin(request, socialLoginRequestDto)
+        );
     }
 }
 

@@ -17,6 +17,7 @@ public enum ErrorCode implements BaseCode {
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
     _INVALID_TOKEN("4011", "토큰이 유효하지 않습니다.", HttpStatus.UNAUTHORIZED),
     _SECURITY("401Z", "시큐리티 관련 오류입니다.", HttpStatus.UNAUTHORIZED),
+    TOKEN_AUTHORIZATION_FAILED("4013", "토큰이 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
 
     // --- 403 FORBIDDEN ---
     _FORBIDDEN("4030", "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),

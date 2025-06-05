@@ -35,7 +35,7 @@ public class Leaderboard extends BaseEntity {
 
     private double score;
 
-    @Builder()
+    @Builder
     public Leaderboard(String userId, String categoryId, PeriodType periodType, String periodKey, Integer rank, double score) {
         this.id = UUID.randomUUID().toString();
         this.userId = userId;

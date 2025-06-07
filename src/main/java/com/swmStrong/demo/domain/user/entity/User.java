@@ -1,7 +1,7 @@
 package com.swmStrong.demo.domain.user.entity;
 
 import com.swmStrong.demo.domain.common.entity.BaseEntity;
-import com.swmStrong.demo.domain.global.Role;
+import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
 import jakarta.persistence.*;
 import lombok.*;

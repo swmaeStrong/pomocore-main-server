@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum TokenType {
     accessToken((long) (60 * 60)),          // 60sec * 60min
-    refreshToken((long) (60 * 60 * 24));    // 60sec * 60min * 24hour
+    refreshToken(-1L);
 
     private final Long expireTime;
 
@@ -15,9 +15,6 @@ public enum TokenType {
 
     @Override
     public String toString() {
-        return switch (this) {
-            case accessToken -> "accessToken";
-            case refreshToken -> "refreshToken";
-        };
+        return this.name();
     }
 }

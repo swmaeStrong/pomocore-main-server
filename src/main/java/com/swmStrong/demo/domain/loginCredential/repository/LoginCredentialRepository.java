@@ -15,4 +15,5 @@ public interface LoginCredentialRepository extends JpaRepository<LoginCredential
     @Query(value = "INSERT INTO login_credential (id, email, password) VALUES (:id, :email, :password)", nativeQuery = true)
     void insertLoginCredential(@Param("id") String id, @Param("email") String email, @Param("password") String password);
 
+    Optional<LoginCredential> findBySocialId(String socialId);
 }

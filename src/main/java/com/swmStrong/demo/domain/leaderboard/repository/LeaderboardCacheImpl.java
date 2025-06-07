@@ -8,11 +8,11 @@ import java.util.Collections;
 import java.util.Set;
 
 @Repository
-public class LeaderboardRepositoryImpl implements LeaderboardRepository {
+public class LeaderboardCacheImpl implements LeaderboardCache {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    public LeaderboardRepositoryImpl(StringRedisTemplate stringRedisTemplate) {
+    public LeaderboardCacheImpl(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
     }
 

@@ -1,14 +1,8 @@
 package com.swmStrong.demo.domain.leaderboard.repository;
 
+import com.swmStrong.demo.domain.leaderboard.entity.Leaderboard;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import org.springframework.data.redis.core.ZSetOperations;
+public interface LeaderboardRepository extends JpaRepository<Leaderboard, String> {
 
-import java.util.Set;
-
-public interface LeaderboardRepository {
-    void increaseScoreByUserId(String key, String userId, double seconds);
-    Set<ZSetOperations.TypedTuple<String>> findPageWithSize(String key, int page, int size);
-    Long findRankByUserId(String key, String userId);
-    Double findScoreByUserId(String key, String userId);
-    Set<ZSetOperations.TypedTuple<String>> findAll(String key);
 }

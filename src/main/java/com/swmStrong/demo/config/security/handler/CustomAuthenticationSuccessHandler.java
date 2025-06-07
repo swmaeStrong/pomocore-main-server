@@ -2,7 +2,7 @@ package com.swmStrong.demo.config.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.global.Role;
+import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.util.token.TokenType;
 import com.swmStrong.demo.util.token.TokenUtil;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;

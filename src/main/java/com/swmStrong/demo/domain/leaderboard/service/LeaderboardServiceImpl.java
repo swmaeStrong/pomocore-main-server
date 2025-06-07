@@ -2,7 +2,7 @@ package com.swmStrong.demo.domain.leaderboard.service;
 
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
-import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardRepository;
+import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardCache;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -18,18 +18,18 @@ import java.util.*;
 @Service
 public class LeaderboardServiceImpl implements LeaderboardService {
 
-    private final LeaderboardRepository leaderboardRepository;
+    private final LeaderboardCache leaderboardCache;
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
 
-    private static final String LEADERBOARD_KEY_PREFIX = "leaderboard:";
+    public static final String LEADERBOARD_KEY_PREFIX = "leaderboard";
 
     public LeaderboardServiceImpl(
-            LeaderboardRepository leaderboardRepository,
+            LeaderboardCache leaderboardCache,
             UserInfoProvider userInfoProvider,
             CategoryProvider categoryProvider
     ) {
-        this.leaderboardRepository = leaderboardRepository;
+        this.leaderboardCache = leaderboardCache;
         this.userInfoProvider = userInfoProvider;
         this.categoryProvider = categoryProvider;
     }
@@ -42,13 +42,13 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
         String dailyKey = generateDailyKey(category, day);
         log.info("Increase score for user {} to {} for daily", userId, duration);
-        leaderboardRepository.increaseScoreByUserId(dailyKey, userId, duration);
+        leaderboardCache.increaseScoreByUserId(dailyKey, userId, duration);
         String weeklyKey = generateWeeklyKey(category, day);
         log.info("Increase score for user {} to {} for weekly", userId, duration);
-        leaderboardRepository.increaseScoreByUserId(weeklyKey, userId, duration);
+        leaderboardCache.increaseScoreByUserId(weeklyKey, userId, duration);
         String monthlyKey = generateMonthlyKey(category, day);
         log.info("Increase score for user {} to {} for monthly", userId, duration);
-        leaderboardRepository.increaseScoreByUserId(monthlyKey, userId, duration);
+        leaderboardCache.increaseScoreByUserId(monthlyKey, userId, duration);
     }
 
     @Override
@@ -92,8 +92,8 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         return LeaderboardResponseDto.builder()
                 .userId(userId)
                 .nickname(userInfoProvider.loadNicknameByUserId(userId))
-                .score(leaderboardRepository.findScoreByUserId(key, userId))
-                .rank(leaderboardRepository.findRankByUserId(key, userId) + 1)
+                .score(leaderboardCache.findScoreByUserId(key, userId))
+                .rank(leaderboardCache.findRankByUserId(key, userId) + 1)
                 .build();
     }
 
@@ -104,7 +104,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         }
 
         String key = generateDailyKey(category, date);
-        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findAll(key);
+        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardCache.findAll(key);
 
         Map<String, String> userNicknames = userInfoProvider.loadNicknamesByUserIds(
                 tuples.stream()
@@ -160,7 +160,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size) {
-        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardRepository.findPageWithSize(key, page, size);
+        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardCache.findPageWithSize(key, page, size);
 
         Map<String, String> userNicknames = userInfoProvider.loadNicknamesByUserIds(
                 tuples.stream()

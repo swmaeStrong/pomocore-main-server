@@ -11,11 +11,13 @@ public enum ErrorCode implements BaseCode {
     _BAD_REQUEST("4000", "잘못된 요청입니다.", HttpStatus.BAD_REQUEST),
     _VALIDATION_ERROR("4001", "입력값이 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
     USER_MISMATCH("4002", "토큰 생성 에러: 회원 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    PERIOD_KEY_ERROR("4003", "해당 기간 키값은 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
     _INVALID_TOKEN("4011", "토큰이 유효하지 않습니다.", HttpStatus.UNAUTHORIZED),
     _SECURITY("401Z", "시큐리티 관련 오류입니다.", HttpStatus.UNAUTHORIZED),
+    TOKEN_AUTHORIZATION_FAILED("4013", "토큰이 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
 
     // --- 403 FORBIDDEN ---
     _FORBIDDEN("4030", "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),

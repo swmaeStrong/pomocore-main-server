@@ -11,6 +11,7 @@ import com.swmStrong.demo.domain.loginCredential.service.LoginCredentialService;
 import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -97,6 +98,26 @@ public class LoginCredentialController {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 loginCredentialService.socialLogin(request, socialLoginRequestDto)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "소셜 로그인 (비회원 연동 전용)",
+            description =
+                "<p> supabase에서 받아온 토큰을 기반으로 로그인한다. </p>" +
+                "<p> 비회원 유저의 토큰을 같이 보내 유저와 소셜 로그인 계정을 연동한다. </p>" +
+                "<p> //TODO: 이 경우 일반 로그인은 불가능하게 처리한다. </p>"
+    )
+    @PostMapping("/social-login/guest")
+    public ResponseEntity<ApiResponse<TokenResponseDto>> guestSocialLogin(
+            HttpServletRequest request,
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
+            @RequestBody SocialLoginRequestDto socialLoginRequestDto
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                loginCredentialService.upgradeGuestBySocialLogin(request, securityPrincipal.userId(), socialLoginRequestDto)
         );
     }
 }

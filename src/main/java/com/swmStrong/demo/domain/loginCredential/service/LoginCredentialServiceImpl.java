@@ -85,4 +85,31 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 
         return tokenUtil.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole());
     }
+
+    @Transactional
+    @Override
+    public TokenResponseDto upgradeGuestBySocialLogin(
+            HttpServletRequest request,
+            String userId,
+            SocialLoginRequestDto socialLoginRequestDto
+    ) {
+        if (!tokenUtil.isTokenValid(socialLoginRequestDto.accessToken())) {
+            throw new ApiException(ErrorCode._INVALID_TOKEN);
+        }
+        User user = userUpdateProvider.getUserByUserId(userId);
+
+        SubjectResponseDto subjectResponseDto = tokenUtil.loadSubjectByToken(socialLoginRequestDto.accessToken());
+        String email = subjectResponseDto.email();
+        String supabaseId = subjectResponseDto.supabaseId();
+
+        loginCredentialRepository.insertLoginCredentialWhenSocialLogin(
+                userId,
+                email,
+                supabaseId
+        );
+        userUpdateProvider.updateUserRole(user);
+
+        return tokenUtil.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
+
+    }
 }

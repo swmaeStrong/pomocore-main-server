@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum TokenType {
-    accessToken((long) (60 * 60)),          // 60sec * 60min
+    accessToken(-1L), //TODO: 프로덕션 환경에서 반드시 바꿀 것
     refreshToken(-1L);
 
     private final Long expireTime;

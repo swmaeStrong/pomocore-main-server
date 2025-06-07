@@ -96,7 +96,12 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         if (!tokenUtil.isTokenValid(socialLoginRequestDto.accessToken())) {
             throw new ApiException(ErrorCode._INVALID_TOKEN);
         }
+
         User user = userUpdateProvider.getUserByUserId(userId);
+
+        if (user instanceof LoginCredential) {
+            throw new ApiException(ErrorCode.USER_ALREADY_REGISTERED);
+        }
 
         SubjectResponseDto subjectResponseDto = tokenUtil.loadSubjectByToken(socialLoginRequestDto.accessToken());
         String email = subjectResponseDto.email();

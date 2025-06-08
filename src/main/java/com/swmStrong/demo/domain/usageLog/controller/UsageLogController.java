@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
+import com.swmStrong.demo.domain.usageLog.dto.CategoryHourlyUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
@@ -83,6 +84,29 @@ public class UsageLogController {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 usageLogService.getUsageLogByUserIdAndDate(userId, date)
+        );
+    }
+
+    @Operation(
+            summary = "시간별 유저 사용 로그 조회",
+            description =
+                "<p> 유저의 시간별 사용 로그를 조회한다. </p>" +
+                "<p> 정리가 되어 있다. </p>" +
+                "<p> 날짜를 입력하지 않으면 당일 날짜로 들어간다. </p>"
+    )
+    @GetMapping("/hour")
+    public ResponseEntity<ApiResponse<List<CategoryHourlyUsageDto>>> getUsageLogByHour(
+            @RequestParam
+            String userId,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date,
+            @RequestParam
+            Integer binSize
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                usageLogService.getUsageLogByUserIdAndDateHourly(userId, date, binSize)
         );
     }
 }

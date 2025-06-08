@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.usageLog.service;
 
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
+import com.swmStrong.demo.domain.usageLog.dto.CategoryHourlyUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
@@ -96,5 +97,16 @@ public class UsageLogServiceImpl implements UsageLogService {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1);
         return usageLogRepository.findByUserIdAndTimestampBetween(userId, start, end);
+    }
+
+    @Override
+    public List<CategoryHourlyUsageDto> getUsageLogByUserIdAndDateHourly(String userId, LocalDate date, Integer binSize) {
+        if (date == null) {
+            date = LocalDate.now();
+        }
+
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+        return usageLogRepository.findHourlyCategoryUsageByUserIdAndTimestampBetween(userId, start, end, binSize);
     }
 }

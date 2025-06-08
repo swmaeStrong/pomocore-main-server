@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.user.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.common.enums.Role;
+import com.swmStrong.demo.domain.user.dto.NicknameRequestDto;
 import com.swmStrong.demo.domain.user.dto.UnregisteredRequestDto;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
 import com.swmStrong.demo.domain.user.dto.UserResponseDto;
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean isGuestNicknameDuplicated(String nickname) {
+    public boolean isNicknameDuplicated(String nickname) {
         return userRepository.existsByNickname(nickname);
     }
 
@@ -56,5 +57,19 @@ public class UserServiceImpl implements UserService {
         }
 
         return tokenUtil.getToken(unregisteredRequestDto.userId(),  request.getHeader("User-Agent"), Role.UNREGISTERED);
+    }
+
+    @Override
+    public UserResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        if (isNicknameDuplicated(nicknameRequestDto.nickname())) {
+            throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        user.updateNickname(nicknameRequestDto.nickname());
+        userRepository.save(user);
+        return UserResponseDto.of(user);
     }
 }

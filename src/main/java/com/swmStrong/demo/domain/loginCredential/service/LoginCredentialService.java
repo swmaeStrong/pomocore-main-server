@@ -10,4 +10,5 @@ public interface LoginCredentialService {
     void upgradeToUser(UpgradeRequestDto upgradeRequestDto);
     TokenResponseDto tokenRefresh(String userId, HttpServletRequest request, RefreshTokenRequestDto refreshTokenRequestDto);
     TokenResponseDto socialLogin(HttpServletRequest request, SocialLoginRequestDto socialLoginRequestDto);
+    TokenResponseDto upgradeGuestBySocialLogin(HttpServletRequest request, String userId, SocialLoginRequestDto socialLoginRequestDto);
 }

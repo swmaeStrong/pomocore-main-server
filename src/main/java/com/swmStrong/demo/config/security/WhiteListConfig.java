@@ -20,6 +20,6 @@ public class WhiteListConfig {
     public static final String[] WHITE_LIST_FOR_GET = {
             PREFIX+"/category",
             PREFIX+"/category/**",
-            PREFIX+"/usage-log",
+            PREFIX+"/usage-log/**",
     };
 }

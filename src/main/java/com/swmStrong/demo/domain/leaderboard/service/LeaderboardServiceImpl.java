@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.leaderboard.service;
 
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardCache;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
@@ -39,62 +40,44 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         LocalDate day = timestamp.toLocalDate();
         ObjectId categoryObjectId = new ObjectId(categoryId);
         String category = categoryProvider.getCategoryById(categoryObjectId);
+        log.info("Increase score for user: {} category: {}, duration: {}", userId, category, duration);
 
         String dailyKey = generateDailyKey(category, day);
-        log.info("Increase score for user {} to {} for daily", userId, duration);
         leaderboardCache.increaseScoreByUserId(dailyKey, userId, duration);
         String weeklyKey = generateWeeklyKey(category, day);
-        log.info("Increase score for user {} to {} for weekly", userId, duration);
         leaderboardCache.increaseScoreByUserId(weeklyKey, userId, duration);
         String monthlyKey = generateMonthlyKey(category, day);
-        log.info("Increase score for user {} to {} for monthly", userId, duration);
         leaderboardCache.increaseScoreByUserId(monthlyKey, userId, duration);
     }
 
     @Override
-    public List<LeaderboardResponseDto> getLeaderboardPageDaily(String category, int page, int size, LocalDate date) {
+    public List<LeaderboardResponseDto> getLeaderboardPage(
+            String category,
+            int page,
+            int size,
+            LocalDate date,
+            PeriodType periodType
+    ) {
         if (date == null) {
             date = LocalDate.now();
         }
 
-        String key = generateDailyKey(category, date);
-        return getPageByKey(key, page, size);
-    }
-
-
-    @Override
-    public List<LeaderboardResponseDto> getLeaderboardPageWeekly(String category, int page, int size, LocalDate date) {
-        if (date == null) {
-            date = LocalDate.now();
-        }
-
-        String key = generateWeeklyKey(category, date);
+        String key = generateKey(category, date, periodType);
         return getPageByKey(key, page, size);
     }
 
     @Override
-    public List<LeaderboardResponseDto> getLeaderboardPageMonthly(String category, int page, int size, LocalDate date) {
+    public LeaderboardResponseDto getUserScoreInfo(
+            String category,
+            String userId,
+            LocalDate date,
+            PeriodType periodType
+    ) {
         if (date == null) {
             date = LocalDate.now();
         }
-        String key = generateMonthlyKey(category, date);
-        return getPageByKey(key, page, size);
-    }
-
-    @Override
-    public LeaderboardResponseDto getUserScoreInfo(String category, String userId, LocalDate date) {
-        if (date == null) {
-            date = LocalDate.now();
-        }
-
-        String key = generateDailyKey(category, date);
-
-        return LeaderboardResponseDto.builder()
-                .userId(userId)
-                .nickname(userInfoProvider.loadNicknameByUserId(userId))
-                .score(leaderboardCache.findScoreByUserId(key, userId))
-                .rank(leaderboardCache.findRankByUserId(key, userId) + 1)
-                .build();
+        String key = generateKey(category, date, periodType);
+        return getUserInfo(userId, key);
     }
 
     @Override
@@ -137,9 +120,17 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         List<String> categories = categoryProvider.getCategories();
 
         for (String category : categories) {
-            response.put(category, getLeaderboardPageDaily(category, 1, 10, date));
+            response.put(category, getLeaderboardPage(category, 1, 10, date, PeriodType.DAILY));
         }
         return response;
+    }
+
+    private String generateKey(String category, LocalDate date, PeriodType periodType) {
+        return switch (periodType) {
+            case DAILY -> generateDailyKey(category, date);
+            case WEEKLY -> generateWeeklyKey(category, date);
+            case MONTHLY -> generateMonthlyKey(category, date);
+        };
     }
 
     private String generateDailyKey(String category, LocalDate day) {
@@ -183,6 +174,16 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             );
         }
         return response;
+    }
+
+    private LeaderboardResponseDto getUserInfo(String userId, String key) {
+
+        return LeaderboardResponseDto.builder()
+                .userId(userId)
+                .nickname(userInfoProvider.loadNicknameByUserId(userId))
+                .score(leaderboardCache.findScoreByUserId(key, userId))
+                .rank(leaderboardCache.findRankByUserId(key, userId) + 1)
+                .build();
     }
 }
 

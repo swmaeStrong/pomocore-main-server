@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.leaderboard.controller;
 import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
+import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.service.LeaderboardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,7 +44,7 @@ public class LeaderboardController {
             ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                leaderboardService.getLeaderboardPageDaily(category, page, size, date)
+                leaderboardService.getLeaderboardPage(category, page, size, date, PeriodType.DAILY)
         );
     }
 
@@ -65,7 +66,7 @@ public class LeaderboardController {
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                leaderboardService.getLeaderboardPageWeekly(category, page, size, date)
+                leaderboardService.getLeaderboardPage(category, page, size, date, PeriodType.WEEKLY)
         );
     }
 
@@ -87,7 +88,7 @@ public class LeaderboardController {
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                leaderboardService.getLeaderboardPageMonthly(category, page, size, date)
+                leaderboardService.getLeaderboardPage(category, page, size, date, PeriodType.MONTHLY)
         );
     }
 
@@ -111,15 +112,15 @@ public class LeaderboardController {
     }
 
     @Operation(
-            summary = "유저의 점수 조회",
+            summary = "유저의 점수 조회 (일간)",
             description =
                 "<p> 유저의 카테고리 별 점수와 등수를 조회한다. </p>" +
                 "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>" +
                 "<p> 랭크가 0인 경우, 점수가 없다는 뜻이다. </p>"
 
     )
-    @GetMapping("/{category}/user-info")
-    public ResponseEntity<ApiResponse<LeaderboardResponseDto>> getUserInfo(
+    @GetMapping("/{category}/user-info/daily")
+    public ResponseEntity<ApiResponse<LeaderboardResponseDto>> getUserInfoDaily(
             @PathVariable String category,
             @RequestParam String userId,
             @RequestParam(required = false)
@@ -128,7 +129,51 @@ public class LeaderboardController {
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                leaderboardService.getUserScoreInfo(category, userId, date)
+                leaderboardService.getUserScoreInfo(category, userId, date, PeriodType.DAILY)
+        );
+    }
+
+    @Operation(
+            summary = "유저의 점수 조회 (주간)",
+            description =
+                    "<p> 유저의 카테고리 별 점수와 등수를 조회한다. </p>" +
+                    "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>" +
+                    "<p> 랭크가 0인 경우, 점수가 없다는 뜻이다. </p>"
+
+    )
+    @GetMapping("/{category}/user-info/weekly")
+    public ResponseEntity<ApiResponse<LeaderboardResponseDto>> getUserInfoWeekly(
+            @PathVariable String category,
+            @RequestParam String userId,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getUserScoreInfo(category, userId, date, PeriodType.WEEKLY)
+        );
+    }
+
+    @Operation(
+            summary = "유저의 점수 조회 (월간)",
+            description =
+                    "<p> 유저의 카테고리 별 점수와 등수를 조회한다. </p>" +
+                    "<p> 날짜를 입력하지 않는 경우, 오늘을 기준으로 한다. </p>" +
+                    "<p> 랭크가 0인 경우, 점수가 없다는 뜻이다. </p>"
+
+    )
+    @GetMapping("/{category}/user-info/monthly")
+    public ResponseEntity<ApiResponse<LeaderboardResponseDto>> getUserInfoMonthly(
+            @PathVariable String category,
+            @RequestParam String userId,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                leaderboardService.getUserScoreInfo(category, userId, date, PeriodType.MONTHLY)
         );
     }
 

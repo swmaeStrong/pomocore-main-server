@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.user.dto;
 
+import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.user.entity.User;
 
 import java.time.LocalDateTime;

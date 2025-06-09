@@ -59,7 +59,7 @@ public class LoginCredential extends User {
 
     public static LoginCredential createSocialLoginCredential(String email, String socialId) {
         LoginCredential loginCredential = LoginCredential.builder()
-                .user(User.of(UserRequestDto.of(UUID.randomUUID().toString(), null)))
+                .user(User.of(UserRequestDto.of(UUID.randomUUID().toString())))
                 .email(email)
                 .build();
         loginCredential.setSocial();

@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ErrorCode.USER_MISMATCH);
         }
 
-        return tokenUtil.getToken(unregisteredRequestDto.userId(),  request.getHeader("User-Agent"), Role.UNREGISTERED);
+        return tokenUtil.getToken(unregisteredRequestDto.userId(), request.getHeader("User-Agent"), Role.UNREGISTERED);
     }
 
     @Override

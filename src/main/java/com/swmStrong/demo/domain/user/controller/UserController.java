@@ -34,7 +34,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponseDto>> createGuestUser(@RequestBody @Valid UserRequestDto userRequestDto) {
         return CustomResponseEntity.of(
                 SuccessCode._CREATED,
-                userService.registerGuestNickname(userRequestDto)
+                userService.signupGuest(userRequestDto)
         );
     }
 

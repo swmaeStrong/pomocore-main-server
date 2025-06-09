@@ -2,7 +2,6 @@ package com.swmStrong.demo.domain.user.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
-import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.entity.User;
@@ -25,14 +24,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto registerGuestNickname(UserRequestDto userRequestDto) {
-
-        if (userRepository.existsByNickname(userRequestDto.nickname())){
-            throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
-        }
+    public UserResponseDto signupGuest(UserRequestDto userRequestDto) {
         if (userRepository.existsById(userRequestDto.userId())){
             throw new ApiException(ErrorCode.DUPLICATE_USER_ID);
         }
+
         User user = userRepository.save(User.of(userRequestDto));
 
         return UserResponseDto.of(user);

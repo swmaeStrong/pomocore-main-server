@@ -68,7 +68,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoResponseDto getMyInfo(SecurityPrincipal securityPrincipal) {
-        return UserInfoResponseDto.of(securityPrincipal);
+    public UserInfoResponseDto getMyInfo(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        return UserInfoResponseDto.of(user);
     }
 }

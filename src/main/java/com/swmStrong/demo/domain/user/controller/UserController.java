@@ -97,7 +97,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserInfoResponseDto>> getMyInfo(@AuthenticationPrincipal SecurityPrincipal securityPrincipal) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                userService.getMyInfo(securityPrincipal)
+                userService.getMyInfo(securityPrincipal.userId())
         );
     }
 }

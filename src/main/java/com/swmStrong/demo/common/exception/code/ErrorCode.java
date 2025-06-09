@@ -42,6 +42,9 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_USER_SUBSCRIPTION("4096", "이미 구독중인 플랜이 있습니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_EMAIL("4097", "이미 가입된 이메일입니다.", HttpStatus.CONFLICT),
 
+    // --- 429 TO MANY REQUESTS ---
+    IP_RATE_LIMIT_EXCEEDED("4290", "지속적인 요청으로 인해 차단되었습니다. 악의적 접근으로 간주될 수 있습니다.", HttpStatus.TOO_MANY_REQUESTS),
+
     // --- 500 INTERNAL SERVER ERROR ---
     _INTERNAL_SERVER_ERROR("5000", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     PAYMENT_FAILED("5001", "결제에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),

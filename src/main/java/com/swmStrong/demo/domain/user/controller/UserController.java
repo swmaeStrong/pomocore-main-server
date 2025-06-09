@@ -32,10 +32,10 @@ public class UserController {
                     "<p> 새로운 유저를 생성한다.</p>"
     )
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResponseDto>> createGuestUser(@RequestBody @Valid UserRequestDto userRequestDto) {
+    public ResponseEntity<ApiResponse<UserResponseDto>> createGuestUser(HttpServletRequest request, @RequestBody @Valid UserRequestDto userRequestDto) {
         return CustomResponseEntity.of(
                 SuccessCode._CREATED,
-                userService.signupGuest(userRequestDto)
+                userService.signupGuest(request, userRequestDto)
         );
     }
 

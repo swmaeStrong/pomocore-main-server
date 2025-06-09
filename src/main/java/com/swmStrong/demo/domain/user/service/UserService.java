@@ -5,7 +5,7 @@ import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface UserService {
-    UserResponseDto signupGuest(UserRequestDto userRequestDto);
+    UserResponseDto signupGuest(HttpServletRequest request, UserRequestDto userRequestDto);
     boolean isNicknameDuplicated(String nickname);
     TokenResponseDto getToken(HttpServletRequest request, UnregisteredRequestDto unregisteredRequestDto);
     UserInfoResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto);

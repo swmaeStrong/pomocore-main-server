@@ -6,27 +6,50 @@ import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
+import com.swmStrong.demo.util.redis.RedisUtil;
 import com.swmStrong.demo.util.token.TokenUtil;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TokenUtil tokenUtil;
+    private final RedisUtil redisUtil;
 
-    public UserServiceImpl(UserRepository userRepository, TokenUtil tokenUtil) {
+    public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
+
+    public UserServiceImpl(
+            UserRepository userRepository,
+            TokenUtil tokenUtil,
+            RedisUtil redisUtil
+    ) {
         this.userRepository = userRepository;
         this.tokenUtil = tokenUtil;
+        this.redisUtil = redisUtil;
     }
 
     @Override
-    public UserResponseDto signupGuest(UserRequestDto userRequestDto) {
+    public UserResponseDto signupGuest(HttpServletRequest request, UserRequestDto userRequestDto) {
         if (userRepository.existsById(userRequestDto.userId())){
             throw new ApiException(ErrorCode.DUPLICATE_USER_ID);
+        }
+
+        String requestIP = request.getHeader("X-Forwarded-For");
+        if (requestIP == null) {
+            requestIP = request.getRemoteAddr();
+        }
+
+        String key = getKey(requestIP);
+
+        Long count = redisUtil.incrementWithExpireIfFirst(key, 1, TimeUnit.HOURS);
+
+        if (count > 5) {
+            throw new ApiException(ErrorCode.IP_RATE_LIMIT_EXCEEDED);
         }
 
         User user = userRepository.save(User.of(userRequestDto));
@@ -72,5 +95,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
         return UserInfoResponseDto.of(user);
+    }
+
+    private String getKey(String requestIP) {
+        return REGISTER_IP_COUNT_PREFIX+requestIP;
     }
 }

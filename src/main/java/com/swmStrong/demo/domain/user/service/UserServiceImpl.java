@@ -2,11 +2,9 @@ package com.swmStrong.demo.domain.user.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.common.enums.Role;
-import com.swmStrong.demo.domain.user.dto.NicknameRequestDto;
-import com.swmStrong.demo.domain.user.dto.UnregisteredRequestDto;
-import com.swmStrong.demo.domain.user.dto.UserRequestDto;
-import com.swmStrong.demo.domain.user.dto.UserResponseDto;
+import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
 import com.swmStrong.demo.util.token.TokenUtil;
@@ -60,7 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto) {
+    public UserInfoResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
@@ -70,6 +68,11 @@ public class UserServiceImpl implements UserService {
 
         user.updateNickname(nicknameRequestDto.nickname());
         userRepository.save(user);
-        return UserResponseDto.of(user);
+        return UserInfoResponseDto.of(user);
+    }
+
+    @Override
+    public UserInfoResponseDto getMyInfo(SecurityPrincipal securityPrincipal) {
+        return UserInfoResponseDto.of(securityPrincipal);
     }
 }

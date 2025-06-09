@@ -15,13 +15,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "비회원")
+@Tag(name = "회원 관리")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/guest-users")
+@RequestMapping("/user")
 public class UserController {
     private final UserService userService;
 
@@ -43,7 +44,7 @@ public class UserController {
             description =
                     "<p> 중복일 경우 true, 중복이 아닐 경우 false를 반환한다. </p>"
     )
-    @GetMapping("/is-nickname-duplicated")
+    @GetMapping("/nickname/check")
     public ResponseEntity<ApiResponse<Boolean>> isNicknameDuplicated(@Valid NicknameRequestDto nicknameRequestDto) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
@@ -54,9 +55,10 @@ public class UserController {
     @Operation(
             summary = "비회원용 토큰 발급",
             description =
-                "<p> 비회원용 토큰 발급 수단이다. </p>" +
+                "<p> '비회원용' 토큰 발급 수단이다. </p>" +
                 "<p> 등록일시같은 추가적인 유저 구분 수단을 반드시 보관하고 있고, 토큰 발급 시 넣어야 한다.</p>"
     )
+    @PreAuthorize("hasAuthority('UNREGISTERED')")
     @PostMapping("/get-token")
     public ResponseEntity<ApiResponse<TokenResponseDto>> getToken(
             HttpServletRequest request,

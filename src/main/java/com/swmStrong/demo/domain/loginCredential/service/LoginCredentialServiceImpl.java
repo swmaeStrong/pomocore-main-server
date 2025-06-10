@@ -58,8 +58,8 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
     }
 
     @Override
-    public TokenResponseDto tokenRefresh(String userId, HttpServletRequest request, RefreshTokenRequestDto refreshTokenRequestDto) {
-        return tokenUtil.tokenRefresh(userId, refreshTokenRequestDto, request.getHeader("User-Agent"));
+    public TokenResponseDto tokenRefresh(HttpServletRequest request, RefreshTokenRequestDto refreshTokenRequestDto) {
+        return tokenUtil.tokenRefresh(refreshTokenRequestDto, request.getHeader("User-Agent"));
     }
 
     @Override

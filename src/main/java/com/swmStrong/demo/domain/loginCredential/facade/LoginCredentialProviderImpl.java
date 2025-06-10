@@ -23,13 +23,6 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
     }
 
     @Override
-    public Role loadRoleByUserId(String userId) {
-        LoginCredential loginCredential = loginCredentialRepository.findById(userId)
-                .orElseThrow(IllegalArgumentException::new);
-        return loginCredential.getRole();
-    }
-
-    @Override
     public SecurityPrincipal loadPrincipalByToken(UsernamePasswordAuthenticationToken token) {
         String email = token.getName();
         String password = token.getCredentials().toString();

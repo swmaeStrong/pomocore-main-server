@@ -11,6 +11,7 @@ import com.swmStrong.demo.util.token.TokenUtil;
 import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionUsageException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -72,9 +73,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto getMyInfo(String userId) {
+    public UserResponseDto getInfoByIdOrNickname(String userId, String nickname) {
+        boolean isUserIdExists = userId != null && !userId.isEmpty();
+        boolean isNicknameExists = nickname != null && !nickname.isEmpty();
+        if (isUserIdExists ^ isNicknameExists) {
+            if (isUserIdExists) {
+                return getInfoById(userId);
+            } else {
+                return getInfoByNickname(nickname);
+            }
+        }
+        throw new ApiException(ErrorCode._BAD_REQUEST);
+    }
+
+    @Override
+    public UserResponseDto getInfoById(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        return UserResponseDto.of(user);
+    }
+
+    @Override
+    public UserResponseDto getInfoByNickname(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new ApiException(ErrorCode.NICKNAME_NOT_FOUND));
+
         return UserResponseDto.of(user);
     }
 

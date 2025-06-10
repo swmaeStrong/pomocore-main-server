@@ -8,5 +8,7 @@ public interface UserService {
     TokenResponseDto signupGuest(HttpServletRequest request, UserRequestDto userRequestDto);
     boolean isNicknameDuplicated(String nickname);
     UserResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto);
-    UserResponseDto getMyInfo(String userId);
+    UserResponseDto getInfoById(String userId);
+    UserResponseDto getInfoByNickname(String nickname);
+    UserResponseDto getInfoByIdOrNickname(String userId, String nickname);
 }

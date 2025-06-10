@@ -1,7 +1,6 @@
 package com.swmStrong.demo.config.security.principal;
 
 import lombok.Builder;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -12,13 +11,12 @@ import java.util.List;
 @Builder
 public record SecurityPrincipal(
         String userId,
-        String nickname,
         GrantedAuthority grantedAuthority
 ) implements UserDetails {
 
     @Override
     public String getUsername() {
-        return nickname;
+        return userId;
     }
 
     @Override

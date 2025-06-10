@@ -43,7 +43,6 @@ public class LoginCredentialProviderImpl implements LoginCredentialProvider {
 
         return SecurityPrincipal.builder()
                 .userId(loginCredential.getId())
-                .nickname(loginCredential.getNickname())
                 .grantedAuthority(new SimpleGrantedAuthority(loginCredential.getRole().getAuthority()))
                 .build();
     }

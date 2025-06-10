@@ -23,7 +23,6 @@ public class UserDetailsProviderImpl implements UserDetailsProvider {
 
         return SecurityPrincipal.builder()
                 .userId(user.getId())
-                .nickname(user.getNickname())
                 .grantedAuthority(new SimpleGrantedAuthority(user.getRole().getAuthority()))
                 .build();
     }

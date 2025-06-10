@@ -51,12 +51,11 @@ public class LoginCredentialController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<TokenResponseDto>> tokenRefresh(
             HttpServletRequest request,
-            @RequestBody RefreshTokenRequestDto refreshTokenRequestDto,
-            @AuthenticationPrincipal SecurityPrincipal securityPrincipal
+            @RequestBody RefreshTokenRequestDto refreshTokenRequestDto
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._CREATED,
-                loginCredentialService.tokenRefresh(securityPrincipal.userId(), request, refreshTokenRequestDto)
+                loginCredentialService.tokenRefresh(request, refreshTokenRequestDto)
         );
     }
 

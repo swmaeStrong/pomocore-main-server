@@ -32,12 +32,10 @@ import static com.swmStrong.demo.util.redis.RedisUtil.REDIS_REFRESH_TOKEN_PREFIX
 @Component
 public class TokenUtil {
     private final RedisUtil redisUtil;
-    private final LoginCredentialProvider loginCredentialProvider;
     private final UserDetailsProvider userDetailsProvider;
 
-    public TokenUtil(RedisUtil redisUtil, LoginCredentialProvider loginCredentialProvider, UserDetailsProvider userDetailsProvider) {
+    public TokenUtil(RedisUtil redisUtil, UserDetailsProvider userDetailsProvider) {
         this.redisUtil = redisUtil;
-        this.loginCredentialProvider = loginCredentialProvider;
         this.userDetailsProvider = userDetailsProvider;
     }
 
@@ -124,16 +122,22 @@ public class TokenUtil {
      * @throws RuntimeException 리프레시토큰도 만료되었거나, 리프레시 토큰을 통해 유저를 찾지 못하는 경우
      */
     public TokenResponseDto tokenRefresh(
-            String userId,
             RefreshTokenRequestDto refreshTokenRequestDto,
             String userAgent
     ) throws RuntimeException {
-        if (!isTokenValid(userId, refreshTokenRequestDto, userAgent)) {
+        if (!isTokenValid(refreshTokenRequestDto.userId(), refreshTokenRequestDto, userAgent)) {
             throw new ApiException(ErrorCode._INVALID_TOKEN);
         }
-        Role role = loginCredentialProvider.loadRoleByUserId(userId);
+        String refreshTokenKey = REDIS_REFRESH_TOKEN_PREFIX + refreshTokenRequestDto.userId();
+        if (!refreshTokenRequestDto.refreshToken().equals(
+                redisUtil.getData(refreshTokenKey))
+        ) {
+            throw new ApiException(ErrorCode._INVALID_TOKEN);
+        };
+        redisUtil.deleteData(refreshTokenKey);
+        Role role = userDetailsProvider.loadRoleByUserId(refreshTokenRequestDto.userId());
 
-        return getToken(userId, userAgent, role);
+        return getToken(refreshTokenRequestDto.userId(), userAgent, role);
     }
 
     /**

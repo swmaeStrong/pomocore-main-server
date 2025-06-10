@@ -1,6 +1,9 @@
 package com.swmStrong.demo.domain.user.facade;
 
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
+import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,8 +26,14 @@ public class UserDetailsProviderImpl implements UserDetailsProvider {
 
         return SecurityPrincipal.builder()
                 .userId(user.getId())
-                .nickname(user.getNickname())
                 .grantedAuthority(new SimpleGrantedAuthority(user.getRole().getAuthority()))
                 .build();
+    }
+
+    @Override
+    public Role loadRoleByUserId(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        return user.getRole();
     }
 }

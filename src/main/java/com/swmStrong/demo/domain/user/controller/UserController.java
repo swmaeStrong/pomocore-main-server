@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +31,7 @@ public class UserController {
                     "<p> 새로운 유저를 생성한다.</p>"
     )
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResponseDto>> createGuestUser(HttpServletRequest request, @RequestBody @Valid UserRequestDto userRequestDto) {
+    public ResponseEntity<ApiResponse<TokenResponseDto>> createGuestUser(HttpServletRequest request, @RequestBody @Valid UserRequestDto userRequestDto) {
         return CustomResponseEntity.of(
                 SuccessCode._CREATED,
                 userService.signupGuest(request, userRequestDto)
@@ -53,24 +52,6 @@ public class UserController {
     }
 
     @Operation(
-            summary = "비회원용 토큰 발급",
-            description =
-                "<p> '비회원용' 토큰 발급 수단이다. </p>" +
-                "<p> 등록일시같은 추가적인 유저 구분 수단을 반드시 보관하고 있고, 토큰 발급 시 넣어야 한다.</p>"
-    )
-    @PreAuthorize("hasAuthority('UNREGISTERED')")
-    @PostMapping("/get-token")
-    public ResponseEntity<ApiResponse<TokenResponseDto>> getToken(
-            HttpServletRequest request,
-            @RequestBody UnregisteredRequestDto unregisteredRequestDto
-    ) {
-        return CustomResponseEntity.of(
-                SuccessCode._CREATED,
-                userService.getToken(request, unregisteredRequestDto)
-        );
-    }
-
-    @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
             summary = "유저 닉네임 변경",
             description =
@@ -79,7 +60,7 @@ public class UserController {
                 "<p> 그리고 여기서 내려주는 정보도 guest를 생성했을 때와 같은 정보이기에 닉네임 바뀐걸 확인하고 덮어써도 된다. </p>"
     )
     @PatchMapping("/nickname")
-    public ResponseEntity<ApiResponse<UserInfoResponseDto>> updateNickname(
+    public ResponseEntity<ApiResponse<UserResponseDto>> updateNickname(
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
             @RequestBody @Valid NicknameRequestDto nicknameRequestDto
     ) {
@@ -96,7 +77,7 @@ public class UserController {
                 "<p> 내 정보를 반환한다. </p>"
     )
     @GetMapping("/my-info")
-    public ResponseEntity<ApiResponse<UserInfoResponseDto>> getMyInfo(@AuthenticationPrincipal SecurityPrincipal securityPrincipal) {
+    public ResponseEntity<ApiResponse<UserResponseDto>> getMyInfo(@AuthenticationPrincipal SecurityPrincipal securityPrincipal) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 userService.getMyInfo(securityPrincipal.userId())

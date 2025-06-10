@@ -7,6 +7,7 @@ public class WhiteListConfig {
             PREFIX+"/auth/register",
             PREFIX+"/auth/login",
             PREFIX+"/auth/social-login",
+            PREFIX+"/auth/refresh",
             PREFIX+"/user",
             PREFIX+"/user/get-token",
             PREFIX+"/user/nickname/check",

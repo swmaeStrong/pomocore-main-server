@@ -5,6 +5,5 @@ import com.swmStrong.demo.domain.common.enums.Role;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 public interface LoginCredentialProvider {
-    Role loadRoleByUserId(String userId);
     SecurityPrincipal loadPrincipalByToken(UsernamePasswordAuthenticationToken token);
 }

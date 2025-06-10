@@ -21,7 +21,7 @@ public class User extends BaseEntity {
     public static User of(UserRequestDto userRequestDto) {
         return new User(
                 userRequestDto.userId(),
-                userRequestDto.nickname()
+                null
         );
     }
 

@@ -8,9 +8,9 @@ import com.swmStrong.demo.config.security.handler.CustomAuthenticationSuccessHan
 import com.swmStrong.demo.config.security.handler.CustomLogoutHandler;
 import com.swmStrong.demo.config.security.handler.CustomLogoutSuccessHandler;
 import com.swmStrong.demo.config.security.provider.CustomAuthenticationProvider;
-import com.swmStrong.demo.util.redis.RedisUtil;
-import com.swmStrong.demo.util.token.TokenType;
-import com.swmStrong.demo.util.token.TokenUtil;
+import com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl;
+import com.swmStrong.demo.infra.token.TokenType;
+import com.swmStrong.demo.infra.token.TokenManager;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -40,13 +40,13 @@ import java.util.Collections;
         jsr250Enabled = true)
 public class SecurityConfig {
 
-    private final RedisUtil redisUtil;
-    private final TokenUtil tokenUtil;
+    private final RedisRepositoryImpl redisRepository;
+    private final TokenManager tokenManager;
     private final ObjectMapper objectMapper;
 
-    public SecurityConfig(RedisUtil redisUtil, TokenUtil tokenUtil, ObjectMapper objectMapper) {
-        this.redisUtil = redisUtil;
-        this.tokenUtil = tokenUtil;
+    public SecurityConfig(RedisRepositoryImpl redisRepository, TokenManager tokenManager, ObjectMapper objectMapper) {
+        this.redisRepository = redisRepository;
+        this.tokenManager = tokenManager;
         this.objectMapper = objectMapper;
     }
 
@@ -122,7 +122,7 @@ public class SecurityConfig {
     @Bean
     public CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler() {
         return new CustomAuthenticationSuccessHandler(
-                tokenUtil,
+                tokenManager,
                 objectMapper
         );
     }
@@ -149,7 +149,7 @@ public class SecurityConfig {
 
     @Bean
     public TokenAuthorizationFilter tokenAuthorizationFilter() {
-        return new TokenAuthorizationFilter(tokenUtil);
+        return new TokenAuthorizationFilter(tokenManager);
     }
 
     @Bean
@@ -161,7 +161,7 @@ public class SecurityConfig {
 
     @Bean
     public CustomLogoutHandler customLogoutHandler() {
-        return new CustomLogoutHandler(redisUtil);
+        return new CustomLogoutHandler(redisRepository);
     }
 
     @Bean

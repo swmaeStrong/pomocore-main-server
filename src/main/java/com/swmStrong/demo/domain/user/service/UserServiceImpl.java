@@ -12,7 +12,6 @@ import com.swmStrong.demo.util.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 import static com.swmStrong.demo.util.redis.RedisUtil.REGISTER_IP_COUNT_PREFIX;
@@ -34,8 +33,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto signupGuest(HttpServletRequest request, UserRequestDto userRequestDto) {
-        if (userRepository.existsById(userRequestDto.userId())){
+    public TokenResponseDto signupGuest(HttpServletRequest request, UserRequestDto userRequestDto) {
+        if (userRepository.existsById(userRequestDto.userId())) {
             throw new ApiException(ErrorCode.DUPLICATE_USER_ID);
         }
 
@@ -44,17 +43,13 @@ public class UserServiceImpl implements UserService {
             requestIP = request.getRemoteAddr();
         }
 
-        String key = getKey(requestIP);
-
-        Long count = redisUtil.incrementWithExpireIfFirst(key, 1, TimeUnit.HOURS);
-
+        Long count = redisUtil.incrementWithExpireIfFirst(getKey(requestIP), 1, TimeUnit.HOURS);
         if (count > 5) {
             throw new ApiException(ErrorCode.IP_RATE_LIMIT_EXCEEDED);
         }
 
         User user = userRepository.save(User.of(userRequestDto));
-
-        return UserResponseDto.of(user);
+        return tokenUtil.getToken(user.getId(), request.getHeader("User-Agent"), Role.UNREGISTERED);
     }
 
     @Override
@@ -63,21 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public TokenResponseDto getToken(HttpServletRequest request, UnregisteredRequestDto unregisteredRequestDto) {
-        User user = userRepository.findById(unregisteredRequestDto.userId())
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        if (!user.getCreatedAt().truncatedTo(ChronoUnit.MILLIS)
-                .equals(unregisteredRequestDto.createdAt().truncatedTo(ChronoUnit.MILLIS))
-        ) {
-            throw new ApiException(ErrorCode.USER_MISMATCH);
-        }
-
-        return tokenUtil.getToken(unregisteredRequestDto.userId(), request.getHeader("User-Agent"), Role.UNREGISTERED);
-    }
-
-    @Override
-    public UserInfoResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto) {
+    public UserResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
@@ -87,14 +68,14 @@ public class UserServiceImpl implements UserService {
 
         user.updateNickname(nicknameRequestDto.nickname());
         userRepository.save(user);
-        return UserInfoResponseDto.of(user);
+        return UserResponseDto.of(user);
     }
 
     @Override
-    public UserInfoResponseDto getMyInfo(String userId) {
+    public UserResponseDto getMyInfo(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-        return UserInfoResponseDto.of(user);
+        return UserResponseDto.of(user);
     }
 
     private String getKey(String requestIP) {

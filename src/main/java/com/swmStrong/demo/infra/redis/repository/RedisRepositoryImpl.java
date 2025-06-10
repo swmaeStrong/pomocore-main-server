@@ -1,4 +1,4 @@
-package com.swmStrong.demo.util.redis;
+package com.swmStrong.demo.infra.redis.repository;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -7,10 +7,10 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class RedisUtil {
+public class RedisRepositoryImpl implements RedisRepository{
     private final StringRedisTemplate redisTemplate;
 
-    public RedisUtil(StringRedisTemplate redisTemplate) {
+    public RedisRepositoryImpl(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 

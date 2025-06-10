@@ -6,30 +6,31 @@ import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
-import com.swmStrong.demo.util.redis.RedisUtil;
-import com.swmStrong.demo.util.token.TokenUtil;
-import com.swmStrong.demo.util.token.dto.TokenResponseDto;
+import com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl;
+import com.swmStrong.demo.infra.token.TokenManager;
+import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionUsageException;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.swmStrong.demo.util.redis.RedisUtil.REGISTER_IP_COUNT_PREFIX;
+import static com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl.REGISTER_IP_COUNT_PREFIX;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final TokenUtil tokenUtil;
-    private final RedisUtil redisUtil;
+    private final TokenManager tokenManager;
+    private final RedisRepositoryImpl redisRepository;
 
     public UserServiceImpl(
             UserRepository userRepository,
-            TokenUtil tokenUtil,
-            RedisUtil redisUtil
+            TokenManager tokenManager,
+            RedisRepositoryImpl redisRepository
     ) {
         this.userRepository = userRepository;
-        this.tokenUtil = tokenUtil;
-        this.redisUtil = redisUtil;
+        this.tokenManager = tokenManager;
+        this.redisRepository = redisRepository;
     }
 
     @Override
@@ -43,13 +44,13 @@ public class UserServiceImpl implements UserService {
             requestIP = request.getRemoteAddr();
         }
 
-        Long count = redisUtil.incrementWithExpireIfFirst(getKey(requestIP), 1, TimeUnit.HOURS);
+        Long count = redisRepository.incrementWithExpireIfFirst(getKey(requestIP), 1, TimeUnit.HOURS);
         if (count > 5) {
             throw new ApiException(ErrorCode.IP_RATE_LIMIT_EXCEEDED);
         }
 
         User user = userRepository.save(User.of(userRequestDto));
-        return tokenUtil.getToken(user.getId(), request.getHeader("User-Agent"), Role.UNREGISTERED);
+        return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), Role.UNREGISTERED);
     }
 
     @Override
@@ -72,9 +73,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto getMyInfo(String userId) {
+    public UserResponseDto getInfoByIdOrNickname(String userId, String nickname) {
+        boolean isUserIdExists = userId != null && !userId.isEmpty();
+        boolean isNicknameExists = nickname != null && !nickname.isEmpty();
+        if (isUserIdExists ^ isNicknameExists) {
+            if (isUserIdExists) {
+                return getInfoById(userId);
+            } else {
+                return getInfoByNickname(nickname);
+            }
+        }
+        throw new ApiException(ErrorCode._BAD_REQUEST);
+    }
+
+    @Override
+    public UserResponseDto getInfoById(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        return UserResponseDto.of(user);
+    }
+
+    @Override
+    public UserResponseDto getInfoByNickname(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new ApiException(ErrorCode.NICKNAME_NOT_FOUND));
+
         return UserResponseDto.of(user);
     }
 

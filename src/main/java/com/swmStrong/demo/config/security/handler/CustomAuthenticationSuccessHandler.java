@@ -3,9 +3,9 @@ package com.swmStrong.demo.config.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.common.enums.Role;
-import com.swmStrong.demo.util.token.TokenType;
-import com.swmStrong.demo.util.token.TokenUtil;
-import com.swmStrong.demo.util.token.dto.TokenResponseDto;
+import com.swmStrong.demo.infra.token.TokenType;
+import com.swmStrong.demo.infra.token.TokenManager;
+import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,11 +20,11 @@ import java.util.Map;
 
 public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
-    private final TokenUtil tokenUtil;
+    private final TokenManager tokenManager;
     private final ObjectMapper objectMapper;
 
-    public CustomAuthenticationSuccessHandler(TokenUtil tokenUtil, ObjectMapper objectMapper) {
-        this.tokenUtil = tokenUtil;
+    public CustomAuthenticationSuccessHandler(TokenManager tokenManager, ObjectMapper objectMapper) {
+        this.tokenManager = tokenManager;
         this.objectMapper = objectMapper;
     }
 
@@ -45,7 +45,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
 
 
         String userAgent = request.getHeader("User-Agent");
-        TokenResponseDto tokenResponseDto = tokenUtil.getToken(principal.userId(), userAgent, role);
+        TokenResponseDto tokenResponseDto = tokenManager.getToken(principal.userId(), userAgent, role);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setCharacterEncoding("UTF-8");

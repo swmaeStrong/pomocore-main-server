@@ -1,4 +1,4 @@
-package com.swmStrong.demo.util.token;
+package com.swmStrong.demo.infra.token;
 
 import lombok.Getter;
 

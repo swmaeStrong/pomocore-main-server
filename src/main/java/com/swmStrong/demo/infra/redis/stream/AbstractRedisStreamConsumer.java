@@ -1,4 +1,4 @@
-package com.swmStrong.demo.infra.redis;
+package com.swmStrong.demo.infra.redis.stream;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.SmartLifecycle;

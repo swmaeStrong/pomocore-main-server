@@ -1,15 +1,14 @@
-package com.swmStrong.demo.util.token;
+package com.swmStrong.demo.infra.token;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.common.enums.Role;
-import com.swmStrong.demo.domain.loginCredential.facade.LoginCredentialProvider;
 import com.swmStrong.demo.domain.user.facade.UserDetailsProvider;
-import com.swmStrong.demo.util.redis.RedisUtil;
-import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
-import com.swmStrong.demo.util.token.dto.SubjectResponseDto;
-import com.swmStrong.demo.util.token.dto.TokenResponseDto;
+import com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl;
+import com.swmStrong.demo.infra.token.dto.RefreshTokenRequestDto;
+import com.swmStrong.demo.infra.token.dto.SubjectResponseDto;
+import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -26,16 +25,16 @@ import java.security.Key;
 import java.util.Date;
 import java.util.List;
 
-import static com.swmStrong.demo.util.redis.RedisUtil.REDIS_REFRESH_TOKEN_PREFIX;
+import static com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl.REDIS_REFRESH_TOKEN_PREFIX;
 
 @Slf4j
 @Component
-public class TokenUtil {
-    private final RedisUtil redisUtil;
+public class TokenManager {
+    private final RedisRepositoryImpl redisRepository;
     private final UserDetailsProvider userDetailsProvider;
 
-    public TokenUtil(RedisUtil redisUtil, UserDetailsProvider userDetailsProvider) {
-        this.redisUtil = redisUtil;
+    public TokenManager(RedisRepositoryImpl redisRepository, UserDetailsProvider userDetailsProvider) {
+        this.redisRepository = redisRepository;
         this.userDetailsProvider = userDetailsProvider;
     }
 
@@ -130,11 +129,11 @@ public class TokenUtil {
         }
         String refreshTokenKey = REDIS_REFRESH_TOKEN_PREFIX + refreshTokenRequestDto.userId();
         if (!refreshTokenRequestDto.refreshToken().equals(
-                redisUtil.getData(refreshTokenKey))
+                redisRepository.getData(refreshTokenKey))
         ) {
             throw new ApiException(ErrorCode._INVALID_TOKEN);
         };
-        redisUtil.deleteData(refreshTokenKey);
+        redisRepository.deleteData(refreshTokenKey);
         Role role = userDetailsProvider.loadRoleByUserId(refreshTokenRequestDto.userId());
 
         return getToken(refreshTokenRequestDto.userId(), userAgent, role);
@@ -150,7 +149,7 @@ public class TokenUtil {
         String accessToken = createToken(userId, TokenType.accessToken, role);
         String refreshToken = createToken(userId, TokenType.refreshToken, userAgent);
         try {
-            redisUtil.setDataWithExpire(REDIS_REFRESH_TOKEN_PREFIX + userId, refreshToken, TokenType.refreshToken.getExpireTime());
+            redisRepository.setDataWithExpire(REDIS_REFRESH_TOKEN_PREFIX + userId, refreshToken, TokenType.refreshToken.getExpireTime());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

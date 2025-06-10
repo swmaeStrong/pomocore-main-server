@@ -2,8 +2,8 @@ package com.swmStrong.demo.domain.leaderboard.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.domain.leaderboard.service.LeaderboardService;
-import com.swmStrong.demo.infra.redis.AbstractRedisStreamConsumer;
-import com.swmStrong.demo.infra.redis.StreamConfig;
+import com.swmStrong.demo.infra.redis.stream.AbstractRedisStreamConsumer;
+import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.stream.*;

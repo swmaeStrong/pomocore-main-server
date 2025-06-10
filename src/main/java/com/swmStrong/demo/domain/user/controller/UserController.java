@@ -7,7 +7,7 @@ import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.service.UserService;
-import com.swmStrong.demo.util.token.dto.TokenResponseDto;
+import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -80,7 +80,25 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponseDto>> getMyInfo(@AuthenticationPrincipal SecurityPrincipal securityPrincipal) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                userService.getMyInfo(securityPrincipal.userId())
+                userService.getInfoById(securityPrincipal.userId())
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "회원 정보 찾기",
+            description =
+                "<p> 입력한 userId나 nickname 에 해당하는 회원 정보를 반환한다. </p>" +
+                "<p> 반드시 둘 중 하나만 입력해야한다. </p>"
+    )
+    @GetMapping("/info")
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserInfo(
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) String nickname
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                userService.getInfoByIdOrNickname(userId, nickname)
         );
     }
 }

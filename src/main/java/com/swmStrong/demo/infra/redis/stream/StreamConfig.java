@@ -1,4 +1,4 @@
-package com.swmStrong.demo.infra.redis;
+package com.swmStrong.demo.infra.redis.stream;
 
 import lombok.Getter;
 

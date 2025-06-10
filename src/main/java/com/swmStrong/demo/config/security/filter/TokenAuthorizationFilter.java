@@ -1,7 +1,7 @@
 package com.swmStrong.demo.config.security.filter;
 
 import com.swmStrong.demo.config.security.WhiteListConfig;
-import com.swmStrong.demo.util.token.TokenUtil;
+import com.swmStrong.demo.infra.token.TokenManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,10 +17,10 @@ import java.util.Arrays;
 @Slf4j
 public class TokenAuthorizationFilter extends OncePerRequestFilter {
 
-    private final TokenUtil tokenUtil;
+    private final TokenManager tokenManager;
 
-    public TokenAuthorizationFilter(TokenUtil tokenUtil) {
-        this.tokenUtil = tokenUtil;
+    public TokenAuthorizationFilter(TokenManager tokenManager) {
+        this.tokenManager = tokenManager;
     }
 
     @Override
@@ -50,8 +50,8 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
         String accessToken = authorizationHeader.substring(7); // 'Bearer '이후의 토큰 값만 추출
 
         // 토큰 검증 로직
-        if (tokenUtil.isTokenValid(accessToken)) {
-            tokenUtil.authenticateWithToken(accessToken);
+        if (tokenManager.isTokenValid(accessToken)) {
+            tokenManager.authenticateWithToken(accessToken);
             filterChain.doFilter(request, response);
         } else {
             throw new RuntimeException("토큰이 유효하지 않습니다.");

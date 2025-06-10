@@ -1,6 +1,6 @@
 package com.swmStrong.demo.config.redis;
 
-import com.swmStrong.demo.infra.redis.StreamConfig;
+import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisSystemException;

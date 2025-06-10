@@ -8,10 +8,10 @@ import com.swmStrong.demo.domain.loginCredential.entity.LoginCredential;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserUpdateProvider;
-import com.swmStrong.demo.util.token.TokenUtil;
-import com.swmStrong.demo.util.token.dto.RefreshTokenRequestDto;
-import com.swmStrong.demo.util.token.dto.SubjectResponseDto;
-import com.swmStrong.demo.util.token.dto.TokenResponseDto;
+import com.swmStrong.demo.infra.token.TokenManager;
+import com.swmStrong.demo.infra.token.dto.RefreshTokenRequestDto;
+import com.swmStrong.demo.infra.token.dto.SubjectResponseDto;
+import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,18 +23,18 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
     private final LoginCredentialRepository loginCredentialRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserUpdateProvider userUpdateProvider;
-    private final TokenUtil tokenUtil;
+    private final TokenManager tokenManager;
 
     public LoginCredentialServiceImpl(
             LoginCredentialRepository loginCredentialRepository,
             PasswordEncoder passwordEncoder,
             UserUpdateProvider userUpdateProvider,
-            TokenUtil tokenUtil
+            TokenManager tokenManager
             ) {
         this.loginCredentialRepository = loginCredentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.userUpdateProvider = userUpdateProvider;
-        this.tokenUtil = tokenUtil;
+        this.tokenManager = tokenManager;
     }
 
     @Transactional
@@ -59,7 +59,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 
     @Override
     public TokenResponseDto tokenRefresh(HttpServletRequest request, RefreshTokenRequestDto refreshTokenRequestDto) {
-        return tokenUtil.tokenRefresh(refreshTokenRequestDto, request.getHeader("User-Agent"));
+        return tokenManager.tokenRefresh(refreshTokenRequestDto, request.getHeader("User-Agent"));
     }
 
     @Override
@@ -67,11 +67,11 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 
         String supabaseToken = socialLoginRequestDto.accessToken();
 
-        if (!tokenUtil.isTokenValid(supabaseToken)) {
+        if (!tokenManager.isTokenValid(supabaseToken)) {
             throw new ApiException(ErrorCode._INVALID_TOKEN);
         }
 
-        SubjectResponseDto subjectResponseDto = tokenUtil.loadSubjectByToken(supabaseToken);
+        SubjectResponseDto subjectResponseDto = tokenManager.loadSubjectByToken(supabaseToken);
         String email = subjectResponseDto.email();
         String supabaseId = subjectResponseDto.supabaseId();
 
@@ -83,7 +83,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 
         loginCredentialRepository.save(loginCredential);
 
-        return tokenUtil.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole());
+        return tokenManager.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole());
     }
 
     @Transactional
@@ -93,7 +93,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
             String userId,
             SocialLoginRequestDto socialLoginRequestDto
     ) {
-        if (!tokenUtil.isTokenValid(socialLoginRequestDto.accessToken())) {
+        if (!tokenManager.isTokenValid(socialLoginRequestDto.accessToken())) {
             throw new ApiException(ErrorCode._INVALID_TOKEN);
         }
 
@@ -103,7 +103,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
             throw new ApiException(ErrorCode.USER_ALREADY_REGISTERED);
         }
 
-        SubjectResponseDto subjectResponseDto = tokenUtil.loadSubjectByToken(socialLoginRequestDto.accessToken());
+        SubjectResponseDto subjectResponseDto = tokenManager.loadSubjectByToken(socialLoginRequestDto.accessToken());
         String email = subjectResponseDto.email();
         String supabaseId = subjectResponseDto.supabaseId();
 
@@ -114,7 +114,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         );
         userUpdateProvider.updateUserRole(user);
 
-        return tokenUtil.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
+        return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
 
     }
 }

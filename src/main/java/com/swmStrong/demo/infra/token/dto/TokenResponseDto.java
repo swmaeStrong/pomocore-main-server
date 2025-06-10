@@ -1,4 +1,4 @@
-package com.swmStrong.demo.util.token.dto;
+package com.swmStrong.demo.infra.token.dto;
 
 public record TokenResponseDto(
         String accessToken,

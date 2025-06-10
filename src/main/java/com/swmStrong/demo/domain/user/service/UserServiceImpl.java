@@ -15,13 +15,13 @@ import org.springframework.stereotype.Service;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
+import static com.swmStrong.demo.util.redis.RedisUtil.REGISTER_IP_COUNT_PREFIX;
+
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TokenUtil tokenUtil;
     private final RedisUtil redisUtil;
-
-    public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
 
     public UserServiceImpl(
             UserRepository userRepository,

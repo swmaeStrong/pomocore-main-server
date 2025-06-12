@@ -6,12 +6,11 @@ import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
-import com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl;
+import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import com.swmStrong.demo.infra.token.TokenManager;
 import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionUsageException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -21,12 +20,12 @@ import static com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl.REGI
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TokenManager tokenManager;
-    private final RedisRepositoryImpl redisRepository;
+    private final RedisRepository redisRepository;
 
     public UserServiceImpl(
             UserRepository userRepository,
             TokenManager tokenManager,
-            RedisRepositoryImpl redisRepository
+            RedisRepository redisRepository
     ) {
         this.userRepository = userRepository;
         this.tokenManager = tokenManager;
@@ -104,6 +103,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUserById(String userId) {
         userRepository.deleteById(userId);
+
     }
 
     private String getKey(String requestIP) {

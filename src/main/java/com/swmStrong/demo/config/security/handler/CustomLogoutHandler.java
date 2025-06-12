@@ -1,7 +1,7 @@
 package com.swmStrong.demo.config.security.handler;
 
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl;
+import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import com.swmStrong.demo.message.event.UnregisteredUserLogoutEvent;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,11 +14,11 @@ import static com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl.REDI
 
 public class CustomLogoutHandler implements LogoutHandler {
 
-    private final RedisRepositoryImpl redisRepository;
+    private final RedisRepository redisRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public CustomLogoutHandler(
-            RedisRepositoryImpl redisRepository,
+            RedisRepository redisRepository,
             ApplicationEventPublisher applicationEventPublisher
     ) {
         this.redisRepository = redisRepository;

@@ -7,7 +7,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class RedisRepositoryImpl implements RedisRepository{
+public class RedisRepositoryImpl implements RedisRepository {
     private final StringRedisTemplate redisTemplate;
 
     public RedisRepositoryImpl(StringRedisTemplate redisTemplate) {

@@ -8,7 +8,7 @@ import com.swmStrong.demo.config.security.handler.CustomAuthenticationSuccessHan
 import com.swmStrong.demo.config.security.handler.CustomLogoutHandler;
 import com.swmStrong.demo.config.security.handler.CustomLogoutSuccessHandler;
 import com.swmStrong.demo.config.security.provider.CustomAuthenticationProvider;
-import com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl;
+import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import com.swmStrong.demo.infra.token.TokenType;
 import com.swmStrong.demo.infra.token.TokenManager;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
@@ -41,11 +41,11 @@ import java.util.Collections;
         jsr250Enabled = true)
 public class SecurityConfig {
 
-    private final RedisRepositoryImpl redisRepository;
+    private final RedisRepository redisRepository;
     private final TokenManager tokenManager;
     private final ObjectMapper objectMapper;
 
-    public SecurityConfig(RedisRepositoryImpl redisRepository, TokenManager tokenManager, ObjectMapper objectMapper) {
+    public SecurityConfig(RedisRepository redisRepository, TokenManager tokenManager, ObjectMapper objectMapper) {
         this.redisRepository = redisRepository;
         this.tokenManager = tokenManager;
         this.objectMapper = objectMapper;

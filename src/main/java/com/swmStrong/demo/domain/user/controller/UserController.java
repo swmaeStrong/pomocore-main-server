@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -99,6 +100,37 @@ public class UserController {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 userService.getInfoByIdOrNickname(userId, nickname)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "회원 탈퇴",
+            description =
+                "<p> 회원 탈퇴를 한다. </p>" +
+                "<p> soft delete는 아직 구현하지 않아 데이터(회원관련만)가 영구적으로 사라진다. </p>"
+    )
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal SecurityPrincipal securityPrincipal) {
+        userService.deleteUserById(securityPrincipal.userId());
+        return CustomResponseEntity.of(
+                SuccessCode._NO_CONTENT
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "회원 탈퇴(관리자)",
+            description =
+                    "<p> 회원 탈퇴를 한다. (관리자용)</p>" +
+                    "<p> soft delete는 아직 구현하지 않아 데이터(회원관련만)가 영구적으로 사라진다. </p>"
+    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable String userId) {
+        userService.deleteUserById(userId);
+        return CustomResponseEntity.of(
+                SuccessCode._NO_CONTENT
         );
     }
 }

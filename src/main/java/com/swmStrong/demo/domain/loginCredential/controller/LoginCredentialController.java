@@ -74,6 +74,7 @@ public class LoginCredentialController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "로그아웃",
             description =
                 "<p> 로그아웃한다. </p>" +

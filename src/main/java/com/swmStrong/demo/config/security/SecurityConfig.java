@@ -13,6 +13,7 @@ import com.swmStrong.demo.infra.token.TokenType;
 import com.swmStrong.demo.infra.token.TokenManager;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -161,8 +162,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CustomLogoutHandler customLogoutHandler() {
-        return new CustomLogoutHandler(redisRepository);
+    public CustomLogoutHandler customLogoutHandler(ApplicationEventPublisher applicationEventPublisher) {
+        return new CustomLogoutHandler(redisRepository, applicationEventPublisher);
     }
 
     @Bean

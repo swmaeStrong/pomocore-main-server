@@ -101,4 +101,19 @@ public class UserController {
                 userService.getInfoByIdOrNickname(userId, nickname)
         );
     }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "회원 탈퇴",
+            description =
+                "<p> 회원 탈퇴를 한다. </p>" +
+                "<p> soft delete는 아직 구현하지 않아 데이터(회원관련만)가 영구적으로 사라진다. </p>"
+    )
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal SecurityPrincipal securityPrincipal) {
+        userService.deleteUserById(securityPrincipal.userId());
+        return CustomResponseEntity.of(
+                SuccessCode._NO_CONTENT
+        );
+    }
 }

@@ -11,4 +11,5 @@ public interface UserService {
     UserResponseDto getInfoById(String userId);
     UserResponseDto getInfoByNickname(String nickname);
     UserResponseDto getInfoByIdOrNickname(String userId, String nickname);
+    void deleteUserById(String userId);
 }

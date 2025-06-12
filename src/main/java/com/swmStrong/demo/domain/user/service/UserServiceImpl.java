@@ -101,6 +101,11 @@ public class UserServiceImpl implements UserService {
         return UserResponseDto.of(user);
     }
 
+    @Override
+    public void deleteUserById(String userId) {
+        userRepository.deleteById(userId);
+    }
+
     private String getKey(String requestIP) {
         return REGISTER_IP_COUNT_PREFIX+requestIP;
     }

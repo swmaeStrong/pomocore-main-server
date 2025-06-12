@@ -102,8 +102,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(String userId) {
-        userRepository.deleteById(userId);
+        if (!userRepository.existsById(userId)) {
+            throw new ApiException(ErrorCode.USER_NOT_FOUND);
+        }
 
+        userRepository.deleteById(userId);
     }
 
     private String getKey(String requestIP) {

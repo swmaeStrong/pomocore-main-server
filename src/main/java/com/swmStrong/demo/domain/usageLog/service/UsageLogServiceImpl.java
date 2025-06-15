@@ -1,7 +1,5 @@
 package com.swmStrong.demo.domain.usageLog.service;
 
-import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
-import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryHourlyUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
@@ -10,33 +8,25 @@ import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
 import com.swmStrong.demo.domain.usageLog.repository.UsageLogRepository;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
-import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
-import org.bson.types.ObjectId;
+import com.swmStrong.demo.message.dto.PatternClassifyMessage;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class UsageLogServiceImpl implements UsageLogService {
 
     private final UsageLogRepository usageLogRepository;
-    private final PatternMatcher patternMatcher;
     private final RedisStreamProducer redisStreamProducer;
-    private final CategoryProvider categoryProvider;
 
     public UsageLogServiceImpl(
             UsageLogRepository usageLogRepository,
-            PatternMatcher patternMatcher,
-            RedisStreamProducer redisStreamProducer,
-            CategoryProvider categoryProvider
+            RedisStreamProducer redisStreamProducer
     ) {
         this.usageLogRepository = usageLogRepository;
-        this.patternMatcher = patternMatcher;
         this.redisStreamProducer = redisStreamProducer;
-        this.categoryProvider = categoryProvider;
     }
 
     //TODO: 문제가 발생할 가능성도 있으니 try - except 구조로 변경
@@ -49,34 +39,24 @@ public class UsageLogServiceImpl implements UsageLogService {
 
 
     private void save(String userId, SaveUsageLogDto saveUsageLogDto) {
-        //TODO: 현재 데이터 라벨링 관련 논의 시 app이 우선권을 가짐. 이후 변경되는 점 업데이트 필요
-        Set<ObjectId> categories = patternMatcher.search(saveUsageLogDto.app());
-        if (categories.isEmpty()) {
-            categories.addAll(patternMatcher.search(saveUsageLogDto.title()));
-        }
-
-        if (categories.isEmpty()) {
-            categories.add(categoryProvider.getCategoryIdByCategory("Uncategorized"));
-        }
-
-        UsageLog usageLog = UsageLog.builder()
+        UsageLog usageLog = usageLogRepository.save(
+                UsageLog.builder()
                 .userId(userId)
                 .app(saveUsageLogDto.app())
                 .title(saveUsageLogDto.title())
-                .categories(categories)
+                .domain(saveUsageLogDto.domain())
                 .duration(saveUsageLogDto.duration())
                 .timestamp(saveUsageLogDto.timestamp())
-                .build();
-
-        usageLogRepository.save(usageLog);
+                .build()
+        );
 
         redisStreamProducer.send(
-                StreamConfig.LEADERBOARD.getStreamKey(),
-                LeaderBoardUsageMessage.builder()
-                        .userId(usageLog.getUserId())
-                        .categoryId(usageLog.getCategories().iterator().next())
-                        .duration(usageLog.getDuration())
-                        .timestamp(usageLog.getTimestamp())
+                StreamConfig.PATTERN_MATCH.getStreamKey(),
+                PatternClassifyMessage.builder()
+                        .usageLogId(usageLog.getId().toHexString())
+                        .app(usageLog.getApp())
+                        .title(usageLog.getTitle())
+                        .domain(usageLog.getDomain())
                         .build()
         );
     }

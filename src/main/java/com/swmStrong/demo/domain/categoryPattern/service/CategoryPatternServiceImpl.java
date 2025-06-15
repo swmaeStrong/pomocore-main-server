@@ -5,7 +5,7 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
-import com.swmStrong.demo.domain.matcher.core.PatternMatcher;
+import com.swmStrong.demo.domain.matcher.core.PatternClassifier;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
@@ -17,14 +17,14 @@ import java.util.List;
 public class CategoryPatternServiceImpl implements CategoryPatternService {
 
     private final CategoryPatternRepository categoryPatternRepository;
-    private final PatternMatcher patternMatcher;
+    private final PatternClassifier patternClassifier;
 
     public CategoryPatternServiceImpl(
             CategoryPatternRepository categoryPatternRepository,
-            PatternMatcher patternMatcher
+            PatternClassifier patternClassifier
     ) {
         this.categoryPatternRepository = categoryPatternRepository;
-        this.patternMatcher = patternMatcher;
+        this.patternClassifier = patternClassifier;
     }
 
     @Override
@@ -35,7 +35,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
         CategoryPattern categoryPattern = CategoryPattern.builder()
                 .category(categoryRequestDto.category())
-                .color(categoryRequestDto.color())
                 .priority(categoryRequestDto.priority())
                 .build();
 
@@ -48,7 +47,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
                         .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
         categoryPatternRepository.addPattern(category, patternRequestDto.pattern());
-        patternMatcher.insert(patternRequestDto.pattern(), categoryPattern.getId());
+        patternClassifier.trie.insert(categoryPattern.getId(), patternRequestDto.pattern());
     }
 
     @Override
@@ -61,7 +60,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
         }
 
         categoryPatternRepository.removePattern(category, patternRequestDto.pattern());
-        patternMatcher.init();
+        patternClassifier.trie.remove(patternRequestDto.pattern());
     }
 
     @Override
@@ -70,7 +69,7 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
             throw new ApiException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         categoryPatternRepository.deletePatternCategoryByCategory(category);
-        patternMatcher.init();
+        patternClassifier.init();
     }
 
     @Override
@@ -104,14 +103,9 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
         }
 
         if (updateCategoryRequestDto.category() != null) {
-            categoryPattern.setCategory(updateCategoryRequestDto.category());
-            patternMatcher.init();
+            categoryPattern.updateCategory(updateCategoryRequestDto.category());
+            patternClassifier.init();
         }
-
-        if (updateCategoryRequestDto.color() != null) {
-            categoryPattern.setColor(updateCategoryRequestDto.color());
-        }
-
         categoryPatternRepository.save(categoryPattern);
     }
 

@@ -57,7 +57,7 @@ public class PatternClassifier {
         // cache (2차 분류) -> 하위 레이어에서 분류한 것들을 캐싱
         objectId = classifyFromCache(query);
         if (objectId != null) return objectId;
-        //TODO: ML (3차 분류) -> 하위 레이어에서 분류한 것들을 통해 유사도 기반 클러스터링
+        // ML (3차 분류) -> 하위 레이어에서 분류한 것들을 통해 유사도 기반 클러스터링
         objectId = classifyFromML(app, title, domain);
         if (objectId != null) return putCache(query, objectId);
         // LLM (4차 분류) -> 여기까지 도달한 경우 프롬프팅을 통해 카테고리 도출
@@ -77,13 +77,13 @@ public class PatternClassifier {
     }
 
     private ObjectId classifyFromML(String app, String title, String domain) {
-        //TODO: ML 관련 로직 제대로 생각해서 만들어내기
+        // ML 관련 로직 제대로 생각해서 만들어내기
         log.info("ML layer: {}, {}, {}", app, title, domain);
         return null;
     }
 
     private ObjectId classifyFromLLM(String query) {
-        //TODO: 현재 모델은 과부하가 발생하는 경우가 있음(503에러). 재시도 로직을 만들어볼 것
+        //TODO: 현재 모델은 과부하가 발생하는 경우가 있음(503에러). 재시도 로직을 만들어볼 것, 현재는 무료 키니까 키 변경 재시도 로직 만들어둘 것
         log.info("LLM layer: {}", query);
         String category = classifier.classify(query);
         Optional<CategoryPattern> categoryId = categoryPatternRepository.findByCategory(category);

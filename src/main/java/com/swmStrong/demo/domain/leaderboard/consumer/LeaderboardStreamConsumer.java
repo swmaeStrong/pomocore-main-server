@@ -31,15 +31,13 @@ public class LeaderboardStreamConsumer extends AbstractRedisStreamConsumer {
         this.leaderboardService = leaderboardService;
     }
 
-    private static final String CONSUMER = "consumer-1";
-
     @Override
     protected void consume() {
         while (isRunning()) {
             try {
                 List<MapRecord<String, Object, Object>> records =
                         stringRedisTemplate.opsForStream().read(
-                                Consumer.from(StreamConfig.LEADERBOARD.getGroup(), CONSUMER),
+                                Consumer.from(StreamConfig.LEADERBOARD.getGroup(), StreamConfig.LEADERBOARD.getConsumer()),
                                 StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
                                 StreamOffset.create(StreamConfig.LEADERBOARD.getStreamKey(),  ReadOffset.from(">"))
                         );

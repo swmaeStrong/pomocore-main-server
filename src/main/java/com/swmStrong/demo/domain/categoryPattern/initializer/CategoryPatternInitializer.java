@@ -34,18 +34,19 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
         init();
     }
 
+    //TODO: json 정리 및 변경
     //TODO: 트랜잭션으로 분리
     private void init() {
         CategoryPatternJSONDto jsonDto = jsonLoader.load("data/category-patterns.json", CategoryPatternJSONDto.class);
         for (CategoryPatternJSONDto.CategoryPatternEntry entry: jsonDto.getCategoryPatterns()) {
             if (!categoryPatternService.existsByCategory(entry.getCategory())) {
-                categoryPatternService.addCategory(CategoryRequestDto.of(entry.getCategory(), entry.getPriority(), entry.getColor()));
+                categoryPatternService.addCategory(CategoryRequestDto.of(entry.getCategory(), entry.getPriority()));
             }
 
             CategoryPattern categoryPattern = categoryPatternService.getEntityByCategory(entry.getCategory());
 
             if (categoryPattern.getPriority() == null || !categoryPattern.getPriority().equals(entry.getPriority())) {
-                categoryPattern.setPriority(entry.getPriority());
+                categoryPattern.updatePriority(entry.getPriority());
 
                 categoryPatternRepository.save(categoryPattern);
             }

@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Getter
 @NoArgsConstructor
-@Document(collection = "usage_logs")
+@Document(collection = "usage_log")
 public class UsageLog {
     @Id
     private ObjectId id;
@@ -22,19 +22,21 @@ public class UsageLog {
     private double duration;
     private String app;
     private String title;
-    private Set<ObjectId> categories;
+    private String domain;
+    private ObjectId categoryId;
 
     @Builder
-    public UsageLog(String userId, LocalDateTime timestamp, double duration, String app, String title, Set<ObjectId> categories) {
+    public UsageLog(String userId, LocalDateTime timestamp, double duration, String app, String title, String domain, ObjectId categoryId) {
         this.userId = userId;
         this.timestamp = timestamp;
         this.duration = duration;
         this.app = app;
         this.title = title;
-        this.categories = categories;
+        this.domain = domain;
+        this.categoryId = categoryId;
     }
 
-    public void addCategory(ObjectId category) {
-        this.categories.add(category);
+    public void updateCategoryId(ObjectId categoryId) {
+        this.categoryId = categoryId;
     }
 }

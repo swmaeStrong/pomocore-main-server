@@ -18,26 +18,20 @@ public class CategoryPattern implements Comparable<CategoryPattern> {
     private String category;
     private Set<String> patterns;
     private Integer priority;
-    private String color;
 
-    public void setCategory(String category) {
+    public void updateCategory(String category) {
         this.category = category;
     }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public void setPriority(Integer priority) {
+    public void updatePriority(int priority) {
         this.priority = priority;
     }
 
+
     @Builder
-    public CategoryPattern(String category, Set<String> patterns, Integer priority, String color) {
+    public CategoryPattern(String category, Set<String> patterns, Integer priority) {
         this.category = category;
         this.patterns = patterns;
         this.priority = priority;
-        this.color = color;
     }
 
     @Override

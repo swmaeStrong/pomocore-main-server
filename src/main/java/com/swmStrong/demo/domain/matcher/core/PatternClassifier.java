@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -18,7 +19,8 @@ public class PatternClassifier {
     private final Cache<String, ObjectId> classificationCache;
     private final LLMClassifier classifier;
 
-    public Trie trie;
+    public Trie appTrie;
+    public Trie domainTrie;
 
     public PatternClassifier(
             CategoryPatternRepository categoryPatternRepository,
@@ -32,17 +34,28 @@ public class PatternClassifier {
 
     @PostConstruct
     public void init() {
-        trie = new Trie();
-        for (CategoryPattern categoryPattern: categoryPatternRepository.findAll()) {
-            if (categoryPattern.getPatterns() == null || categoryPattern.getPatterns().isEmpty()) {
-                continue;
+        appTrie = new Trie();
+        domainTrie = new Trie();
+
+        List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
+        for (CategoryPattern categoryPattern: categoryPatterns) {
+            ObjectId categoryId = categoryPattern.getId();
+
+            if (categoryPattern.getAppPatterns() != null && !categoryPattern.getAppPatterns().isEmpty()) {
+                for (String pattern: categoryPattern.getAppPatterns()) {
+                    appTrie.insert(categoryId, pattern);
+                }
             }
-            for (String pattern: categoryPattern.getPatterns()) {
-                ObjectId categoryId = categoryPattern.getId();
-                trie.insert(categoryId, pattern);
+
+            if (categoryPattern.getDomainPatterns() != null && !categoryPattern.getDomainPatterns().isEmpty()) {
+                for (String pattern: categoryPattern.getDomainPatterns()) {
+                    domainTrie.insert(categoryId, pattern);
+                }
             }
         }
-        log.info("trie initialized");
+        log.info("app and domain tries initialized");
+
+
     }
 
     public ObjectId classify(String app, String title, String domain) {
@@ -51,9 +64,13 @@ public class PatternClassifier {
         ObjectId objectId;
 
         // trie (1차 분류) -> 1차 분류에서 걸러지지 않는 것: 브라우징류의 모호한 것들
-        objectId = classifyFromTrie(app);
-        //TODO: trie (1.5차 분류) -> 1차 분류에서 걸러지지 않지만, 브라우징에서 확연하게 걸러낼 수 있는 것들 (domain 기반)
+        objectId = classifyFromAppTrie(app);
         if (objectId != null) return objectId;
+        //trie (1.5차 분류) -> 1차 분류에서 걸러지지 않지만, 브라우징에서 확연하게 걸러낼 수 있는 것들 (domain 기반)
+        if (domain != null && !domain.isEmpty()) {
+            objectId = classifyFromDomainTrie(domain);
+            if (objectId != null) return objectId;
+        }
         // cache (2차 분류) -> 하위 레이어에서 분류한 것들을 캐싱
         objectId = classifyFromCache(query);
         if (objectId != null) return objectId;
@@ -66,9 +83,14 @@ public class PatternClassifier {
         return objectId;
     }
 
-    private ObjectId classifyFromTrie(String app) {
+    private ObjectId classifyFromAppTrie(String app) {
         log.info("trie layer: {}", app);
-        return trie.search(app);
+        return appTrie.search(app);
+    }
+
+    private ObjectId classifyFromDomainTrie(String domain) {
+        log.info("trie layer with domain: {}", domain);
+        return domainTrie.search(domain);
     }
 
     private ObjectId classifyFromCache(String query) {

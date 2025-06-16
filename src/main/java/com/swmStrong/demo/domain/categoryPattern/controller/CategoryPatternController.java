@@ -7,6 +7,7 @@ import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
+import com.swmStrong.demo.domain.categoryPattern.enums.PatternType;
 import com.swmStrong.demo.domain.categoryPattern.service.CategoryPatternService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,9 +37,13 @@ public class CategoryPatternController {
                 "<p> 카테고리에 해당하는 패턴을 추가한다. </p>"
     )
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PostMapping("/{category}")
-    public ResponseEntity<ApiResponse<Void>> addPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
-        categoryPatternService.addPattern(category, patternRequestDto);
+    @PostMapping("/{category}/{patternType}")
+    public ResponseEntity<ApiResponse<Void>> addPattern(
+            @PathVariable String category, 
+            @PathVariable String patternType,
+            @RequestBody PatternRequestDto patternRequestDto) {
+        PatternType type = PatternType.fromValue(patternType);
+        categoryPatternService.addPattern(category, type, patternRequestDto);
         return CustomResponseEntity.of(SuccessCode._OK);
     }
 
@@ -48,9 +53,13 @@ public class CategoryPatternController {
             description = "<p> 카테고리 안에 있는 패턴을 삭제한다. </p>"
     )
     @PreAuthorize("hasAuthority('ADMIN')")
-    @DeleteMapping("/{category}/pattern")
-    public ResponseEntity<ApiResponse<Void>> deletePatternByCategoryAndPattern(@PathVariable String category, @RequestBody PatternRequestDto patternRequestDto) {
-        categoryPatternService.deletePatternByCategory(category, patternRequestDto);
+    @DeleteMapping("/{category}/{patternType}/pattern")
+    public ResponseEntity<ApiResponse<Void>> deletePatternByCategoryAndPattern(
+            @PathVariable String category,
+            @PathVariable String patternType,
+            @RequestBody PatternRequestDto patternRequestDto) {
+        PatternType type = PatternType.fromValue(patternType);
+        categoryPatternService.deletePatternByCategory(category, type, patternRequestDto);
         return CustomResponseEntity.of(SuccessCode._NO_CONTENT);
     }
 

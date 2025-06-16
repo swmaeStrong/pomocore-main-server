@@ -8,6 +8,7 @@ import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
 import com.swmStrong.demo.domain.matcher.core.PatternClassifier;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
+import com.swmStrong.demo.domain.categoryPattern.enums.PatternType;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import org.springframework.stereotype.Service;
 
@@ -42,25 +43,39 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     }
 
     @Override
-    public void addPattern(String category, PatternRequestDto patternRequestDto) {
+    public void addPattern(String category, PatternType patternType, PatternRequestDto patternRequestDto) {
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                         .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        categoryPatternRepository.addPattern(category, patternRequestDto.pattern());
-        patternClassifier.trie.insert(categoryPattern.getId(), patternRequestDto.pattern());
+        categoryPatternRepository.addPattern(category, patternType, patternRequestDto.pattern());
+        
+        if (patternType == PatternType.APP) {
+            patternClassifier.appTrie.insert(categoryPattern.getId(), patternRequestDto.pattern());
+        } else {
+            patternClassifier.domainTrie.insert(categoryPattern.getId(), patternRequestDto.pattern());
+        }
     }
 
     @Override
-    public void deletePatternByCategory(String category, PatternRequestDto patternRequestDto) {
+    public void deletePatternByCategory(String category, PatternType patternType, PatternRequestDto patternRequestDto) {
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                 .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        if (!categoryPattern.getPatterns().contains(patternRequestDto.pattern())) {
+        java.util.Set<String> patterns = patternType == PatternType.APP 
+            ? categoryPattern.getAppPatterns() 
+            : categoryPattern.getDomainPatterns();
+            
+        if (patterns == null || !patterns.contains(patternRequestDto.pattern())) {
             throw new ApiException(ErrorCode.PATTERN_NOT_FOUND);
         }
 
-        categoryPatternRepository.removePattern(category, patternRequestDto.pattern());
-        patternClassifier.trie.remove(patternRequestDto.pattern());
+        categoryPatternRepository.removePattern(category, patternType, patternRequestDto.pattern());
+        
+        if (patternType == PatternType.APP) {
+            patternClassifier.appTrie.remove(patternRequestDto.pattern());
+        } else {
+            patternClassifier.domainTrie.remove(patternRequestDto.pattern());
+        }
     }
 
     @Override

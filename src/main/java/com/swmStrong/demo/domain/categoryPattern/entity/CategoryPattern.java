@@ -16,8 +16,9 @@ public class CategoryPattern implements Comparable<CategoryPattern> {
     private ObjectId id;
 
     private String category;
-    private Set<String> patterns;
     private Integer priority;
+    private Set<String> appPatterns;
+    private Set<String> domainPatterns;
 
     public void updateCategory(String category) {
         this.category = category;
@@ -28,10 +29,12 @@ public class CategoryPattern implements Comparable<CategoryPattern> {
 
 
     @Builder
-    public CategoryPattern(String category, Set<String> patterns, Integer priority) {
+    public CategoryPattern(ObjectId id, String category, Integer priority, Set<String> appPatterns, Set<String> domainPatterns) {
+        this.id = id;
         this.category = category;
-        this.patterns = patterns;
         this.priority = priority;
+        this.appPatterns = appPatterns;
+        this.domainPatterns = domainPatterns;
     }
 
     @Override

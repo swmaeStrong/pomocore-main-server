@@ -6,14 +6,14 @@ import java.util.Set;
 
 public record CategoryResponseDto(
         String category,
-        String color,
-        Set<String> patterns
+        Set<String> appPatterns,
+        Set<String> domainPatterns
 ) {
     public static CategoryResponseDto from(CategoryPattern categoryPattern) {
         return new CategoryResponseDto(
                 categoryPattern.getCategory(),
-                categoryPattern.getColor(),
-                categoryPattern.getPatterns()
+                categoryPattern.getAppPatterns(),
+                categoryPattern.getDomainPatterns()
         );
     }
 }

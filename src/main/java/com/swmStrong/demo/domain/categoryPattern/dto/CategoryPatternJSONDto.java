@@ -14,6 +14,7 @@ public class CategoryPatternJSONDto {
         private String category;
         private String color;
         private Integer priority;
-        private Set<String> patterns;
+        private Set<String> appPatterns;
+        private Set<String> domainPatterns;
     }
 }

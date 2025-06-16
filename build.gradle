@@ -44,6 +44,8 @@ dependencies {
 	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
 	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 
+	// caffeine
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'

@@ -4,13 +4,16 @@ import lombok.Getter;
 
 @Getter
 public enum StreamConfig {
-    LEADERBOARD("usage_log_stream", "leaderboard_group");
+    LEADERBOARD("pattern_match_stream", "leaderboard_group", "leaderboard_consumer"),
+    PATTERN_MATCH("usage_log_stream", "pattern_match_group", "pattern_match_consumer");
 
     private final String streamKey;
     private final String group;
+    private final String consumer;
 
-    StreamConfig(String streamKey, String group) {
+    StreamConfig(String streamKey, String group, String consumer) {
         this.streamKey = streamKey;
         this.group = group;
+        this.consumer = consumer;
     }
 }

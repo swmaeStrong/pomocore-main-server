@@ -1,6 +1,8 @@
 package com.swmStrong.demo.domain.matcher.core;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import com.swmStrong.demo.domain.common.util.DomainExtractor;
@@ -81,7 +83,8 @@ public class PatternClassifier {
         // LLM (4차 분류) -> 여기까지 도달한 경우 프롬프팅을 통해 카테고리 도출
         objectId = classifyFromLLM(query);
         if (objectId != null) return putCache(query, objectId);
-        return objectId;
+        return categoryPatternRepository.findByCategory("Uncategorized")
+                .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND)).getId();
     }
 
     private ObjectId classifyFromAppTrie(String app) {

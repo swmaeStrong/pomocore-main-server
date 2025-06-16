@@ -84,7 +84,7 @@ public class GeminiClassifier implements LLMClassifier {
                     if (parts != null && !parts.isEmpty()) {
                         Map<?, ?> partResp = (Map<?, ?>) parts.get(0);
                         String result = ((String) partResp.get("text")).trim();
-                        log.info("Successfully classified using API key index {}", keyIndex);
+                        log.info("Successfully classified using API key index {}. result: {}", keyIndex, result);
                         return result;
                     }
                 }
@@ -114,19 +114,11 @@ public class GeminiClassifier implements LLMClassifier {
 Which category does the usage of this app with the given URL and title belong to?
 Respond with **only one** of the following categories. **Do not explain. Do not say anything else.**
                 
-- Development
-- LLM
-- Entertainment
-- Game
-- Productivity
-- Documentation
-- SNS
-- Design
-- Communication
-- Browsing
-- Uncategorized
-                
-App information: %s
+# category
+SNS, YouTube, Documentation, Design, Communication, LLM, Development, Productivity, Video Editing, Entertainment, File Management, System & Utilities, Game, Education, Finance
+
+# input
+%s
 """.formatted(query);
     }
 }

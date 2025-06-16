@@ -63,40 +63,8 @@ jobs:
           port: 22
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
-            # Stop and remove existing container
-            sudo docker stop swmstrong || true
-            sudo docker rm swmstrong || true
-            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/swmstrong || true
-
-            # Pull the latest image
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/swmstrong || exit 1
+            cd /exec/main
+            sudo docker compose down || true
+            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}//swmstrong || true    
             
-            
-            if [ ! -d "swmstrong" ]; then
-              git clone https://kyh0726:${{secrets.GH_TOKEN}}@github.com/swmaeStrong/MVP_BE.git swmstrong
-              cd swmstrong
-            else
-              cd swmstrong && git fetch origin main
-              git reset --hard origin/main
-            fi
-
-            # 3. .env 파일 생성
-            echo "MYSQL_URL=${{ secrets.MYSQL_URL }}" > .env
-            echo "MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}" >> .env
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-            echo "MONGO_URL=${{ secrets.MONGO_URL }}" >> .env
-            echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
-            echo "PORTONE_API_SECRET=${{ secrets.PORTONE_API_SECRET }}" >> .env
-            echo "JWT_SALT=${{ secrets.JWT_SALT }}" >> .env
-            echo "BILLINGKEY_ENCRYPT_KEY=${{ secrets.BILLINGKEY_ENCRYPT_KEY }}" >> .env
-
-            echo "REDIS_HOST=redis" >> .env
-  
-            # Run the new container
-            docker-compose --env-file .env up -d
-
-            # Clean up unused images
-            docker image prune -f
-          
-            # Check logs
-            sudo docker logs swmstrong
+            sudo docker compose up -d

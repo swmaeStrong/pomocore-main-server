@@ -30,10 +30,15 @@ public class Trie {
     }
 
     public ObjectId search(String pattern) {
+        return search(pattern, true);
+    }
+
+    public ObjectId search(String pattern, boolean prefixMatch) {
         Node now = this.root;
         for (char c: pattern.toCharArray()) {
             now = now.children.get(c);
             if (now == null) return null;
+            if (prefixMatch && now.category != null) return now.category;
         }
         return now.category;
     }

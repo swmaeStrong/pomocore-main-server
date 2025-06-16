@@ -85,12 +85,12 @@ public class PatternClassifier {
 
     private ObjectId classifyFromAppTrie(String app) {
         log.info("trie layer: {}", app);
-        return appTrie.search(app);
+        return appTrie.search(app, false);
     }
 
     private ObjectId classifyFromDomainTrie(String domain) {
         log.info("trie layer with domain: {}", domain);
-        return domainTrie.search(domain);
+        return domainTrie.search(domain, true);
     }
 
     private ObjectId classifyFromCache(String query) {

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public record SaveUsageLogDto(
         String title,
         String app,
-        String domain,
+        String url,
         double duration,
         LocalDateTime timestamp
 ) {

@@ -58,7 +58,7 @@ public class PatternMatchStreamConsumer extends AbstractRedisStreamConsumer {
                     Map<Object, Object> valueMap = record.getValue();
                     PatternClassifyMessage message = objectMapper.convertValue(valueMap, PatternClassifyMessage.class);
 
-                    ObjectId CategoryPatternId = patternClassifier.classify(message.app(), message.title(), message.domain());
+                    ObjectId CategoryPatternId = patternClassifier.classify(message.app(), message.title(), message.url());
                     ObjectId usageLogId = new ObjectId(message.usageLogId());
 
                     UsageLog usageLog = usageLogUpdateProvider.updateCategory(usageLogId, CategoryPatternId);

@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.matcher.core;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
+import com.swmStrong.demo.domain.common.util.DomainExtractor;
 import com.swmStrong.demo.infra.LLM.LLMClassifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -89,8 +90,14 @@ public class PatternClassifier {
     }
 
     private ObjectId classifyFromDomainTrie(String domain) {
-        log.info("trie layer with domain: {}", domain);
-        return domainTrie.search(domain, true);
+        // Extract clean domain from URL if it's a full URL
+        String cleanDomain = DomainExtractor.extractDomain(domain);
+        if (cleanDomain == null) {
+            log.warn("Failed to extract domain from: {}", domain);
+            return null;
+        }
+        log.info("trie layer with domain: {} (extracted: {})", domain, cleanDomain);
+        return domainTrie.search(cleanDomain, true);
     }
 
     private ObjectId classifyFromCache(String query) {
@@ -105,7 +112,6 @@ public class PatternClassifier {
     }
 
     private ObjectId classifyFromLLM(String query) {
-        //TODO: 현재 모델은 과부하가 발생하는 경우가 있음(503에러). 재시도 로직을 만들어볼 것, 현재는 무료 키니까 키 변경 재시도 로직 만들어둘 것
         log.info("LLM layer: {}", query);
         String category = classifier.classify(query);
         Optional<CategoryPattern> categoryId = categoryPatternRepository.findByCategory(category);

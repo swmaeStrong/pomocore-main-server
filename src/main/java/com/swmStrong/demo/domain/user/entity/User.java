@@ -10,6 +10,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
+@Table(name="\"user\"")
 public class User extends BaseEntity {
     @Id
     protected String id;

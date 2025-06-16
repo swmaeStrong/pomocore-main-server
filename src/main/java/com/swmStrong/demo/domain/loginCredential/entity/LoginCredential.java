@@ -24,7 +24,7 @@ public class LoginCredential extends User {
     private String password;
 
     // 소셜로 시작한 경우 true로, 이 때 일반 로그인이 아예 되지 않도록 막기
-    @Column(name = "is_social", nullable = false, columnDefinition = "BOOLEAN DEFAULT 0")
+    @Column(name = "is_social", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
     private boolean isSocial;
 
     private String socialId;

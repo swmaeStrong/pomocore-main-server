@@ -8,6 +8,7 @@ public record UsageLogResponseDto(
         String userId,
         String title,
         String app,
+        String url,
         double duration,
         LocalDateTime timestamp
 ) {
@@ -16,6 +17,7 @@ public record UsageLogResponseDto(
                 usageLog.getUserId(),
                 usageLog.getTitle(),
                 usageLog.getApp(),
+                usageLog.getUrl(),
                 usageLog.getDuration(),
                 usageLog.getTimestamp()
         );

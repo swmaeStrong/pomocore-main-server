@@ -22,17 +22,17 @@ public class UsageLog {
     private double duration;
     private String app;
     private String title;
-    private String domain;
+    private String url;
     private ObjectId categoryId;
 
     @Builder
-    public UsageLog(String userId, LocalDateTime timestamp, double duration, String app, String title, String domain, ObjectId categoryId) {
+    public UsageLog(String userId, LocalDateTime timestamp, double duration, String app, String title, String url, ObjectId categoryId) {
         this.userId = userId;
         this.timestamp = timestamp;
         this.duration = duration;
         this.app = app;
         this.title = title;
-        this.domain = domain;
+        this.url = url;
         this.categoryId = categoryId;
     }
 

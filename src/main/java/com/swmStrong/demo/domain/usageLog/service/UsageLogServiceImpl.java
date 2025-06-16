@@ -44,7 +44,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                 .userId(userId)
                 .app(saveUsageLogDto.app())
                 .title(saveUsageLogDto.title())
-                .domain(saveUsageLogDto.domain())
+                .url(saveUsageLogDto.url())
                 .duration(saveUsageLogDto.duration())
                 .timestamp(saveUsageLogDto.timestamp())
                 .build()
@@ -56,7 +56,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                         .usageLogId(usageLog.getId().toHexString())
                         .app(usageLog.getApp())
                         .title(usageLog.getTitle())
-                        .domain(usageLog.getDomain())
+                        .url(usageLog.getUrl())
                         .build()
         );
     }

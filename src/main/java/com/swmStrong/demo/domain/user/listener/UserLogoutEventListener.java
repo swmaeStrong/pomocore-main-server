@@ -1,4 +1,4 @@
-package com.swmStrong.demo.domain.user.llistener;
+package com.swmStrong.demo.domain.user.listener;
 
 import com.swmStrong.demo.domain.user.facade.UserDeleteProvider;
 import com.swmStrong.demo.message.event.UnregisteredUserLogoutEvent;

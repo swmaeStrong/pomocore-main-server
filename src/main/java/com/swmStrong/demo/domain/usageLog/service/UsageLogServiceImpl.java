@@ -1,5 +1,7 @@
 package com.swmStrong.demo.domain.usageLog.service;
 
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryHourlyUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
@@ -9,12 +11,14 @@ import com.swmStrong.demo.domain.usageLog.repository.UsageLogRepository;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PatternClassifyMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 public class UsageLogServiceImpl implements UsageLogService {
 
@@ -29,36 +33,37 @@ public class UsageLogServiceImpl implements UsageLogService {
         this.redisStreamProducer = redisStreamProducer;
     }
 
-    //TODO: 문제가 발생할 가능성도 있으니 try - except 구조로 변경
     @Override
     public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
-        for (SaveUsageLogDto saveUsageLogDto : saveUsageLogDtoList) {
-            save(userId, saveUsageLogDto);
+        try {
+            List<UsageLog> usageLogs = saveUsageLogDtoList.stream()
+                    .map(saveUsageLogDto -> UsageLog.builder()
+                            .userId(userId)
+                            .app(saveUsageLogDto.app())
+                            .title(saveUsageLogDto.title())
+                            .url(saveUsageLogDto.url())
+                            .duration(saveUsageLogDto.duration())
+                            .timestamp(saveUsageLogDto.timestamp())
+                            .build())
+                    .toList();
+
+            List<UsageLog> savedUsageLogs = usageLogRepository.saveAll(usageLogs);
+
+            for (UsageLog usageLog : savedUsageLogs) {
+                redisStreamProducer.send(
+                        StreamConfig.PATTERN_MATCH.getStreamKey(),
+                        PatternClassifyMessage.builder()
+                                .usageLogId(usageLog.getId().toHexString())
+                                .app(usageLog.getApp())
+                                .title(usageLog.getTitle())
+                                .url(usageLog.getUrl())
+                                .build()
+                );
+            }
+        } catch (Exception e) {
+            log.error("error occurred when save usage log, {}", e.getMessage());
+            throw new ApiException(ErrorCode.USAGE_LOG_NOT_FOUND);
         }
-    }
-
-
-    private void save(String userId, SaveUsageLogDto saveUsageLogDto) {
-        UsageLog usageLog = usageLogRepository.save(
-                UsageLog.builder()
-                .userId(userId)
-                .app(saveUsageLogDto.app())
-                .title(saveUsageLogDto.title())
-                .url(saveUsageLogDto.url())
-                .duration(saveUsageLogDto.duration())
-                .timestamp(saveUsageLogDto.timestamp())
-                .build()
-        );
-
-        redisStreamProducer.send(
-                StreamConfig.PATTERN_MATCH.getStreamKey(),
-                PatternClassifyMessage.builder()
-                        .usageLogId(usageLog.getId().toHexString())
-                        .app(usageLog.getApp())
-                        .title(usageLog.getTitle())
-                        .url(usageLog.getUrl())
-                        .build()
-        );
     }
 
     @Override

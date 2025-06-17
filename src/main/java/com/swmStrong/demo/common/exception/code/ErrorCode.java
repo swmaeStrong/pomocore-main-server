@@ -50,7 +50,8 @@ public enum ErrorCode implements BaseCode {
     // --- 500 INTERNAL SERVER ERROR ---
     _INTERNAL_SERVER_ERROR("5000", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     PAYMENT_FAILED("5001", "결제에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    PAYMENT_CANCELLATION_FAILED("5002", "결제 취소가 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    PAYMENT_CANCELLATION_FAILED("5002", "결제 취소가 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    LOG_SAVE_FAILED("5003", "로그 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     private final String code;

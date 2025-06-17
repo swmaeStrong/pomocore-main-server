@@ -15,7 +15,7 @@ public class CacheConfig {
     public Cache<String, ObjectId> classificationCache() {
         return Caffeine.newBuilder()
                 .maximumSize(1000)
-                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .expireAfterAccess(50, TimeUnit.MINUTES)
                 .build();
     }
 }

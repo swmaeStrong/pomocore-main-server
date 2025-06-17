@@ -44,6 +44,7 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
         // 토큰이 유효하지 않은 경우 리프레시 해야한다는 응답을 반환
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            log.error("Authorization header is empty. requestURI: {}", request.getRequestURI());
             throw new RuntimeException("인증 정보가 없습니다.");
         }
 

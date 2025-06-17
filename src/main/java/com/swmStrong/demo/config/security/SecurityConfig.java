@@ -3,6 +3,7 @@ package com.swmStrong.demo.config.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.config.security.filter.CustomAuthenticationFilter;
 import com.swmStrong.demo.config.security.filter.TokenAuthorizationFilter;
+import com.swmStrong.demo.config.security.handler.CustomAuthenticationEntryPoint;
 import com.swmStrong.demo.config.security.handler.CustomAuthenticationFailureHandler;
 import com.swmStrong.demo.config.security.handler.CustomAuthenticationSuccessHandler;
 import com.swmStrong.demo.config.security.handler.CustomLogoutHandler;
@@ -78,7 +79,8 @@ public class SecurityConfig {
             CustomAuthenticationFilter customAuthenticationFilter,
             TokenAuthorizationFilter tokenAuthorizationFilter,
             CustomLogoutSuccessHandler customLogoutSuccessHandler,
-            CustomLogoutHandler customLogoutHandler
+            CustomLogoutHandler customLogoutHandler,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint
     ) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -86,6 +88,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, WhiteListConfig.WHITE_LIST_FOR_GET).permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
                 .addFilterBefore(tokenAuthorizationFilter, LogoutFilter.class)
                 .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -169,5 +174,10 @@ public class SecurityConfig {
     @Bean
     public CustomLogoutSuccessHandler customLogoutSuccessHandler() {
         return new CustomLogoutSuccessHandler();
+    }
+
+    @Bean
+    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
+        return new CustomAuthenticationEntryPoint(objectMapper);
     }
 }

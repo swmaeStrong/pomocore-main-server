@@ -20,7 +20,7 @@ public interface UsageLogRepository extends MongoRepository<UsageLog, ObjectId> 
             "{ $group: { _id: '$categories', duration: { $sum: '$duration' } } }",
             "{ $lookup: {from: 'category_pattern', localField: '_id', foreignField: '_id', as: 'patternDocs' } }",
             "{ $unwind: { path: '$patternDocs', preserveNullAndEmptyArrays: true } }",
-            "{ $project: { category: '$patternDocs.category', duration: 1, color: '$patternDocs.color' } }"
+            "{ $project: { category: '$patternDocs.category', duration: 1 } }"
             }
     )
     List<CategoryUsageDto> findByUserIdAndTimestampBetween(
@@ -36,7 +36,7 @@ public interface UsageLogRepository extends MongoRepository<UsageLog, ObjectId> 
             "{ $group:  { _id:  { hour:  { $dateTrunc:  { date:  '$timestamp', unit:  'minute', binSize: ?3 } }, category:  '$categories' }, totalDuration:  { $sum:  '$duration' } } }",
             "{ $lookup:  { from:  'category_pattern', localField:  '_id.category', foreignField:  '_id', as:  'patternDocs' } }",
             "{ $unwind:  { path:  '$patternDocs', preserveNullAndEmptyArrays:  true } }",
-            "{ $project:  { hour:  '$_id.hour', category:  '$patternDocs.category', color:  '$patternDocs.color', totalDuration:  1 } }",
+            "{ $project:  { hour:  '$_id.hour', category:  '$patternDocs.category', totalDuration:  1 } }",
             "{ $sort:  { hour:  1 } }"
             }
     )

@@ -111,7 +111,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedOrigin("https://mvp-web-view.vercel.app");
+        config.addAllowedOrigin("https://web.pawcus.dev");
+        config.addAllowedOrigin("https://dev-web.pawcus.dev");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

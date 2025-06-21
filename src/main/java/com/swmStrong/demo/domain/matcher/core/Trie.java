@@ -22,7 +22,7 @@ public class Trie {
 
     public void insert(ObjectId category, String pattern) {
         Node now = this.root;
-        for (char c: pattern.toCharArray()) {
+        for (char c: pattern.toLowerCase().toCharArray()) {
             now = now.children.computeIfAbsent(c, Node::new);
             now.count++;
         }
@@ -35,7 +35,7 @@ public class Trie {
 
     public ObjectId search(String pattern, boolean prefixMatch) {
         Node now = this.root;
-        for (char c: pattern.toCharArray()) {
+        for (char c: pattern.toLowerCase().toCharArray()) {
             now = now.children.get(c);
             if (now == null) return null;
             if (prefixMatch && now.category != null) return now.category;
@@ -45,7 +45,7 @@ public class Trie {
 
     public void remove(String pattern) {
         Node now = this.root;
-        for (char c: pattern.toCharArray()) {
+        for (char c: pattern.toLowerCase().toCharArray()) {
             now = now.children.get(c);
             if (now == null) return;
             now.count--;

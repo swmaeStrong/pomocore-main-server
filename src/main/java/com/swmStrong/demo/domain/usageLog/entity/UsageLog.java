@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
-import java.util.Set;
-
 @Getter
 @NoArgsConstructor
 @Document(collection = "usage_log")
@@ -18,7 +15,7 @@ public class UsageLog {
     private ObjectId id;
 
     private String userId;
-    private LocalDateTime timestamp;
+    private Integer timestamp;
     private double duration;
     private String app;
     private String title;
@@ -26,7 +23,7 @@ public class UsageLog {
     private ObjectId categoryId;
 
     @Builder
-    public UsageLog(String userId, LocalDateTime timestamp, double duration, String app, String title, String url, ObjectId categoryId) {
+    public UsageLog(String userId, Integer timestamp, double duration, String app, String title, String url, ObjectId categoryId) {
         this.userId = userId;
         this.timestamp = timestamp;
         this.duration = duration;

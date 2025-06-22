@@ -12,6 +12,9 @@ public enum ErrorCode implements BaseCode {
     _VALIDATION_ERROR("4001", "입력값이 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
     USER_MISMATCH("4002", "토큰 생성 에러: 회원 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
     PERIOD_KEY_ERROR("4003", "해당 기간 키값은 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
+    REQUEST_TIME_IS_FUTURE("4004", "미래 시간의 로그는 저장할 수 없습니다.", HttpStatus.BAD_REQUEST),
+    REQUEST_TIME_CONTAIN_BEFORE_SAVED("4005",  "저장하려는 로그는 이전의 로그 시간과 겹칩니다.", HttpStatus.BAD_REQUEST),
+    REQUEST_TIME_IS_OVER_FUTURE("4006", "저장하려는 로그는 미래시간을 포함합니다.", HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),

@@ -44,10 +44,10 @@ public class UsageLogServiceImpl implements UsageLogService {
     @Override
     public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
 
+        int currentTimestamp = (int) Instant.now().getEpochSecond();
+        log.info("current timestamp: {} ({})",  currentTimestamp, LocalDateTime.now());
+        String cacheKey = USAGE_LOG_LAST_TIMESTAMP_PREFIX + userId;
         try {
-            int currentTimestamp = (int) Instant.now().getEpochSecond();
-            
-            String cacheKey = USAGE_LOG_LAST_TIMESTAMP_PREFIX + userId;
             String lastTimestampStr = redisRepository.getData(cacheKey);
             Integer lastTimestamp = lastTimestampStr != null ? Integer.parseInt(lastTimestampStr) : null;
 

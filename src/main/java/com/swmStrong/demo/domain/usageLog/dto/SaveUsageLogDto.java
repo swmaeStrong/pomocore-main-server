@@ -5,6 +5,6 @@ public record SaveUsageLogDto(
         String app,
         String url,
         double duration,
-        Integer timestamp
+        double timestamp
 ) {
 }

@@ -23,8 +23,8 @@ public interface UsageLogRepository extends MongoRepository<UsageLog, ObjectId> 
     )
     List<CategoryUsageDto> findByUserIdAndTimestampBetween(
             String userId,
-            Integer start,
-            Integer end
+            double start,
+            double end
     );
 
     @Aggregation(
@@ -40,8 +40,8 @@ public interface UsageLogRepository extends MongoRepository<UsageLog, ObjectId> 
     )
     List<CategoryHourlyUsageDto> findHourlyCategoryUsageByUserIdAndTimestampBetween(
             String userId,
-            Integer start,
-            Integer end,
+            double start,
+            double end,
             Integer binSize
     );
 }

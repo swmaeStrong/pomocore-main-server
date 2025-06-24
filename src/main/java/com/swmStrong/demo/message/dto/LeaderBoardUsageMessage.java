@@ -7,10 +7,10 @@ public record LeaderBoardUsageMessage(
         String userId,
         String categoryId,
         double duration,
-        Integer timestamp
+        double timestamp
 ) {
     @Builder
-    public LeaderBoardUsageMessage(String userId, ObjectId categoryId, double duration, Integer timestamp) {
+    public LeaderBoardUsageMessage(String userId, ObjectId categoryId, double duration, double timestamp) {
         this(
                 userId,
                 categoryId != null ? categoryId.toHexString() : null,

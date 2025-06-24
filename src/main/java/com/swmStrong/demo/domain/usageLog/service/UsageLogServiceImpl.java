@@ -44,12 +44,12 @@ public class UsageLogServiceImpl implements UsageLogService {
     @Override
     public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
 
-        int currentTimestamp = (int) Instant.now().getEpochSecond();
+        double currentTimestamp = Instant.now().getEpochSecond();
         log.info("current timestamp: {} ({})",  currentTimestamp, LocalDateTime.now());
         String cacheKey = USAGE_LOG_LAST_TIMESTAMP_PREFIX + userId;
         try {
             String lastTimestampStr = redisRepository.getData(cacheKey);
-            Integer lastTimestamp = lastTimestampStr != null ? Integer.parseInt(lastTimestampStr) : null;
+            Double lastTimestamp = lastTimestampStr != null ? Double.parseDouble(lastTimestampStr) : null;
 
             for (SaveUsageLogDto dto : saveUsageLogDtoList) {
                 if (dto.timestamp() > currentTimestamp) {
@@ -63,7 +63,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                     throw new ApiException(ErrorCode.REQUEST_TIME_CONTAIN_BEFORE_SAVED);
                 }
 
-                int endTimestamp = dto.timestamp() + (int) dto.duration();
+                double endTimestamp = dto.timestamp() + dto.duration();
                 if (endTimestamp > currentTimestamp) {
                     log.error("Invalid log with end time {} in the future for user {}", 
                             endTimestamp, userId);
@@ -86,7 +86,7 @@ public class UsageLogServiceImpl implements UsageLogService {
 
             savedUsageLogs.stream()
                     .map(UsageLog::getTimestamp)
-                    .max(Integer::compareTo)
+                    .max(Double::compareTo)
                     .ifPresent(maxTimestamp -> 
                         redisRepository.setDataWithExpire(cacheKey, maxTimestamp.toString(), CACHE_EXPIRE_SECONDS)
                     );
@@ -137,11 +137,11 @@ public class UsageLogServiceImpl implements UsageLogService {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1);
         
-        Integer startTimestamp = (int) start.atZone(java.time.ZoneId.systemDefault()).toEpochSecond();
-        Integer endTimestamp = (int) end.atZone(java.time.ZoneId.systemDefault()).toEpochSecond();
+        double startTimestamp = start.atZone(java.time.ZoneId.systemDefault()).toEpochSecond();
+        double endTimestamp = end.atZone(java.time.ZoneId.systemDefault()).toEpochSecond();
         
         return new DateRange(startTimestamp, endTimestamp);
     }
     
-    private record DateRange(Integer start, Integer end) {}
+    private record DateRange(double start, double end) {}
 }

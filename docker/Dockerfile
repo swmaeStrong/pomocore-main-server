@@ -6,7 +6,5 @@ ARG JAR_FILE=build/libs/*.jar
 
 # JAR_FILE을 app.jar로 복사
 COPY ${JAR_FILE} app.jar
-ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 # 운영 및 개발에서 사용되는 환경 설정을 분리
 ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "/app.jar"]

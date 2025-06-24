@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.leaderboard.service;
 
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
+import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardCache;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
@@ -36,8 +37,9 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public void increaseScore(String categoryId, String userId, double duration, LocalDateTime timestamp) {
-        LocalDate day = timestamp.toLocalDate();
+    public void increaseScore(String categoryId, String userId, double duration, double timestamp) {
+        LocalDate day = LocalDateTime.ofInstant(java.time.Instant.ofEpochSecond((long) timestamp),
+                java.time.ZoneId.systemDefault()).toLocalDate();
         ObjectId categoryObjectId = new ObjectId(categoryId);
         String category = categoryProvider.getCategoryById(categoryObjectId);
         log.info("Increase score for user: {} category: {}, duration: {}", userId, category, duration);
@@ -116,7 +118,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     public Map<String, List<LeaderboardResponseDto>> getLeaderboards() {
         Map<String, List<LeaderboardResponseDto>> response = new LinkedHashMap<>();
 
-        LocalDate date = LocalDate.now();
+        LocalDate date = TimeZoneUtil.todayInTimezone(TimeZoneUtil.KOREA_TIMEZONE);
         List<String> categories = categoryProvider.getCategories();
 
         for (String category : categories) {

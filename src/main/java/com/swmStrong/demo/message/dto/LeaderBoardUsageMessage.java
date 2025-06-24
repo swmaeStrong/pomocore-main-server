@@ -3,16 +3,14 @@ package com.swmStrong.demo.message.dto;
 import lombok.Builder;
 import org.bson.types.ObjectId;
 
-import java.time.LocalDateTime;
-
 public record LeaderBoardUsageMessage(
         String userId,
         String categoryId,
         double duration,
-        LocalDateTime timestamp
+        double timestamp
 ) {
     @Builder
-    public LeaderBoardUsageMessage(String userId, ObjectId categoryId, double duration, LocalDateTime timestamp) {
+    public LeaderBoardUsageMessage(String userId, ObjectId categoryId, double duration, double timestamp) {
         this(
                 userId,
                 categoryId != null ? categoryId.toHexString() : null,

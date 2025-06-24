@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,5 +30,11 @@ public class GlobalExceptionHandler {
                 .orElse(errorCode.getMessage());
 
         return CustomResponseEntity.of(errorCode, message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        ErrorCode errorCode = ErrorCode._VALIDATION_ERROR;
+        return CustomResponseEntity.of(errorCode, e.getMessage());
     }
 }

@@ -25,13 +25,13 @@ import java.security.Key;
 import java.util.Date;
 import java.util.List;
 
-import static com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl.REDIS_REFRESH_TOKEN_PREFIX;
-
 @Slf4j
 @Component
 public class TokenManager {
     private final RedisRepositoryImpl redisRepository;
     private final UserDetailsProvider userDetailsProvider;
+
+    public static final String REDIS_REFRESH_TOKEN_PREFIX = "auth:refreshToken:";
 
     public TokenManager(RedisRepositoryImpl redisRepository, UserDetailsProvider userDetailsProvider) {
         this.redisRepository = redisRepository;

@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import static com.swmStrong.demo.infra.redis.repository.RedisRepositoryImpl.REDIS_REFRESH_TOKEN_PREFIX;
+import static com.swmStrong.demo.infra.token.TokenManager.REDIS_REFRESH_TOKEN_PREFIX;
 
 public class CustomLogoutHandler implements LogoutHandler {
 

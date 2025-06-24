@@ -38,7 +38,10 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
     }
 
     @Transactional
-    public void upgradeToUser(UpgradeRequestDto upgradeRequestDto) {
+    public TokenResponseDto upgradeToUser(
+            HttpServletRequest request,
+            UpgradeRequestDto upgradeRequestDto
+    ) {
         if (loginCredentialRepository.existsByEmail(upgradeRequestDto.email())) {
             throw new ApiException(ErrorCode.DUPLICATE_USER_EMAIL);
         }
@@ -54,7 +57,9 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
                 upgradeRequestDto.email(),
                 passwordEncoder.encode(upgradeRequestDto.password())
         );
-        userUpdateProvider.updateUserRole(user);
+
+        user = userUpdateProvider.updateUserRole(user);
+        return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
     }
 
     @Override
@@ -112,7 +117,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
                 email,
                 supabaseId
         );
-        userUpdateProvider.updateUserRole(user);
+        user = userUpdateProvider.updateUserRole(user);
 
         return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
 

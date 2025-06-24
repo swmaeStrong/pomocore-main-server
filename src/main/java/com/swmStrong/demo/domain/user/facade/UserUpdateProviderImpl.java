@@ -17,9 +17,9 @@ public class UserUpdateProviderImpl implements UserUpdateProvider {
     }
 
     @Override
-    public void updateUserRole(User user) {
+    public User updateUserRole(User user) {
         user.updateRole(Role.USER);
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     @Override

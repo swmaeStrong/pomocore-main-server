@@ -26,6 +26,7 @@ public class UsageLogServiceImpl implements UsageLogService {
 
     private static final String USAGE_LOG_LAST_TIMESTAMP_PREFIX = "usageLog:lastTimestamp:";
     private static final long CACHE_EXPIRE_SECONDS = 86400; // 24 hours
+    private static final double TIME_TOLERANCE_SECONDS = 60.0;
 
     private final UsageLogRepository usageLogRepository;
     private final RedisStreamProducer redisStreamProducer;
@@ -63,7 +64,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                     throw new ApiException(ErrorCode.REQUEST_TIME_CONTAIN_BEFORE_SAVED);
                 }
 
-                double endTimestamp = dto.timestamp() + dto.duration();
+                double endTimestamp = dto.timestamp() + dto.duration() + TIME_TOLERANCE_SECONDS;
                 if (endTimestamp > currentTimestamp) {
                     log.error("Invalid log with end time {} in the future for user {}", 
                             endTimestamp, userId);

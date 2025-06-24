@@ -37,9 +37,14 @@ public class LoginCredentialController {
                 "<p> 당장은 바로 회원 가입하는 기능이 없다. (추가 예정) </p>"
     )
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Void>> upgradeToMember(@RequestBody @Valid UpgradeRequestDto upgradeRequestDto) {
-        loginCredentialService.upgradeToUser(upgradeRequestDto);
-        return CustomResponseEntity.of(SuccessCode._OK);
+    public ResponseEntity<ApiResponse<TokenResponseDto>> upgradeToUser(
+            HttpServletRequest request,
+            @RequestBody @Valid UpgradeRequestDto upgradeRequestDto
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                loginCredentialService.upgradeToUser(request, upgradeRequestDto)
+        );
     }
 
     @Operation(

@@ -64,7 +64,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                     throw new ApiException(ErrorCode.REQUEST_TIME_CONTAIN_BEFORE_SAVED);
                 }
 
-                double endTimestamp = dto.timestamp() + dto.duration() + TIME_TOLERANCE_SECONDS;
+                double endTimestamp = dto.timestamp() + dto.duration() - TIME_TOLERANCE_SECONDS;
                 if (endTimestamp > currentTimestamp) {
                     log.error("Invalid log with end time {} in the future for user {}", 
                             endTimestamp, userId);

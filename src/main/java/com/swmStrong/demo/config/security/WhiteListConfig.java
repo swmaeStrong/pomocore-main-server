@@ -23,5 +23,6 @@ public class WhiteListConfig {
             PREFIX+"/category",
             PREFIX+"/category/**",
             PREFIX+"/usage-log/**",
+            PREFIX+"/actuator/**"
     };
 }

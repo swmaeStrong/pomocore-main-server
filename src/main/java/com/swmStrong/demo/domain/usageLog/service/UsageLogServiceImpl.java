@@ -58,7 +58,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                     throw new ApiException(ErrorCode.REQUEST_TIME_IS_FUTURE);
                 }
 
-                if (lastTimestamp != null && dto.timestamp() <= lastTimestamp) {
+                if (lastTimestamp != null && dto.timestamp() < lastTimestamp) {
                     log.error("Invalid timestamp {} before last timestamp {} for user {}", 
                             dto.timestamp(), lastTimestamp, userId);
                     throw new ApiException(ErrorCode.REQUEST_TIME_CONTAIN_BEFORE_SAVED);

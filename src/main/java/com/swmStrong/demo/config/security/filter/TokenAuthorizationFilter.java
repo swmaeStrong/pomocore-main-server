@@ -36,7 +36,9 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
                 Arrays.stream(WhiteListConfig.WHITE_LIST_FOR_GET)
                         .anyMatch(pattern -> new AntPathRequestMatcher(pattern).matches(request))
         ) {
-            log.info("passed by WhiteList: {}", request.getRequestURI());
+            if (!request.getRequestURI().equals("/actuator/prometheus")) {
+                log.info("passed by WhiteList: {}", request.getRequestURI());
+            }
             filterChain.doFilter(request, response);
             return;
         }

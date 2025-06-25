@@ -14,9 +14,6 @@ public class RedisRepositoryImpl implements RedisRepository {
         this.redisTemplate = redisTemplate;
     }
 
-    public static final String REDIS_REFRESH_TOKEN_PREFIX = "auth:refreshToken:";
-    public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
-
     public String getData(String key) {
         return redisTemplate.opsForValue().get(key);
     }

@@ -42,7 +42,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                 java.time.ZoneId.systemDefault()).toLocalDate();
         ObjectId categoryObjectId = new ObjectId(categoryId);
         String category = categoryProvider.getCategoryById(categoryObjectId);
-        log.info("Increase score for user: {} category: {}, duration: {}", userId, category, duration);
+        log.trace("Increase score for user: {} category: {}, duration: {}", userId, category, duration);
 
         String dailyKey = generateDailyKey(category, day);
         leaderboardCache.increaseScoreByUserId(dailyKey, userId, duration);

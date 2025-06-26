@@ -189,13 +189,13 @@ public class TokenManager {
                     .parseClaimsJws(token);
             return true;
         } catch (MalformedJwtException e) {
-            log.error("Invalid JWT token, {}", e.getMessage());
+            log.warn("Invalid JWT token, {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            log.error("Expired JWT token, {}", e.getMessage());
+            log.debug("Expired JWT token, {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.error("Unsupported JWT token, {}", e.getMessage());
+            log.warn("Unsupported JWT token, {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty, {}", e.getMessage());
+            log.debug("JWT claims string is empty, {}", e.getMessage());
         }
         return false;
     }

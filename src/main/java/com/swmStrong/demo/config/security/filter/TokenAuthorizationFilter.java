@@ -36,9 +36,6 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
                 Arrays.stream(WhiteListConfig.WHITE_LIST_FOR_GET)
                         .anyMatch(pattern -> new AntPathRequestMatcher(pattern).matches(request))
         ) {
-            if (!request.getRequestURI().equals("/actuator/prometheus")) {
-                log.info("passed by WhiteList: {}", request.getRequestURI());
-            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -62,7 +59,7 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
                 throw new BadCredentialsException("토큰이 유효하지 않습니다.");
             }
         } catch (InsufficientAuthenticationException | BadCredentialsException e) {
-            log.error("Authorization failed. requestURI: {}", request.getRequestURI());
+            log.warn("Authorization failed. requestURI: {}", request.getRequestURI());
             request.setAttribute("exception", e);
             filterChain.doFilter(request, response);
         }

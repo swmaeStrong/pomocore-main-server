@@ -41,12 +41,14 @@ public class UsageLogServiceImpl implements UsageLogService {
         this.redisStreamProducer = redisStreamProducer;
         this.redisRepository = redisRepository;
     }
-
+    //TODO: 가입 메일 보내기.
+    //TODO: 메일 서버 만들기.
+    //TODO: 서버 시간 내려주기?
     @Override
     public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
 
         double currentTimestamp = Instant.now().getEpochSecond();
-        log.info("current timestamp: {} ({})",  currentTimestamp, LocalDateTime.now());
+        log.trace("current timestamp: {} ({})",  currentTimestamp, LocalDateTime.now());
         String cacheKey = USAGE_LOG_LAST_TIMESTAMP_PREFIX + userId;
         try {
             String lastTimestampStr = redisRepository.getData(cacheKey);
@@ -54,19 +56,19 @@ public class UsageLogServiceImpl implements UsageLogService {
 
             for (SaveUsageLogDto dto : saveUsageLogDtoList) {
                 if (dto.timestamp() > currentTimestamp) {
-                    log.error("Invalid future timestamp {} for user {}", dto.timestamp(), userId);
+                    log.warn("Invalid future timestamp {} for user {}", dto.timestamp(), userId);
                     throw new ApiException(ErrorCode.REQUEST_TIME_IS_FUTURE);
                 }
 
                 if (lastTimestamp != null && dto.timestamp() < lastTimestamp) {
-                    log.error("Invalid timestamp {} before last timestamp {} for user {}", 
+                    log.warn("Invalid timestamp {} before last timestamp {} for user {}",
                             dto.timestamp(), lastTimestamp, userId);
                     throw new ApiException(ErrorCode.REQUEST_TIME_CONTAIN_BEFORE_SAVED);
                 }
 
                 double endTimestamp = dto.timestamp() + dto.duration() - TIME_TOLERANCE_SECONDS;
                 if (endTimestamp > currentTimestamp) {
-                    log.error("Invalid log with end time {} in the future for user {}", 
+                    log.warn("Invalid log with end time {} in the future for user {}",
                             endTimestamp, userId);
                     throw new ApiException(ErrorCode.REQUEST_TIME_IS_OVER_FUTURE);
                 }

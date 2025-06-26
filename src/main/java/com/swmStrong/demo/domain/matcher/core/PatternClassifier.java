@@ -57,12 +57,10 @@ public class PatternClassifier {
             }
         }
         log.info("app and domain tries initialized");
-
-
     }
 
     public ObjectId classify(String app, String title, String url) {
-        log.info("start classify: {}, {}, {}", app, title, url);
+        log.trace("start classify: {}, {}, {}", app, title, url);
         String query = getQuery(app, title, url);
         ObjectId objectId;
 
@@ -88,7 +86,7 @@ public class PatternClassifier {
     }
 
     private ObjectId classifyFromAppTrie(String app) {
-        log.info("trie layer: {}", app);
+        log.trace("trie layer: {}", app);
         return appTrie.search(app, false);
     }
 
@@ -99,23 +97,23 @@ public class PatternClassifier {
             log.warn("Failed to extract domain from: {}", domain);
             return null;
         }
-        log.info("trie layer with domain: {} (extracted: {})", domain, cleanDomain);
+        log.trace("trie layer with domain: {} (extracted: {})", domain, cleanDomain);
         return domainTrie.search(cleanDomain, true);
     }
 
     private ObjectId classifyFromCache(String query) {
-        log.info("cache layer: {}", query);
+        log.trace("cache layer: {}", query);
         return classificationCache.getIfPresent(query);
     }
 
     private ObjectId classifyFromML(String app, String title, String url) {
         // ML 관련 로직 제대로 생각해서 만들어내기
-        log.info("ML layer: {}, {}, {}", app, title, url);
+        log.trace("ML layer: {}, {}, {}", app, title, url);
         return null;
     }
 
     private ObjectId classifyFromLLM(String query) {
-        log.info("LLM layer: {}", query);
+        log.trace("LLM layer: {}", query);
         String category = classifier.classify(query);
         Optional<CategoryPattern> categoryId = categoryPatternRepository.findByCategory(category);
         return categoryId.map(CategoryPattern::getId).orElse(null);

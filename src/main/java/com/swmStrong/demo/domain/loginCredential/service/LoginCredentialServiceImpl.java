@@ -12,6 +12,7 @@ import com.swmStrong.demo.infra.token.TokenManager;
 import com.swmStrong.demo.infra.token.dto.RefreshTokenRequestDto;
 import com.swmStrong.demo.infra.token.dto.SubjectResponseDto;
 import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
+import com.swmStrong.demo.infra.mail.MailSender;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,17 +25,20 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
     private final PasswordEncoder passwordEncoder;
     private final UserUpdateProvider userUpdateProvider;
     private final TokenManager tokenManager;
+    private final MailSender mailSender;
 
     public LoginCredentialServiceImpl(
             LoginCredentialRepository loginCredentialRepository,
             PasswordEncoder passwordEncoder,
             UserUpdateProvider userUpdateProvider,
-            TokenManager tokenManager
+            TokenManager tokenManager,
+            MailSender mailSender
             ) {
         this.loginCredentialRepository = loginCredentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.userUpdateProvider = userUpdateProvider;
         this.tokenManager = tokenManager;
+        this.mailSender = mailSender;
     }
 
     @Transactional
@@ -59,6 +63,8 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         );
 
         user = userUpdateProvider.updateUserRole(user);
+
+        mailSender.sendWelcomeEmail(upgradeRequestDto.email(), "사용자");
         return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
     }
 
@@ -88,6 +94,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
 
         loginCredentialRepository.save(loginCredential);
 
+        mailSender.sendWelcomeEmail(email, "사용자");
         return tokenManager.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole());
     }
 

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Pawcus</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .welcome-message {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐾 Welcome to Pawcus!</h1>
+        </div>
+        
+        <div class="content">
+            <p class="welcome-message">안녕하세요 <strong>{{username}}</strong>님!</p>
+            
+            <p>Pawcus에 가입해 주셔서 감사합니다. 이제 반려동물과 함께하는 특별한 경험을 시작할 수 있습니다!</p>
+            
+            <p>Pawcus에서 할 수 있는 것들:</p>
+            <ul>
+                <li>🏆 리더보드에서 다른 사용자들과 경쟁</li>
+                <li>📊 개인화된 통계 및 분석</li>
+                <li>🎯 목표 설정 및 달성</li>
+                <li>🤝 커뮤니티 참여</li>
+            </ul>
+            
+            <div style="text-align: center;">
+                <a href="{{app_url}}" class="cta-button">지금 시작하기</a>
+            </div>
+            
+            <p>궁금한 점이 있으시면 언제든지 문의해 주세요.</p>
+            
+            <p>즐거운 Pawcus 여정 되세요! 🎉</p>
+        </div>
+        
+        <div class="footer">
+            <p>Pawcus Team<br>
+            이 이메일은 자동으로 발송된 메일입니다.</p>
+        </div>
+    </div>
+</body>
+</html>

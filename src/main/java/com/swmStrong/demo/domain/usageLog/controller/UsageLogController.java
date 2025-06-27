@@ -63,12 +63,12 @@ public class UsageLogController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "최근 유저 사용 타임테이블 조회",
+            summary = "최근 유저 사용 타임라인 조회",
             description =
-                    "<p> 유저의 사용 로그 타임테이블을 조회한다. </p>"
+                    "<p> 유저의 사용 로그 타임라인을 조회한다. </p>"
     )
-    @GetMapping("/time-table")
-    public ResponseEntity<ApiResponse<List<MergedCategoryUsageLogDto>>> getUsageTimeTableById(
+    @GetMapping("/time-line")
+    public ResponseEntity<ApiResponse<List<MergedCategoryUsageLogDto>>> getUsageTimeLineById(
             @RequestParam String userId
     ) {
         return CustomResponseEntity.of(

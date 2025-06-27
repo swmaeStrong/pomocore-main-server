@@ -6,6 +6,8 @@ import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryProviderImpl implements CategoryProvider {
@@ -36,5 +38,11 @@ public class CategoryProviderImpl implements CategoryProvider {
         return categoryPatternRepository.findByCategory(category)
                 .orElseThrow(IllegalArgumentException::new)
                 .getId();
+    }
+
+    @Override
+    public Map<ObjectId, String> getCategoryMap() {
+        return categoryPatternRepository.findAll().stream()
+                .collect(Collectors.toMap(CategoryPattern::getId, CategoryPattern::getCategory));
     }
 }

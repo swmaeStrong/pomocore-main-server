@@ -87,14 +87,12 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         String supabaseId = subjectResponseDto.supabaseId();
 
         LoginCredential loginCredential = loginCredentialRepository.findBySocialId(supabaseId)
-                .orElseGet(() ->
-                        loginCredentialRepository.findByEmail(email)
-                                .map(existing -> existing.connectSocialAccount(supabaseId))
-                                .orElseGet(() -> LoginCredential.createSocialLoginCredential(email, supabaseId)));
+                .orElseGet(() -> loginCredentialRepository.findByEmail(email)
+                        .map(existing -> existing.connectSocialAccount(supabaseId))
+                        .orElseGet(() -> createSocialLoginCredential(supabaseId, email)));
 
         loginCredentialRepository.save(loginCredential);
 
-        mailSender.sendWelcomeEmail(email, "사용자");
         return tokenManager.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole());
     }
 
@@ -126,7 +124,16 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         );
         user = userUpdateProvider.updateUserRole(user);
 
-        return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
+        mailSender.sendWelcomeEmail(email, "사용자");
 
+        return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), user.getRole());
+    }
+
+    private LoginCredential createSocialLoginCredential(
+            String email,
+            String supabaseId
+    ) {
+        mailSender.sendWelcomeEmail(email, "사용자");
+        return LoginCredential.createSocialLoginCredential(email, supabaseId);
     }
 }

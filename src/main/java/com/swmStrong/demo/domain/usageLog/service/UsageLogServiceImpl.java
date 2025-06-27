@@ -5,6 +5,7 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
 import com.swmStrong.demo.domain.usageLog.dto.*;
+import com.swmStrong.demo.domain.usageLog.dto.MergedCategoryUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
 import com.swmStrong.demo.domain.usageLog.repository.UsageLogRepository;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
@@ -145,6 +146,75 @@ public class UsageLogServiceImpl implements UsageLogService {
         }
         Collections.reverse(categorizedUsageLogDtos);
         return categorizedUsageLogDtos;
+    }
+
+    public List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId) {
+        List<MergedCategoryUsageLogDto> mergedCategoryUsageLogDtos = new ArrayList<>();
+        List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
+        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
+
+        Map<String, String> mergedCategoryMap = Map.of(
+                "Development", "work",
+                "LLM", "work", 
+                "Documentation", "work",
+                "Design", "work",
+                "Video Editing", "work",
+                "Education", "work",
+                "Entertainment", "breaks",
+                "Game", "breaks",
+                "SNS", "breaks",
+                "Communication", "meetings"
+        );
+
+        MergedCategoryUsageLogDto lastUsage = null;
+        
+        for (UsageLog usageLog : usageLogs) {
+            String category = categoryMap.get(usageLog.getCategoryId());
+            String mergedCategory = mergedCategoryMap.getOrDefault(category, "others");
+            LocalDateTime usageTime = TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE);
+            LocalDateTime usageEndTime = usageTime.plusSeconds((long) usageLog.getDuration());
+            
+            boolean isNewSession = lastUsage == null || 
+                    !lastUsage.mergedCategory().equals(mergedCategory) ||
+                    lastUsage.endTime().isBefore(usageTime.plusSeconds(1));
+            
+            if (isNewSession) {
+                
+                if (lastUsage != null) {
+                    MergedCategoryUsageLogDto updatedLastUsage = MergedCategoryUsageLogDto.builder()
+                            .mergedCategory(lastUsage.mergedCategory())
+                            .startTime(lastUsage.startTime())
+                            .endTime(usageTime)
+                            .app(lastUsage.app())
+                            .title(lastUsage.title())
+                            .build();
+                    mergedCategoryUsageLogDtos.set(mergedCategoryUsageLogDtos.size() - 1, updatedLastUsage);
+                }
+                
+                MergedCategoryUsageLogDto currentUsage = MergedCategoryUsageLogDto.builder()
+                        .mergedCategory(mergedCategory)
+                        .startTime(usageTime)
+                        .endTime(usageEndTime)
+                        .app(usageLog.getApp())
+                        .title(usageLog.getTitle())
+                        .build();
+                
+                mergedCategoryUsageLogDtos.add(currentUsage);
+                lastUsage = currentUsage;
+            } else {
+                MergedCategoryUsageLogDto updatedUsage = MergedCategoryUsageLogDto.builder()
+                        .mergedCategory(lastUsage.mergedCategory())
+                        .startTime(lastUsage.startTime())
+                        .endTime(usageEndTime)
+                        .app(lastUsage.app())
+                        .title(lastUsage.title())
+                        .build();
+                mergedCategoryUsageLogDtos.set(mergedCategoryUsageLogDtos.size() - 1, updatedUsage);
+                lastUsage = updatedUsage;
+            }
+        }
+        Collections.reverse(mergedCategoryUsageLogDtos);
+        return mergedCategoryUsageLogDtos;
     }
 
     @Override

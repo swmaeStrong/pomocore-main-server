@@ -61,7 +61,21 @@ public class UsageLogController {
         );
     }
 
-
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "최근 유저 사용 타임테이블 조회",
+            description =
+                    "<p> 유저의 사용 로그 타임테이블을 조회한다. </p>"
+    )
+    @GetMapping("/time-table")
+    public ResponseEntity<ApiResponse<List<MergedCategoryUsageLogDto>>> getUsageTimeTableById(
+            @RequestParam String userId
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                usageLogService.getMergedCategoryUsageLogByUserId(userId)
+        );
+    }
 
     @Operation(
             summary = "날짜별 유저 사용 로그 조회",

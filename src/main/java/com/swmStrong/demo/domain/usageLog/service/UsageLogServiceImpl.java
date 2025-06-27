@@ -2,10 +2,10 @@ package com.swmStrong.demo.domain.usageLog.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
-import com.swmStrong.demo.domain.usageLog.dto.CategoryHourlyUsageDto;
-import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
-import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
-import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
+import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
+import com.swmStrong.demo.domain.usageLog.dto.*;
+import com.swmStrong.demo.domain.usageLog.dto.MergedCategoryUsageLogDto;
 import com.swmStrong.demo.domain.usageLog.entity.UsageLog;
 import com.swmStrong.demo.domain.usageLog.repository.UsageLogRepository;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
@@ -13,12 +13,16 @@ import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PatternClassifyMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -31,18 +35,19 @@ public class UsageLogServiceImpl implements UsageLogService {
     private final UsageLogRepository usageLogRepository;
     private final RedisStreamProducer redisStreamProducer;
     private final RedisRepository redisRepository;
+    private final CategoryProvider categoryProvider;
 
     public UsageLogServiceImpl(
             UsageLogRepository usageLogRepository,
             RedisStreamProducer redisStreamProducer,
-            RedisRepository redisRepository
+            RedisRepository redisRepository,
+            CategoryProvider categoryProvider
     ) {
         this.usageLogRepository = usageLogRepository;
         this.redisStreamProducer = redisStreamProducer;
         this.redisRepository = redisRepository;
+        this.categoryProvider = categoryProvider;
     }
-    //TODO: 가입 메일 보내기.
-    //TODO: 메일 서버 만들기.
     //TODO: 서버 시간 내려주기?
     @Override
     public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
@@ -114,10 +119,102 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
 
     @Override
-    public List<UsageLogResponseDto> getUsageLogByUserId(String userId) {
+    public List<CategorizedUsageLogDto> getCategorizedUsageLogByUserId(String userId) {
+        List<CategorizedUsageLogDto> categorizedUsageLogDtos = new ArrayList<>();
         List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
+        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
-        return usageLogs.stream().map(UsageLogResponseDto::from).toList();
+        CategorizedUsageLogDto lastUsage = null;
+        for (UsageLog usageLog : usageLogs) {
+            String category = categoryMap.get(usageLog.getCategoryId());
+            
+            if (lastUsage == null || 
+                !lastUsage.title().equals(usageLog.getTitle()) ||
+                !lastUsage.app().equals(usageLog.getApp()) ||
+                !lastUsage.category().equals(category)) {
+                
+                CategorizedUsageLogDto currentUsage = CategorizedUsageLogDto.builder()
+                        .app(usageLog.getApp())
+                        .category(category)
+                        .title(usageLog.getTitle())
+                        .timestamp(TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE))
+                        .build();
+                
+                categorizedUsageLogDtos.add(currentUsage);
+                lastUsage = currentUsage;
+            }
+        }
+        Collections.reverse(categorizedUsageLogDtos);
+        return categorizedUsageLogDtos;
+    }
+
+    public List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId) {
+        List<MergedCategoryUsageLogDto> mergedCategoryUsageLogDtos = new ArrayList<>();
+        List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
+        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
+
+        Map<String, String> mergedCategoryMap = Map.of(
+                "Development", "work",
+                "LLM", "work", 
+                "Documentation", "work",
+                "Design", "work",
+                "Video Editing", "work",
+                "Education", "work",
+                "Entertainment", "breaks",
+                "Game", "breaks",
+                "SNS", "breaks",
+                "Communication", "meetings"
+        );
+
+        MergedCategoryUsageLogDto lastUsage = null;
+        
+        for (UsageLog usageLog : usageLogs) {
+            String category = categoryMap.get(usageLog.getCategoryId());
+            String mergedCategory = mergedCategoryMap.getOrDefault(category, "others");
+            LocalDateTime usageTime = TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE);
+            LocalDateTime usageEndTime = usageTime.plusSeconds((long) usageLog.getDuration());
+            
+            boolean isNewSession = lastUsage == null || 
+                    !lastUsage.mergedCategory().equals(mergedCategory) ||
+                    lastUsage.endTime().isBefore(usageTime.plusSeconds(1));
+            
+            if (isNewSession) {
+                
+                if (lastUsage != null) {
+                    MergedCategoryUsageLogDto updatedLastUsage = MergedCategoryUsageLogDto.builder()
+                            .mergedCategory(lastUsage.mergedCategory())
+                            .startTime(lastUsage.startTime())
+                            .endTime(usageTime)
+                            .app(lastUsage.app())
+                            .title(lastUsage.title())
+                            .build();
+                    mergedCategoryUsageLogDtos.set(mergedCategoryUsageLogDtos.size() - 1, updatedLastUsage);
+                }
+                
+                MergedCategoryUsageLogDto currentUsage = MergedCategoryUsageLogDto.builder()
+                        .mergedCategory(mergedCategory)
+                        .startTime(usageTime)
+                        .endTime(usageEndTime)
+                        .app(usageLog.getApp())
+                        .title(usageLog.getTitle())
+                        .build();
+                
+                mergedCategoryUsageLogDtos.add(currentUsage);
+                lastUsage = currentUsage;
+            } else {
+                MergedCategoryUsageLogDto updatedUsage = MergedCategoryUsageLogDto.builder()
+                        .mergedCategory(lastUsage.mergedCategory())
+                        .startTime(lastUsage.startTime())
+                        .endTime(usageEndTime)
+                        .app(lastUsage.app())
+                        .title(lastUsage.title())
+                        .build();
+                mergedCategoryUsageLogDtos.set(mergedCategoryUsageLogDtos.size() - 1, updatedUsage);
+                lastUsage = updatedUsage;
+            }
+        }
+        Collections.reverse(mergedCategoryUsageLogDtos);
+        return mergedCategoryUsageLogDtos;
     }
 
     @Override

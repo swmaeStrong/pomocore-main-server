@@ -4,10 +4,7 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.usageLog.dto.CategoryHourlyUsageDto;
-import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
-import com.swmStrong.demo.domain.usageLog.dto.SaveUsageLogDto;
-import com.swmStrong.demo.domain.usageLog.dto.UsageLogResponseDto;
+import com.swmStrong.demo.domain.usageLog.dto.*;
 import com.swmStrong.demo.domain.usageLog.service.UsageLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -49,22 +46,36 @@ public class UsageLogController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "유저 사용 로그 조회 (전체)",
+            summary = "최근 유저 사용 로그 조회",
             description =
                 "<p> 유저의 전체 사용 로그를 조회한다. </p>" +
-                "<p> 정리되지 않은 로우 데이터를 반환한다. </p>"
+                "<p> 현재는 전체를 반환하고 있다. </p>"
     )
-    @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<UsageLogResponseDto>>> getUsageLogById(
+    @GetMapping("/recent")
+    public ResponseEntity<ApiResponse<List<CategorizedUsageLogDto>>> getUsageLogById(
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                usageLogService.getUsageLogByUserId(securityPrincipal.userId())
+                usageLogService.getCategorizedUsageLogByUserId(securityPrincipal.userId())
         );
     }
 
-
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "최근 유저 사용 타임테이블 조회",
+            description =
+                    "<p> 유저의 사용 로그 타임테이블을 조회한다. </p>"
+    )
+    @GetMapping("/time-table")
+    public ResponseEntity<ApiResponse<List<MergedCategoryUsageLogDto>>> getUsageTimeTableById(
+            @RequestParam String userId
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                usageLogService.getMergedCategoryUsageLogByUserId(userId)
+        );
+    }
 
     @Operation(
             summary = "날짜별 유저 사용 로그 조회",

@@ -9,6 +9,7 @@ public record CategorizedUsageLogDto(
         LocalDateTime timestamp,
         String category,
         String app,
-        String title
+        String title,
+        String url
 ) {
 }

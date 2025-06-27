@@ -131,12 +131,15 @@ public class UsageLogServiceImpl implements UsageLogService {
             if (lastUsage == null || 
                 !lastUsage.title().equals(usageLog.getTitle()) ||
                 !lastUsage.app().equals(usageLog.getApp()) ||
-                !lastUsage.category().equals(category)) {
+                !lastUsage.category().equals(category) ||
+                !lastUsage.url().equals(usageLog.getUrl())
+            ) {
                 
                 CategorizedUsageLogDto currentUsage = CategorizedUsageLogDto.builder()
                         .app(usageLog.getApp())
                         .category(category)
                         .title(usageLog.getTitle())
+                        .url(usageLog.getUrl())
                         .timestamp(TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE))
                         .build();
                 

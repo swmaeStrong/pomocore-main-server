@@ -130,7 +130,7 @@ public class UsageLogServiceImpl implements UsageLogService {
             String category = categoryMap.get(usageLog.getCategoryId());
             //TODO: 이후에, uncategorized의 경우 각각 별도로 보여주는게 맞을 듯
             if (category == null) {
-                category = "Uncategorized";
+                category = "Processing...";
             }
             
             if (lastUsage == null || 

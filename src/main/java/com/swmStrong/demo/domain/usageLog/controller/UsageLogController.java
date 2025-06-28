@@ -54,11 +54,12 @@ public class UsageLogController {
     )
     @GetMapping("/recent")
     public ResponseEntity<ApiResponse<List<CategorizedUsageLogDto>>> getUsageLogById(
-            @AuthenticationPrincipal SecurityPrincipal securityPrincipal
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDate date
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                usageLogService.getCategorizedUsageLogByUserId(securityPrincipal.userId())
+                usageLogService.getCategorizedUsageLogByUserId(securityPrincipal.userId(), date)
         );
     }
 
@@ -69,11 +70,12 @@ public class UsageLogController {
     )
     @GetMapping("/time-line")
     public ResponseEntity<ApiResponse<List<MergedCategoryUsageLogDto>>> getUsageTimeLineById(
-            @RequestParam String userId
+            @RequestParam String userId,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDate date
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                usageLogService.getMergedCategoryUsageLogByUserId(userId)
+                usageLogService.getMergedCategoryUsageLogByUserId(userId, date)
         );
     }
 

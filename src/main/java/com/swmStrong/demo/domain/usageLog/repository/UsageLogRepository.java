@@ -44,4 +44,6 @@ public interface UsageLogRepository extends MongoRepository<UsageLog, ObjectId> 
             double end,
             Integer binSize
     );
+
+    List<UsageLog> findUsageLogByUserIdAndTimestampBetween(String userId, double start, double end);
 }

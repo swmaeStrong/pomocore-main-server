@@ -119,9 +119,10 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
 
     @Override
-    public List<CategorizedUsageLogDto> getCategorizedUsageLogByUserId(String userId) {
+    public List<CategorizedUsageLogDto> getCategorizedUsageLogByUserId(String userId, LocalDate date) {
         List<CategorizedUsageLogDto> categorizedUsageLogDtos = new ArrayList<>();
-        List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
+        DateRange range = getDateRange(date);
+        List<UsageLog> usageLogs = usageLogRepository.findUsageLogByUserIdAndTimestampBetween(userId, range.start(), range.end());
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
         CategorizedUsageLogDto lastUsage = null;
@@ -151,9 +152,11 @@ public class UsageLogServiceImpl implements UsageLogService {
         return categorizedUsageLogDtos;
     }
 
-    public List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId) {
+    public List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId, LocalDate date) {
         List<MergedCategoryUsageLogDto> mergedCategoryUsageLogDtos = new ArrayList<>();
-        List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
+        DateRange range = getDateRange(date);
+        List<UsageLog> usageLogs = usageLogRepository.findUsageLogByUserIdAndTimestampBetween(userId, range.start(), range.end());
+
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
         Map<String, String> mergedCategoryMap = Map.of(

@@ -31,16 +31,13 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         AuthenticationException filterException = (AuthenticationException) request.getAttribute("exception");
         String message = filterException != null ? filterException.getMessage() : authException.getMessage();
-        
-        // Determine appropriate error code based on the situation
+
         String errorCode;
         int statusCode = HttpServletResponse.SC_UNAUTHORIZED;
-        
-        // Check if this is a request that requires authentication but validation might fail
+
         String method = request.getMethod();
         boolean isBodyRequest = "POST".equalsIgnoreCase(method) || "PUT".equalsIgnoreCase(method) || "PATCH".equalsIgnoreCase(method);
-        
-        // If the request has a body and no valid token, inform that authentication is required first
+
         if (isBodyRequest && message != null && message.contains("인증 정보가 없습니다")) {
             errorCode = "4010"; // _UNAUTHORIZED
             message = "인증이 필요합니다. 유효한 토큰을 제공해주세요.";

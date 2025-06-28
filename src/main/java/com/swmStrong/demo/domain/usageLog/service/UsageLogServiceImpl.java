@@ -128,6 +128,10 @@ public class UsageLogServiceImpl implements UsageLogService {
         CategorizedUsageLogDto lastUsage = null;
         for (UsageLog usageLog : usageLogs) {
             String category = categoryMap.get(usageLog.getCategoryId());
+            //TODO: 이후에, uncategorized의 경우 각각 별도로 보여주는게 맞을 듯
+            if (category == null) {
+                category = "Uncategorized";
+            }
             
             if (lastUsage == null || 
                 !lastUsage.title().equals(usageLog.getTitle()) ||

@@ -119,9 +119,10 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
 
     @Override
-    public List<CategorizedUsageLogDto> getCategorizedUsageLogByUserId(String userId) {
+    public List<CategorizedUsageLogDto> getCategorizedUsageLogByUserId(String userId, LocalDate date) {
         List<CategorizedUsageLogDto> categorizedUsageLogDtos = new ArrayList<>();
-        List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
+        DateRange range = getDateRange(date);
+        List<UsageLog> usageLogs = usageLogRepository.findUsageLogByUserIdAndTimestampBetween(userId, range.start(), range.end());
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
         CategorizedUsageLogDto lastUsage = null;
@@ -151,9 +152,11 @@ public class UsageLogServiceImpl implements UsageLogService {
         return categorizedUsageLogDtos;
     }
 
-    public List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId) {
+    public List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId, LocalDate date) {
         List<MergedCategoryUsageLogDto> mergedCategoryUsageLogDtos = new ArrayList<>();
-        List<UsageLog> usageLogs = usageLogRepository.findByUserId(userId);
+        DateRange range = getDateRange(date);
+        List<UsageLog> usageLogs = usageLogRepository.findUsageLogByUserIdAndTimestampBetween(userId, range.start(), range.end());
+
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
         Map<String, String> mergedCategoryMap = Map.of(
@@ -179,15 +182,15 @@ public class UsageLogServiceImpl implements UsageLogService {
             
             boolean isNewSession = lastUsage == null || 
                     !lastUsage.mergedCategory().equals(mergedCategory) ||
-                    lastUsage.endTime().isBefore(usageTime.plusSeconds(1));
+                    lastUsage.endedAt().isBefore(usageTime.plusSeconds(1));
             
             if (isNewSession) {
                 
                 if (lastUsage != null) {
                     MergedCategoryUsageLogDto updatedLastUsage = MergedCategoryUsageLogDto.builder()
                             .mergedCategory(lastUsage.mergedCategory())
-                            .startTime(lastUsage.startTime())
-                            .endTime(usageTime)
+                            .startedAt(lastUsage.startedAt())
+                            .endedAt(usageTime)
                             .app(lastUsage.app())
                             .title(lastUsage.title())
                             .build();
@@ -196,8 +199,8 @@ public class UsageLogServiceImpl implements UsageLogService {
                 
                 MergedCategoryUsageLogDto currentUsage = MergedCategoryUsageLogDto.builder()
                         .mergedCategory(mergedCategory)
-                        .startTime(usageTime)
-                        .endTime(usageEndTime)
+                        .startedAt(usageTime)
+                        .endedAt(usageEndTime)
                         .app(usageLog.getApp())
                         .title(usageLog.getTitle())
                         .build();
@@ -207,8 +210,8 @@ public class UsageLogServiceImpl implements UsageLogService {
             } else {
                 MergedCategoryUsageLogDto updatedUsage = MergedCategoryUsageLogDto.builder()
                         .mergedCategory(lastUsage.mergedCategory())
-                        .startTime(lastUsage.startTime())
-                        .endTime(usageEndTime)
+                        .startedAt(lastUsage.startedAt())
+                        .endedAt(usageEndTime)
                         .app(lastUsage.app())
                         .title(lastUsage.title())
                         .build();

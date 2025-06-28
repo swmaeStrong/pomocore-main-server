@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 @Builder
 public record MergedCategoryUsageLogDto(
         String mergedCategory,
-        LocalDateTime startTime,
-        LocalDateTime endTime,
+        LocalDateTime startedAt,
+        LocalDateTime endedAt,
         String app,
         String title
 ) {

@@ -1,12 +1,17 @@
 package com.swmStrong.demo.infra.mail;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.infra.mail.dto.SendMailDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class MailSender {
 
@@ -21,8 +26,12 @@ public class MailSender {
     public void send(SendMailDto sendMailDto) {
         try {
             amazonSimpleEmailService.sendEmail(sendMailDto.toSendRequestDto());
+        } catch (AmazonServiceException e) {
+            log.error("AWS SES service error while sending email to {}: {}", sendMailDto.getTo(), e.getMessage());
+            throw new ApiException(ErrorCode.EXTERNAL_SERVICE_ERROR);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Unexpected error while sending email to {}: {}", sendMailDto.getTo(), e.getMessage());
+            throw new ApiException(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
 
@@ -30,8 +39,7 @@ public class MailSender {
         try {
             Map<String, String> variables = new HashMap<>();
             variables.put("username", username);
-            //TODO: 언젠가, 여기를 블로그 url로 바꾸고, 활동 확인하기? 같은 문구로 바꿔보기
-            variables.put("app_url", "https://pawcus.dev");
+            variables.put("blog_url", "https://blog.pawcus.dev");
 
             String content = emailTemplateLoader.loadTemplate(EmailTemplate.WELCOME, variables);
 
@@ -43,7 +51,8 @@ public class MailSender {
 
             send(sendMailDto);
         } catch (Exception e) {
-            System.err.println("Failed to send welcome email to: " + email + ", error: " + e.getMessage());
+            log.error("Failed to send welcome email to: {} - {}", email, e.getMessage());
+            throw new ApiException(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
 
@@ -64,7 +73,8 @@ public class MailSender {
 
             send(sendMailDto);
         } catch (Exception e) {
-            System.err.println("Failed to send password reset email to: " + email + ", error: " + e.getMessage());
+            log.error("Failed to send password reset email to: {} - {}", email, e.getMessage());
+            throw new ApiException(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
 
@@ -86,7 +96,8 @@ public class MailSender {
 
             send(sendMailDto);
         } catch (Exception e) {
-            System.err.println("Failed to send verification email to: " + email + ", error: " + e.getMessage());
+            log.error("Failed to send verification email to: {} - {}", email, e.getMessage());
+            throw new ApiException(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
 }

@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "io.sentry.jvm.gradle" version "5.8.0"
 }
 
 group = 'com.swmStrong'
@@ -62,6 +63,10 @@ dependencies {
 	// AWS
 	implementation 'com.amazonaws:aws-java-sdk-ses:1.12.664'
 	implementation 'io.awspring.cloud:spring-cloud-starter-aws:2.4.4'
+
+	// Sentry
+	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.19.1'
+	implementation 'io.sentry:sentry-logback:7.19.1'
 }
 
 tasks.named('test') {
@@ -86,4 +91,15 @@ tasks.register('copyYML', Copy) {
 
 tasks.named('processResources') {
 	dependsOn tasks.named('copyYML')
+}
+
+sentry {
+	// Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+	// This enables source context, allowing you to see your source
+	// code as part of your stack traces in Sentry.
+	includeSourceContext = true
+
+	org = "pawcus"
+	projectName = "java-spring-boot"
+	authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }

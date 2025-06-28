@@ -2,7 +2,9 @@ package com.swmStrong.demo.infra.mail.dto;
 
 import com.amazonaws.services.simpleemail.model.*;
 import lombok.Builder;
+import lombok.Getter;
 
+@Getter
 public class SendMailDto {
     private String from = "Pawcus <no-reply@pawcus.dev>";
     private String to;

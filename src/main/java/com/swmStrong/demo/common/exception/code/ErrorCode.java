@@ -54,8 +54,11 @@ public enum ErrorCode implements BaseCode {
     _INTERNAL_SERVER_ERROR("5000", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     PAYMENT_FAILED("5001", "결제에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     PAYMENT_CANCELLATION_FAILED("5002", "결제 취소가 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    LOG_SAVE_FAILED("5003", "로그 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-
+    LOG_SAVE_FAILED("5003", "로그 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    EMAIL_SEND_FAILED("5004", "이메일 전송에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    
+    // --- 502 BAD GATEWAY ---
+    EXTERNAL_SERVICE_ERROR("5020", "외부 서비스 연동 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY);
 
     private final String code;
     private final String message;

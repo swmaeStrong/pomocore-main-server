@@ -1,7 +1,9 @@
 package com.swmStrong.demo.common.exception;
+
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
+import io.sentry.Sentry;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,6 +18,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException e) {
         ErrorCode code = e.getErrorCode();
+
+        if (code.getHttpStatus().is5xxServerError()) {
+            Sentry.captureException(e);
+        }
+        
         return ResponseEntity
                 .status(code.getHttpStatus())
                 .body(ApiResponse.fail(code));

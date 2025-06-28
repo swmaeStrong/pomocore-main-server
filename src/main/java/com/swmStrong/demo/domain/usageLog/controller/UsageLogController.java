@@ -49,7 +49,8 @@ public class UsageLogController {
             summary = "최근 유저 사용 로그 조회",
             description =
                 "<p> 유저의 전체 사용 로그를 조회한다. </p>" +
-                "<p> 현재는 전체를 반환하고 있다. </p>"
+                "<p> 현재는 전체를 반환하고 있다. </p>" +
+                "<p> 상세한 데이터를 포함하고 있기에 인증을 통해 본인 정보만 확인할 수 있게 한다. </p>"
     )
     @GetMapping("/recent")
     public ResponseEntity<ApiResponse<List<CategorizedUsageLogDto>>> getUsageLogById(
@@ -62,7 +63,6 @@ public class UsageLogController {
     }
 
     @Operation(
-            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "최근 유저 사용 타임라인 조회",
             description =
                     "<p> 유저의 사용 로그 타임라인을 조회한다. </p>"

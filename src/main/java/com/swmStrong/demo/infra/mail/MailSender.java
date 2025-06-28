@@ -30,8 +30,7 @@ public class MailSender {
         try {
             Map<String, String> variables = new HashMap<>();
             variables.put("username", username);
-            //TODO: 언젠가, 여기를 블로그 url로 바꾸고, 활동 확인하기? 같은 문구로 바꿔보기
-            variables.put("app_url", "https://pawcus.dev");
+            variables.put("blog_url", "https://blog.pawcus.dev");
 
             String content = emailTemplateLoader.loadTemplate(EmailTemplate.WELCOME, variables);
 

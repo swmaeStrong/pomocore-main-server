@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -31,6 +28,7 @@ public class UsageLogServiceImpl implements UsageLogService {
     private static final String USAGE_LOG_LAST_TIMESTAMP_PREFIX = "usageLog:lastTimestamp:";
     private static final long CACHE_EXPIRE_SECONDS = 86400; // 24 hours
     private static final double TIME_TOLERANCE_SECONDS = 60.0;
+    private static final int GAP_THRESHOLD = 1;
 
     private final UsageLogRepository usageLogRepository;
     private final RedisStreamProducer redisStreamProducer;
@@ -128,7 +126,6 @@ public class UsageLogServiceImpl implements UsageLogService {
         CategorizedUsageLogDto lastUsage = null;
         for (UsageLog usageLog : usageLogs) {
             String category = categoryMap.get(usageLog.getCategoryId());
-            //TODO: 이후에, uncategorized의 경우 각각 별도로 보여주는게 맞을 듯
             if (category == null) {
                 category = "Processing...";
             }
@@ -139,7 +136,6 @@ public class UsageLogServiceImpl implements UsageLogService {
                 !lastUsage.category().equals(category) ||
                 !lastUsage.url().equals(usageLog.getUrl())
             ) {
-                
                 CategorizedUsageLogDto currentUsage = CategorizedUsageLogDto.builder()
                         .app(usageLog.getApp())
                         .category(category)
@@ -158,8 +154,12 @@ public class UsageLogServiceImpl implements UsageLogService {
 
     public List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId, LocalDate date) {
         List<MergedCategoryUsageLogDto> mergedCategoryUsageLogDtos = new ArrayList<>();
+
         DateRange range = getDateRange(date);
-        List<UsageLog> usageLogs = usageLogRepository.findUsageLogByUserIdAndTimestampBetween(userId, range.start(), range.end());
+        List<UsageLog> usageLogs = usageLogRepository.findUsageLogByUserIdAndTimestampBetween(userId, range.start(), range.end())
+                .stream()
+                .sorted(Comparator.comparing(UsageLog::getTimestamp))
+                .toList();
 
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
@@ -176,52 +176,41 @@ public class UsageLogServiceImpl implements UsageLogService {
                 "Communication", "meetings"
         );
 
-        MergedCategoryUsageLogDto lastUsage = null;
+        String currentMergedCategory = null;
+        LocalDateTime sessionStartTime = null;
+        LocalDateTime lastEndTime = null;
+        String sessionApp = null;
+        String sessionTitle = null;
         
         for (UsageLog usageLog : usageLogs) {
-            String category = categoryMap.get(usageLog.getCategoryId());
-            String mergedCategory = mergedCategoryMap.getOrDefault(category, "others");
+            String mergedCategory = Optional.ofNullable(categoryMap.get(usageLog.getCategoryId()))
+                    .map(category -> mergedCategoryMap.getOrDefault(category, "others"))
+                    .orElse("unknown");
+
             LocalDateTime usageTime = TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE);
             LocalDateTime usageEndTime = usageTime.plusSeconds((long) usageLog.getDuration());
-            
-            boolean isNewSession = lastUsage == null || 
-                    !lastUsage.mergedCategory().equals(mergedCategory) ||
-                    lastUsage.endedAt().isBefore(usageTime.plusSeconds(1));
-            
+
+            boolean isNewSession = currentMergedCategory == null ||
+                    !currentMergedCategory.equals(mergedCategory) ||
+                    (usageTime.isAfter(lastEndTime.plusSeconds(GAP_THRESHOLD)));
+
             if (isNewSession) {
-                
-                if (lastUsage != null) {
-                    MergedCategoryUsageLogDto updatedLastUsage = MergedCategoryUsageLogDto.builder()
-                            .mergedCategory(lastUsage.mergedCategory())
-                            .startedAt(lastUsage.startedAt())
-                            .endedAt(usageTime)
-                            .app(lastUsage.app())
-                            .title(lastUsage.title())
-                            .build();
-                    mergedCategoryUsageLogDtos.set(mergedCategoryUsageLogDtos.size() - 1, updatedLastUsage);
+                if (currentMergedCategory != null) {
+                    mergedCategoryUsageLogDtos.add(MergedCategoryUsageLogDto.builder()
+                            .mergedCategory(currentMergedCategory)
+                            .startedAt(sessionStartTime)
+                            .endedAt(lastEndTime)
+                            .app(sessionApp)
+                            .title(sessionTitle)
+                            .build()
+                    );
                 }
-                
-                MergedCategoryUsageLogDto currentUsage = MergedCategoryUsageLogDto.builder()
-                        .mergedCategory(mergedCategory)
-                        .startedAt(usageTime)
-                        .endedAt(usageEndTime)
-                        .app(usageLog.getApp())
-                        .title(usageLog.getTitle())
-                        .build();
-                
-                mergedCategoryUsageLogDtos.add(currentUsage);
-                lastUsage = currentUsage;
-            } else {
-                MergedCategoryUsageLogDto updatedUsage = MergedCategoryUsageLogDto.builder()
-                        .mergedCategory(lastUsage.mergedCategory())
-                        .startedAt(lastUsage.startedAt())
-                        .endedAt(usageEndTime)
-                        .app(lastUsage.app())
-                        .title(lastUsage.title())
-                        .build();
-                mergedCategoryUsageLogDtos.set(mergedCategoryUsageLogDtos.size() - 1, updatedUsage);
-                lastUsage = updatedUsage;
+                currentMergedCategory = mergedCategory;
+                sessionStartTime = usageTime;
+                sessionApp = usageLog.getApp();
+                sessionTitle = usageLog.getTitle();
             }
+            lastEndTime = usageEndTime;
         }
         Collections.reverse(mergedCategoryUsageLogDtos);
         return mergedCategoryUsageLogDtos;

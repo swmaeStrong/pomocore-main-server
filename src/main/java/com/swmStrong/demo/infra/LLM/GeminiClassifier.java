@@ -19,12 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Component
 public class GeminiClassifier implements LLMClassifier {
-    private final LLMConfig llmConfig;
+    private final GeminiConfig geminiConfig;
     private final RestTemplate restTemplate = new RestTemplate();
     private final AtomicInteger currentKeyIndex = new AtomicInteger(0);
 
-    public GeminiClassifier(LLMConfig llmConfig) {
-        this.llmConfig = llmConfig;
+    public GeminiClassifier(GeminiConfig geminiConfig) {
+        this.geminiConfig = geminiConfig;
     }
 
     private HttpHeaders setHeaders() {
@@ -52,7 +52,7 @@ public class GeminiClassifier implements LLMClassifier {
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        List<String> apiKeys = llmConfig.keys();
+        List<String> apiKeys = geminiConfig.keys();
         if (apiKeys == null || apiKeys.isEmpty()) {
             log.error("No API keys configured");
             return null;
@@ -65,7 +65,7 @@ public class GeminiClassifier implements LLMClassifier {
             
             try {
                 ResponseEntity<Map> response = restTemplate.postForEntity(
-                        llmConfig.url() + "?key=" + currentApiKey,
+                        geminiConfig.url() + "?key=" + currentApiKey,
                         requestEntity,
                         Map.class
                 );

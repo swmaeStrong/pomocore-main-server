@@ -1,5 +1,6 @@
 package com.swmStrong.demo.infra.LLM;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,9 @@ public class ChatGPTClassifier implements LLMClassifier {
     private final OpenAIConfig openAIConfig;
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${llm.openai.api.model}")
+    private String model;
+
     public ChatGPTClassifier(OpenAIConfig openAIConfig) {
         this.openAIConfig = openAIConfig;
     }
@@ -36,21 +40,7 @@ public class ChatGPTClassifier implements LLMClassifier {
 
     @Override
     public String classify(String query) {
-        String prompt = getPrompt(query);
-
-        // OpenAI API 요청용 body 구성
-        Map<String, Object> message = new HashMap<>();
-        message.put("role", "user");
-        message.put("content", prompt);
-
-        List<Map<String, Object>> messages = new ArrayList<>();
-        messages.add(message);
-
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "gpt-4o-mini");
-        requestBody.put("messages", messages);
-        requestBody.put("temperature", 0);
-        requestBody.put("max_tokens", 50);
+        Map<String, Object> requestBody = getStringObjectMap(query);
 
         if (openAIConfig.key() == null || openAIConfig.key().isEmpty()) {
             log.error("No API key configured for OpenAI");
@@ -98,6 +88,25 @@ public class ChatGPTClassifier implements LLMClassifier {
         }
         
         return null;
+    }
+
+    private Map<String, Object> getStringObjectMap(String query) {
+        String prompt = getPrompt(query);
+
+        // OpenAI API 요청용 body 구성
+        Map<String, Object> message = new HashMap<>();
+        message.put("role", "user");
+        message.put("content", prompt);
+
+        List<Map<String, Object>> messages = new ArrayList<>();
+        messages.add(message);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("messages", messages);
+        requestBody.put("temperature", 0);
+        requestBody.put("max_tokens", 50);
+        return requestBody;
     }
 
     private String getPrompt(String query) {

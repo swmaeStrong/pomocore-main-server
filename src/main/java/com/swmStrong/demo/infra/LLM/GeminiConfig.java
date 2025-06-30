@@ -4,8 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 
-@ConfigurationProperties(prefix = "llm.api")
-public record LLMConfig(
+@ConfigurationProperties(prefix = "llm.gemini.api")
+public record GeminiConfig(
     String url,
     List<String> keys
 ) {}

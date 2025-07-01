@@ -15,7 +15,7 @@ public class MixedLLMClassifier implements LLMClassifier {
     private final AtomicInteger requestCounter = new AtomicInteger(0);
 
     private static final int GEMINI_WEIGHT = 3;
-    private static final int CHATGPT_WEIGHT = 1;
+    private static final int CHATGPT_WEIGHT = 2;
     private static final int TOTAL_WEIGHT = GEMINI_WEIGHT + CHATGPT_WEIGHT;
 
     public MixedLLMClassifier(GeminiClassifier geminiClassifier, ChatGPTClassifier chatGPTClassifier) {

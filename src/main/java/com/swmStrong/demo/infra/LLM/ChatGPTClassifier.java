@@ -1,6 +1,5 @@
 package com.swmStrong.demo.infra.LLM;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Slf4j
@@ -22,18 +22,16 @@ import java.util.Map;
 public class ChatGPTClassifier implements LLMClassifier {
     private final OpenAIConfig openAIConfig;
     private final RestTemplate restTemplate = new RestTemplate();
-
-    @Value("${llm.openai.api.model}")
-    private String model;
+    private final AtomicInteger currentKeyIndex = new AtomicInteger(0);
 
     public ChatGPTClassifier(OpenAIConfig openAIConfig) {
         this.openAIConfig = openAIConfig;
     }
 
-    private HttpHeaders setHeaders() {
+    private HttpHeaders setHeaders(String apiKey) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(openAIConfig.key());
+        headers.setBearerAuth(apiKey);
         return headers;
     }
 
@@ -42,51 +40,59 @@ public class ChatGPTClassifier implements LLMClassifier {
     public String classify(String query) {
         Map<String, Object> requestBody = getStringObjectMap(query);
 
-        if (openAIConfig.key() == null || openAIConfig.key().isEmpty()) {
-            log.error("No API key configured for OpenAI");
+        List<String> apiKeys = openAIConfig.keys();
+        if (apiKeys == null || apiKeys.isEmpty()) {
+            log.error("No API keys configured for OpenAI");
             return null;
         }
 
-        HttpHeaders headers = setHeaders();
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-        
-        try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    openAIConfig.url(),
-                    requestEntity,
-                    Map.class
-            );
-
-            Map<?, ?> body = response.getBody();
-            if (body == null) {
-                log.warn("Empty response from OpenAI API");
-                return null;
-            }
+        for (int attempt = 0; attempt < apiKeys.size(); attempt++) {
+            int keyIndex = currentKeyIndex.getAndIncrement() % apiKeys.size();
+            String currentApiKey = apiKeys.get(keyIndex);
             
-            List<?> choices = (List<?>) body.get("choices");
-            if (choices != null && !choices.isEmpty()) {
-                Map<?, ?> firstChoice = (Map<?, ?>) choices.get(0);
-                Map<?, ?> messageResp = (Map<?, ?>) firstChoice.get("message");
-                if (messageResp != null) {
-                    String result = ((String) messageResp.get("content")).trim();
-                    log.info("Successfully classified with ChatGPT. result: {}", result);
-                    return result;
-                }
-            }
+            HttpHeaders headers = setHeaders(currentApiKey);
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+            
+            try {
+                ResponseEntity<Map> response = restTemplate.postForEntity(
+                        openAIConfig.url(),
+                        requestEntity,
+                        Map.class
+                );
 
-        } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
-                log.warn("ChatGPT API rate limit exceeded: {}", e.getMessage());
-            } else if (e.getStatusCode() == HttpStatus.FORBIDDEN ||
-                       e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                log.error("ChatGPT API key invalid: {}", e.getMessage());
-            } else {
-                log.error("Unexpected error calling ChatGPT API: {}", e.getMessage());
+                Map<?, ?> body = response.getBody();
+                if (body == null) {
+                    log.warn("Empty response from OpenAI API with key index {}", keyIndex);
+                    continue;
+                }
+                
+                List<?> choices = (List<?>) body.get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<?, ?> firstChoice = (Map<?, ?>) choices.get(0);
+                    Map<?, ?> messageResp = (Map<?, ?>) firstChoice.get("message");
+                    if (messageResp != null) {
+                        String result = ((String) messageResp.get("content")).trim();
+                        log.info("Successfully classified using API key index {}. result: {}", keyIndex, result);
+                        return result;
+                    }
+                }
+
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS || 
+                    e.getStatusCode() == HttpStatus.FORBIDDEN ||
+                    e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                    log.warn("API key index {} exhausted or invalid: {}", keyIndex, e.getMessage());
+                    // Continue to next key
+                } else {
+                    log.error("Unexpected error with API key index {}: {}", keyIndex, e.getMessage());
+                    // For other errors, we might want to retry with the same key
+                }
+            } catch (Exception e) {
+                log.error("Error calling OpenAI API with key index {}: {}", keyIndex, e.getMessage());
             }
-        } catch (Exception e) {
-            log.error("Error calling ChatGPT API: {}", e.getMessage());
         }
         
+        log.error("All OpenAI API keys exhausted or failed");
         return null;
     }
 
@@ -102,7 +108,7 @@ public class ChatGPTClassifier implements LLMClassifier {
         messages.add(message);
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", model);
+        requestBody.put("model", openAIConfig.model());
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0);
         requestBody.put("max_tokens", 50);

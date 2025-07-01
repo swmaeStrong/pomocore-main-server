@@ -19,6 +19,9 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role = Role.UNREGISTERED;
 
+    private String profileImageUrl;
+    private String profileImageKey;
+
     public static User of(UserRequestDto userRequestDto) {
         return new User(
                 userRequestDto.userId(),
@@ -37,5 +40,10 @@ public class User extends BaseEntity {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public void updateProfileImage(String profileImageUrl, String profileImageKey) {
+        this.profileImageUrl = profileImageUrl;
+        this.profileImageKey = profileImageKey;
     }
 }

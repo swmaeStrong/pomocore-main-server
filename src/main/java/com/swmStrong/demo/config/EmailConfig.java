@@ -2,7 +2,6 @@ package com.swmStrong.demo.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,10 +10,12 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class EmailConfig {
-    @Value("${aws.ses.accessKey}")
+    @Value("${aws.credentials.accessKey}")
     private String accessKey;
-    @Value("${aws.ses.secretKey}")
+    @Value("${aws.credentials.secretKey}")
     private String secretKey;
+    @Value("${aws.s3.region}")
+    private String region;
 
     @Bean
     public AmazonSimpleEmailService amazonSimpleEmailService() {
@@ -22,7 +23,7 @@ public class EmailConfig {
         AWSStaticCredentialsProvider awsStaticCredentialsProvider = new AWSStaticCredentialsProvider(basicAWSCredentials);
         return AmazonSimpleEmailServiceClientBuilder.standard()
                 .withCredentials(awsStaticCredentialsProvider)
-                .withRegion(Regions.AP_NORTHEAST_2)
+                .withRegion(region)
                 .build();
     }
 }

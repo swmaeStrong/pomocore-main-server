@@ -46,6 +46,9 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_BILLING_KEY("4095", "이미 등록된 결제 수단입니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_SUBSCRIPTION("4096", "이미 구독중인 플랜이 있습니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_EMAIL("4097", "이미 가입된 이메일입니다.", HttpStatus.CONFLICT),
+    INVALID_FILE("4098", "유효하지 않은 파일입니다.", HttpStatus.BAD_REQUEST),
+    FILE_SIZE_EXCEEDED("4099", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE("409A", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
 
     // --- 429 TO MANY REQUESTS ---
     IP_RATE_LIMIT_EXCEEDED("4290", "지속적인 요청으로 인해 차단되었습니다. 악의적 접근으로 간주될 수 있습니다.", HttpStatus.TOO_MANY_REQUESTS),
@@ -56,6 +59,7 @@ public enum ErrorCode implements BaseCode {
     PAYMENT_CANCELLATION_FAILED("5002", "결제 취소가 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     LOG_SAVE_FAILED("5003", "로그 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     EMAIL_SEND_FAILED("5004", "이메일 전송에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_UPLOAD_ERROR("5005", "파일 업로드 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     
     // --- 502 BAD GATEWAY ---
     EXTERNAL_SERVICE_ERROR("5020", "외부 서비스 연동 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY);

@@ -62,7 +62,7 @@ dependencies {
 
 	// AWS
 	implementation 'com.amazonaws:aws-java-sdk-ses:1.12.664'
-	implementation 'io.awspring.cloud:spring-cloud-starter-aws:2.4.4'
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.1'
 
 	// Sentry
 	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.19.1'

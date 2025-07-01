@@ -10,7 +10,7 @@ import com.swmStrong.demo.infra.LLM.OpenAIConfig;
 import java.util.TimeZone;
 
 @EnableScheduling
-@SpringBootApplication
+@SpringBootApplication(exclude = {io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration.class})
 @EnableConfigurationProperties({GeminiConfig.class, OpenAIConfig.class})
 public class DemoApplication {
 

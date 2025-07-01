@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "회원 관리")
 @RestController
@@ -129,6 +130,40 @@ public class UserController {
     @DeleteMapping("/{userId}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable String userId) {
         userService.deleteUserById(userId);
+        return CustomResponseEntity.of(
+                SuccessCode._NO_CONTENT
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "프로필 이미지 업로드",
+            description = "<p>사용자의 프로필 이미지를 S3에 업로드하고 URL을 반환한다.</p>" +
+                         "<p>지원하는 파일 형식: JPEG, JPG, PNG, GIF, WEBP</p>" +
+                         "<p>최대 파일 크기: 5MB</p>"
+    )
+    @PostMapping("/profile-image")
+    public ResponseEntity<ApiResponse<String>> uploadProfileImage(
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
+            @RequestParam("file") MultipartFile file
+    ) {
+        String imageUrl = userService.uploadProfileImage(securityPrincipal.userId(), file);
+        return CustomResponseEntity.of(
+                SuccessCode._CREATED,
+                imageUrl
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "프로필 이미지 삭제",
+            description = "<p>사용자의 프로필 이미지를 S3에서 삭제한다.</p>"
+    )
+    @DeleteMapping("/profile-image")
+    public ResponseEntity<ApiResponse<Void>> deleteProfileImage(
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal
+    ) {
+        userService.deleteProfileImage(securityPrincipal.userId());
         return CustomResponseEntity.of(
                 SuccessCode._NO_CONTENT
         );

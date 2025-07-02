@@ -44,20 +44,21 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
     @Transactional
     public TokenResponseDto upgradeToUser(
             HttpServletRequest request,
+            String userId,
             UpgradeRequestDto upgradeRequestDto
     ) {
         if (loginCredentialRepository.existsByEmail(upgradeRequestDto.email())) {
             throw new ApiException(ErrorCode.DUPLICATE_USER_EMAIL);
         }
 
-        User user = userUpdateProvider.getUserByUserId(upgradeRequestDto.userId());
+        User user = userUpdateProvider.getUserByUserId(userId);
 
         if (user instanceof LoginCredential) {
             throw new ApiException(ErrorCode.USER_ALREADY_REGISTERED);
         }
 
         loginCredentialRepository.insertLoginCredential(
-                upgradeRequestDto.userId(),
+                userId,
                 upgradeRequestDto.email(),
                 passwordEncoder.encode(upgradeRequestDto.password())
         );

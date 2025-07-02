@@ -39,7 +39,7 @@ public class MailSender {
         try {
             Map<String, String> variables = new HashMap<>();
             variables.put("username", username);
-            variables.put("blog_url", "https://blog.pawcus.dev");
+            variables.put("blog_url", "https://www.threads.com/@sw_mae_strong");
 
             String content = emailTemplateLoader.loadTemplate(EmailTemplate.WELCOME, variables);
 

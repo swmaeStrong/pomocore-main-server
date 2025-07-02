@@ -31,6 +31,7 @@ public class LoginCredentialController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "비회원 -> 회원 전환",
             description =
                 "<p> 비회원에서 회원으로 전환한다. </p>" +
@@ -39,11 +40,12 @@ public class LoginCredentialController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<TokenResponseDto>> upgradeToUser(
             HttpServletRequest request,
+            @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
             @RequestBody @Valid UpgradeRequestDto upgradeRequestDto
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                loginCredentialService.upgradeToUser(request, upgradeRequestDto)
+                loginCredentialService.upgradeToUser(request, securityPrincipal.userId(), upgradeRequestDto)
         );
     }
 

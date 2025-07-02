@@ -89,7 +89,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         LoginCredential loginCredential = loginCredentialRepository.findBySocialId(supabaseId)
                 .orElseGet(() -> loginCredentialRepository.findByEmail(email)
                         .map(existing -> existing.connectSocialAccount(supabaseId))
-                        .orElseGet(() -> createSocialLoginCredential(supabaseId, email)));
+                        .orElseGet(() -> createSocialLoginCredential(email, supabaseId)));
 
         loginCredentialRepository.save(loginCredential);
 

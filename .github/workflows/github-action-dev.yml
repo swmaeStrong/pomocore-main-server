@@ -1,0 +1,61 @@
+name: CI/CD for dev branch using github actions & docker
+
+on:
+  push:
+    branches: [ "dev" ]
+
+permissions:
+  contents: read
+
+jobs:
+  CI-CD:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          submodules: recursive
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-     
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Docker build & push to dev
+        if: contains(github.ref, 'dev')
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker build -f ./docker/Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/swmstrong:dev .
+          docker push ${{ secrets.DOCKER_USERNAME }}/swmstrong:dev
+
+      - name: Deploy to dev
+        uses: appleboy/ssh-action@master
+        id: deploy-dev
+        if: contains(github.ref, 'dev')
+        with:
+          host: ${{ secrets.HOST_DEV }}
+          username: ubuntu
+          port: 22
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            cd /exec/pawcus
+            sudo docker compose down || true
+            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/swmstrong:dev || true    
+            
+            sudo docker compose up -d

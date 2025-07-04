@@ -57,6 +57,10 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
             throw new ApiException(ErrorCode.USER_ALREADY_REGISTERED);
         }
 
+        if (loginCredentialRepository.existsByEmail(upgradeRequestDto.email())) {
+            throw new ApiException(ErrorCode.USER_ALREADY_REGISTERED_BY_SOCIAL_LOGIN);
+        }
+
         loginCredentialRepository.insertLoginCredential(
                 userId,
                 upgradeRequestDto.email(),
@@ -113,6 +117,8 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         if (user instanceof LoginCredential) {
             throw new ApiException(ErrorCode.USER_ALREADY_REGISTERED);
         }
+
+        // 이미 소셜 로그인을 해서 사용하고 있는 아이디에, 비회원 계정을 연동시키려고 하는 경우
 
         SubjectResponseDto subjectResponseDto = tokenManager.loadSubjectByToken(socialLoginRequestDto.accessToken());
         String email = subjectResponseDto.email();

@@ -49,7 +49,7 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_BILLING_KEY("4095", "이미 등록된 결제 수단입니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_SUBSCRIPTION("4096", "이미 구독중인 플랜이 있습니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_EMAIL("4097", "이미 가입된 이메일입니다.", HttpStatus.CONFLICT),
-    USER_ALREADY_REGISTERED_BY_SOCIAL_LOGIN("4098", "이미 해당 소셜 로그인 계정이 존재합니다.", HttpStatus.CONFLICT),
+    USER_ALREADY_REGISTERED_BY_SOCIAL_LOGIN("4098", "이미 가입된 소셜 로그인 계정이 존재합니다.", HttpStatus.CONFLICT),
 
     // --- 429 TO MANY REQUESTS ---
     IP_RATE_LIMIT_EXCEEDED("4290", "지속적인 요청으로 인해 차단되었습니다. 악의적 접근으로 간주될 수 있습니다.", HttpStatus.TOO_MANY_REQUESTS),

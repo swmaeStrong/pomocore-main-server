@@ -15,6 +15,9 @@ public enum ErrorCode implements BaseCode {
     REQUEST_TIME_IS_FUTURE("4004", "미래 시간의 로그는 저장할 수 없습니다.", HttpStatus.BAD_REQUEST),
     REQUEST_TIME_CONTAIN_BEFORE_SAVED("4005", "저장하려는 로그는 이전의 로그 시간과 겹칩니다.", HttpStatus.BAD_REQUEST),
     REQUEST_TIME_IS_OVER_FUTURE("4006", "저장하려는 로그는 미래시간을 포함합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_FILE("4007", "유효하지 않은 파일입니다.", HttpStatus.BAD_REQUEST),
+    FILE_SIZE_EXCEEDED("4008", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE("4009", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
@@ -46,9 +49,7 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_BILLING_KEY("4095", "이미 등록된 결제 수단입니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_SUBSCRIPTION("4096", "이미 구독중인 플랜이 있습니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_EMAIL("4097", "이미 가입된 이메일입니다.", HttpStatus.CONFLICT),
-    INVALID_FILE("4098", "유효하지 않은 파일입니다.", HttpStatus.BAD_REQUEST),
-    FILE_SIZE_EXCEEDED("4099", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
-    INVALID_FILE_TYPE("409A", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_REGISTERED_BY_SOCIAL_LOGIN("4098", "이미 해당 소셜 로그인 계정이 존재합니다.", HttpStatus.CONFLICT),
 
     // --- 429 TO MANY REQUESTS ---
     IP_RATE_LIMIT_EXCEEDED("4290", "지속적인 요청으로 인해 차단되었습니다. 악의적 접근으로 간주될 수 있습니다.", HttpStatus.TOO_MANY_REQUESTS),

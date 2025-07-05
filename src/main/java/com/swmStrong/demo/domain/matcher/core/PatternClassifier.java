@@ -6,6 +6,7 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import com.swmStrong.demo.domain.common.util.DomainExtractor;
+import com.swmStrong.demo.domain.common.util.Trie;
 import com.swmStrong.demo.infra.LLM.LLMClassifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +23,8 @@ public class PatternClassifier {
     private final Cache<String, ObjectId> classificationCache;
     private final LLMClassifier classifier;
 
-    public Trie appTrie;
-    public Trie domainTrie;
+    public Trie<ObjectId> appTrie;
+    public Trie<ObjectId> domainTrie;
 
     public PatternClassifier(
             CategoryPatternRepository categoryPatternRepository,
@@ -37,8 +38,8 @@ public class PatternClassifier {
 
     @PostConstruct
     public void init() {
-        appTrie = new Trie();
-        domainTrie = new Trie();
+        appTrie = new Trie<>();
+        domainTrie = new Trie<>();
 
         List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
         for (CategoryPattern categoryPattern: categoryPatterns) {

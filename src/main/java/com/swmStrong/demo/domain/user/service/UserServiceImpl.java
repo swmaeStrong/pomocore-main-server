@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.s3.S3Properties;
 import com.swmStrong.demo.domain.common.enums.Role;
+import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
 import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
@@ -79,6 +80,10 @@ public class UserServiceImpl implements UserService {
 
         if (isNicknameDuplicated(nicknameRequestDto.nickname())) {
             throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        if (BadWordsFilter.isBadWord(nicknameRequestDto.nickname())) {
+            throw new ApiException(ErrorCode.BAD_WORD_FILTER);
         }
 
         user.updateNickname(nicknameRequestDto.nickname());

@@ -6,6 +6,7 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import com.swmStrong.demo.domain.common.util.DomainExtractor;
+import com.swmStrong.demo.domain.common.util.Trie;
 import com.swmStrong.demo.infra.LLM.LLMClassifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.swmStrong.demo.domain.matcher.core;
+package com.swmStrong.demo.domain.common.util;
 
 import org.bson.types.ObjectId;
 

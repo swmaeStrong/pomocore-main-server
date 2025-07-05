@@ -1,14 +1,12 @@
 package com.swmStrong.demo.domain.common.util;
 
-import org.bson.types.ObjectId;
-
 import java.util.HashMap;
 
-public class Trie {
-    static class Node {
+public class Trie<T> {
+    static class Node<T> {
         char key;
-        HashMap<Character, Node> children = new HashMap<>();
-        ObjectId category;
+        HashMap<Character, Node<T>> children = new HashMap<>();
+        T value;
         int count;
 
         public Node(char key) {
@@ -18,33 +16,29 @@ public class Trie {
         public Node() {}
     }
 
-    Node root = new Node();
+    private Node<T> root = new Node<>();
 
-    public void insert(ObjectId category, String pattern) {
-        Node now = this.root;
+    public void insert(T value, String pattern) {
+        Node<T> now = this.root;
         for (char c: pattern.toLowerCase().toCharArray()) {
             now = now.children.computeIfAbsent(c, Node::new);
             now.count++;
         }
-        now.category = category;
+        now.value = value;
     }
 
-    public ObjectId search(String pattern) {
-        return search(pattern, true);
-    }
-
-    public ObjectId search(String pattern, boolean prefixMatch) {
-        Node now = this.root;
+    public T search(String pattern, boolean prefixMatch) {
+        Node<T> now = this.root;
         for (char c: pattern.toLowerCase().toCharArray()) {
             now = now.children.get(c);
             if (now == null) return null;
-            if (prefixMatch && now.category != null) return now.category;
+            if (prefixMatch && now.value != null) return now.value;
         }
-        return now.category;
+        return now.value;
     }
 
     public void remove(String pattern) {
-        Node now = this.root;
+        Node<T> now = this.root;
         for (char c: pattern.toLowerCase().toCharArray()) {
             now = now.children.get(c);
             if (now == null) return;
@@ -54,6 +48,6 @@ public class Trie {
                 return;
             }
         }
-        now.category = null;
+        now.value = null;
     }
 }

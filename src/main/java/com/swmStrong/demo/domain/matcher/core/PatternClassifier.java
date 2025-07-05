@@ -23,8 +23,8 @@ public class PatternClassifier {
     private final Cache<String, ObjectId> classificationCache;
     private final LLMClassifier classifier;
 
-    public Trie appTrie;
-    public Trie domainTrie;
+    public Trie<ObjectId> appTrie;
+    public Trie<ObjectId> domainTrie;
 
     public PatternClassifier(
             CategoryPatternRepository categoryPatternRepository,
@@ -38,8 +38,8 @@ public class PatternClassifier {
 
     @PostConstruct
     public void init() {
-        appTrie = new Trie();
-        domainTrie = new Trie();
+        appTrie = new Trie<>();
+        domainTrie = new Trie<>();
 
         List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
         for (CategoryPattern categoryPattern: categoryPatterns) {

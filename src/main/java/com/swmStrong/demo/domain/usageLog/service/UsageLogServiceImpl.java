@@ -16,6 +16,7 @@ import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PatternClassifyMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -264,6 +265,7 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
 
     @Override
+    @Async("asyncExecutor")
     public void encryptExistingData() {
         log.info("Starting encryption of existing unencrypted data...");
 
@@ -272,13 +274,17 @@ public class UsageLogServiceImpl implements UsageLogService {
 
         int encryptedCount = 0;
         int skippedCount = 0;
+        int batchSize = 100;
+        List<UsageLog> batchToSave = new ArrayList<>();
 
-        for (UsageLog usageLog : allUsageLogs) {
+        for (int i = allUsageLogs.size() - 1; i >= 0; i--) {
+            UsageLog usageLog = allUsageLogs.get(i);
             try {
                 if (isAlreadyEncrypted(usageLog)) {
                     skippedCount++;
                     continue;
                 }
+                
                 UsageLog encryptedUsageLog = UsageLog.builder()
                         .id(usageLog.getId()) // 기존 ID 유지
                         .userId(usageLog.getUserId())
@@ -290,12 +296,22 @@ public class UsageLogServiceImpl implements UsageLogService {
                         .url(EncryptionUtil.encrypt(usageLog.getUrl()))
                         .build();
 
-                usageLogRepository.save(encryptedUsageLog);
+                batchToSave.add(encryptedUsageLog);
                 encryptedCount++;
+
+                if (batchToSave.size() >= batchSize) {
+                    usageLogRepository.saveAll(batchToSave);
+                    log.info("Processed {} records so far...", encryptedCount);
+                    batchToSave.clear();
+                }
             } catch (Exception e) {
                 log.error("Failed to encrypt usage log with ID: {}, error: {}",
                         usageLog.getId(), e.getMessage());
             }
+        }
+
+        if (!batchToSave.isEmpty()) {
+            usageLogRepository.saveAll(batchToSave);
         }
 
         log.info("Encryption completed. Encrypted: {}, Skipped: {}, Total: {}",

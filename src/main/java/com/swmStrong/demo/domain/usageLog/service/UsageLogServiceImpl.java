@@ -104,10 +104,6 @@ public class UsageLogServiceImpl implements UsageLogService {
                         redisRepository.setDataWithExpire(cacheKey, maxTimestamp.toString(), CACHE_EXPIRE_SECONDS)
                     );
 
-            for (UsageLog usageLog: securedUsageLogs) {
-                System.out.println(EncryptionUtil.decrypt(usageLog.getTitle()));
-            }
-
             for (int i = 0; i < securedUsageLogs.size(); i++) {
                 UsageLog securedUsageLog = securedUsageLogs.get(i);
                 UsageLog originalUsageLog = usageLogs.get(i);

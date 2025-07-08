@@ -273,6 +273,7 @@
         "grasshopper"
       ],
       "domainPatterns": [
+        "stitch.withgoogle.com",
         "figma.com",
         "adobe.com",
         "canva.com",

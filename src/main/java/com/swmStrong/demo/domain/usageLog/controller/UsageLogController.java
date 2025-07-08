@@ -123,19 +123,4 @@ public class UsageLogController {
                 usageLogService.getUsageLogByUserIdAndDateHourly(userId, date, binSize)
         );
     }
-
-    @Operation(
-            security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "기존 데이터 암호화",
-            description = 
-                "<p> 기존 암호화되지 않은 데이터를 암호화하는 일회성 마이그레이션 엔드포인트입니다. </p>" +
-                "<p> 한 번만 실행하면 됩니다. </p>" +
-                "<p> 암호화 프로세스는 백그라운드에서 실행됩니다. </p>"
-    )
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @PostMapping("/encrypt-existing-data")
-    public ResponseEntity<ApiResponse<EncryptionStatusDto>> encryptExistingData() {
-        usageLogService.encryptExistingData();
-        return CustomResponseEntity.of(SuccessCode._OK, EncryptionStatusDto.started());
-    }
 }

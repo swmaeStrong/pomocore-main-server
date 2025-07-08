@@ -1,8 +1,10 @@
 package com.swmStrong.demo.domain.leaderboard.service;
 
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
+import com.swmStrong.demo.domain.leaderboard.dto.CategoryDetailDto;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardCache;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
@@ -23,6 +25,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     private final LeaderboardCache leaderboardCache;
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
+    private final Set<String> workCategories = WorkCategoryType.getAllValues();
 
     public static final String LEADERBOARD_KEY_PREFIX = "leaderboard";
 
@@ -44,12 +47,10 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         String category = categoryProvider.getCategoryById(categoryObjectId);
         log.trace("Increase score for user: {} category: {}, duration: {}", userId, category, duration);
 
-        String dailyKey = generateDailyKey(category, day);
-        leaderboardCache.increaseScoreByUserId(dailyKey, userId, duration);
-        String weeklyKey = generateWeeklyKey(category, day);
-        leaderboardCache.increaseScoreByUserId(weeklyKey, userId, duration);
-        String monthlyKey = generateMonthlyKey(category, day);
-        leaderboardCache.increaseScoreByUserId(monthlyKey, userId, duration);
+        increaseScoreByCategoryAndUserId(category, userId, day, duration);
+        if (workCategories.contains(category)) {
+            increaseScoreByCategoryAndUserId("total", userId, day, duration);
+        }
     }
 
     @Override
@@ -105,12 +106,41 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             response.add(
                     LeaderboardResponseDto.builder()
                             .userId(userId)
-                            .nickname(userNicknames.getOrDefault(userId, "Unknown"))
+                            .nickname(userNicknames.getOrDefault(userId, "unknown"))
                             .score(score)
                             .rank(rank++)
+                            .details(null)
                             .build()
             );
         }
+
+        if (category.equals("total")) {
+            List<String> allCategories = workCategories.stream().toList();
+            
+            for (int i = 0; i < response.size(); i++) {
+                LeaderboardResponseDto dto = response.get(i);
+                List<CategoryDetailDto> details = new ArrayList<>();
+                
+                for (String cat : allCategories) {
+                    String categoryKey = generateDailyKey(cat, date);
+                    double categoryScore = leaderboardCache.findScoreByUserId(categoryKey, dto.userId());
+                    
+                    details.add(CategoryDetailDto.builder()
+                            .category(cat)
+                            .score(categoryScore)
+                            .build());
+                }
+                
+                response.set(i, LeaderboardResponseDto.builder()
+                        .userId(dto.userId())
+                        .nickname(dto.nickname())
+                        .score(dto.score())
+                        .rank(dto.rank())
+                        .details(details)
+                        .build());
+            }
+        }
+
         return response;
     }
 
@@ -172,6 +202,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                             .nickname(userNicknames.getOrDefault(userId, "Unknown"))
                             .score(score)
                             .rank(rank++)
+                            .details(null)
                             .build()
             );
         }
@@ -185,7 +216,17 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                 .nickname(userInfoProvider.loadNicknameByUserId(userId))
                 .score(leaderboardCache.findScoreByUserId(key, userId))
                 .rank(leaderboardCache.findRankByUserId(key, userId) + 1)
+                .details(null)
                 .build();
+    }
+
+    private void increaseScoreByCategoryAndUserId(String category, String userId, LocalDate day, double duration) {
+        String dailyKey = generateDailyKey(category, day);
+        leaderboardCache.increaseScoreByUserId(dailyKey, userId, duration);
+        String weeklyKey = generateWeeklyKey(category, day);
+        leaderboardCache.increaseScoreByUserId(weeklyKey, userId, duration);
+        String monthlyKey = generateMonthlyKey(category, day);
+        leaderboardCache.increaseScoreByUserId(monthlyKey, userId, duration);
     }
 }
 

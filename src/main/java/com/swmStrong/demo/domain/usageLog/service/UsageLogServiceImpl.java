@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.common.util.EncryptionUtil;
 import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
 import com.swmStrong.demo.domain.usageLog.dto.*;
 import com.swmStrong.demo.domain.usageLog.dto.MergedCategoryUsageLogDto;
@@ -47,7 +48,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         this.redisRepository = redisRepository;
         this.categoryProvider = categoryProvider;
     }
-    //TODO: 서버 시간 내려주기?
+
     @Override
     public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
 
@@ -89,23 +90,33 @@ public class UsageLogServiceImpl implements UsageLogService {
                             .build())
                     .toList();
 
-            List<UsageLog> savedUsageLogs = usageLogRepository.saveAll(usageLogs);
+            List<UsageLog> securedUsageLogs = usageLogs.stream()
+                    .map(this::toSecuredEntity)
+                    .toList();
 
-            savedUsageLogs.stream()
+            usageLogRepository.saveAll(securedUsageLogs);
+
+            usageLogs.stream()
                     .map(UsageLog::getTimestamp)
                     .max(Double::compareTo)
                     .ifPresent(maxTimestamp -> 
                         redisRepository.setDataWithExpire(cacheKey, maxTimestamp.toString(), CACHE_EXPIRE_SECONDS)
                     );
 
-            for (UsageLog usageLog : savedUsageLogs) {
+            for (UsageLog usageLog: securedUsageLogs) {
+                System.out.println(EncryptionUtil.decrypt(usageLog.getTitle()));
+            }
+
+            for (int i = 0; i < securedUsageLogs.size(); i++) {
+                UsageLog securedUsageLog = securedUsageLogs.get(i);
+                UsageLog originalUsageLog = usageLogs.get(i);
                 redisStreamProducer.send(
                         StreamConfig.PATTERN_MATCH.getStreamKey(),
                         PatternClassifyMessage.builder()
-                                .usageLogId(usageLog.getId().toHexString())
-                                .app(usageLog.getApp())
-                                .title(usageLog.getTitle())
-                                .url(usageLog.getUrl())
+                                .usageLogId(securedUsageLog.getId().toHexString())
+                                .app(originalUsageLog.getApp())
+                                .title(originalUsageLog.getTitle())
+                                .url(originalUsageLog.getUrl())
                                 .build()
                 );
             }
@@ -131,17 +142,21 @@ public class UsageLogServiceImpl implements UsageLogService {
                 category = "Processing...";
             }
             
+            String decryptedApp = EncryptionUtil.decrypt(usageLog.getApp());
+            String decryptedTitle = EncryptionUtil.decrypt(usageLog.getTitle());
+            String decryptedUrl = EncryptionUtil.decrypt(usageLog.getUrl());
+            
             if (lastUsage == null || 
-                !lastUsage.title().equals(usageLog.getTitle()) ||
-                !lastUsage.app().equals(usageLog.getApp()) ||
+                !lastUsage.title().equals(decryptedTitle) ||
+                !lastUsage.app().equals(decryptedApp) ||
                 !lastUsage.category().equals(category) ||
-                !lastUsage.url().equals(usageLog.getUrl())
+                !lastUsage.url().equals(decryptedUrl)
             ) {
                 CategorizedUsageLogDto currentUsage = CategorizedUsageLogDto.builder()
-                        .app(usageLog.getApp())
+                        .app(decryptedApp)
                         .category(category)
-                        .title(usageLog.getTitle())
-                        .url(usageLog.getUrl())
+                        .title(decryptedTitle)
+                        .url(decryptedUrl)
                         .timestamp(TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE))
                         .build();
                 
@@ -233,4 +248,20 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
     
     private record DateRange(double start, double end) {}
+
+    private UsageLog toSecuredEntity(UsageLog usageLog) {
+        // app, title, url 세 가지만 암호화
+        usageLog = UsageLog.builder()
+                .id(null)
+                .userId(usageLog.getUserId())
+                .timestamp(usageLog.getTimestamp())
+                .duration(usageLog.getDuration())
+                .app(EncryptionUtil.encrypt(usageLog.getApp()))
+                .title(EncryptionUtil.encrypt(usageLog.getTitle()))
+                .url(EncryptionUtil.encrypt(usageLog.getUrl()))
+                .build();
+        return usageLog;
+    }
+
+    
 }

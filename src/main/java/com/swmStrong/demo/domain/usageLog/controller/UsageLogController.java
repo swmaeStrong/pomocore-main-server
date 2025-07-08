@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -121,5 +122,19 @@ public class UsageLogController {
                 SuccessCode._OK,
                 usageLogService.getUsageLogByUserIdAndDateHourly(userId, date, binSize)
         );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "기존 데이터 암호화",
+            description = 
+                "<p> 기존 암호화되지 않은 데이터를 암호화하는 일회성 마이그레이션 엔드포인트입니다. </p>" +
+                "<p> 한 번만 실행하면 됩니다. </p>"
+    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/encrypt-existing-data")
+    public ResponseEntity<ApiResponse<Void>> encryptExistingData() {
+        usageLogService.encryptExistingData();
+        return CustomResponseEntity.of(SuccessCode._OK);
     }
 }

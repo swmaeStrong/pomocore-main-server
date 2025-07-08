@@ -174,7 +174,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         
         for (UsageLog usageLog : usageLogs) {
             String mergedCategory = Optional.ofNullable(categoryMap.get(usageLog.getCategoryId()))
-                    .map(category -> workCategories.contains(category)? category:"breaks")
+                    .map(category -> workCategories.contains(category)? "work":"breaks")
                     .orElse("unknown");
 
             LocalDateTime usageTime = TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE);

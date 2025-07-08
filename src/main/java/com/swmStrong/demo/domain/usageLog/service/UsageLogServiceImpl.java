@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.usageLog.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
 import com.swmStrong.demo.domain.usageLog.dto.*;
@@ -163,18 +164,7 @@ public class UsageLogServiceImpl implements UsageLogService {
 
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
-        Map<String, String> mergedCategoryMap = Map.of(
-                "Development", "work",
-                "LLM", "work", 
-                "Documentation", "work",
-                "Design", "work",
-                "Video Editing", "work",
-                "Education", "work",
-                "Entertainment", "breaks",
-                "Game", "breaks",
-                "SNS", "breaks",
-                "Communication", "meetings"
-        );
+        Set<String> workCategories = WorkCategoryType.getAllValues();
 
         String currentMergedCategory = null;
         LocalDateTime sessionStartTime = null;
@@ -184,7 +174,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         
         for (UsageLog usageLog : usageLogs) {
             String mergedCategory = Optional.ofNullable(categoryMap.get(usageLog.getCategoryId()))
-                    .map(category -> mergedCategoryMap.getOrDefault(category, "others"))
+                    .map(category -> workCategories.contains(category)? category:"others")
                     .orElse("unknown");
 
             LocalDateTime usageTime = TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE);

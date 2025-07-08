@@ -263,5 +263,53 @@ public class UsageLogServiceImpl implements UsageLogService {
         return usageLog;
     }
 
-    
+    @Override
+    public void encryptExistingData() {
+        log.info("Starting encryption of existing unencrypted data...");
+
+        List<UsageLog> allUsageLogs = usageLogRepository.findAll();
+        log.info("Found {} usage logs to process", allUsageLogs.size());
+
+        int encryptedCount = 0;
+        int skippedCount = 0;
+
+        for (UsageLog usageLog : allUsageLogs) {
+            try {
+                if (isAlreadyEncrypted(usageLog)) {
+                    skippedCount++;
+                    continue;
+                }
+                UsageLog encryptedUsageLog = UsageLog.builder()
+                        .id(usageLog.getId()) // 기존 ID 유지
+                        .userId(usageLog.getUserId())
+                        .timestamp(usageLog.getTimestamp())
+                        .duration(usageLog.getDuration())
+                        .categoryId(usageLog.getCategoryId())
+                        .app(EncryptionUtil.encrypt(usageLog.getApp()))
+                        .title(EncryptionUtil.encrypt(usageLog.getTitle()))
+                        .url(EncryptionUtil.encrypt(usageLog.getUrl()))
+                        .build();
+
+                usageLogRepository.save(encryptedUsageLog);
+                encryptedCount++;
+            } catch (Exception e) {
+                log.error("Failed to encrypt usage log with ID: {}, error: {}",
+                        usageLog.getId(), e.getMessage());
+            }
+        }
+
+        log.info("Encryption completed. Encrypted: {}, Skipped: {}, Total: {}",
+                encryptedCount, skippedCount, allUsageLogs.size());
+    }
+
+    private boolean isAlreadyEncrypted(UsageLog usageLog) {
+        try {
+            EncryptionUtil.decrypt(usageLog.getApp());
+            EncryptionUtil.decrypt(usageLog.getTitle());
+            EncryptionUtil.decrypt(usageLog.getUrl());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

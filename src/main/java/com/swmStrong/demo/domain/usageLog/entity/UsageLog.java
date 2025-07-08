@@ -23,7 +23,8 @@ public class UsageLog {
     private ObjectId categoryId;
 
     @Builder
-    public UsageLog(String userId, double timestamp, double duration, String app, String title, String url, ObjectId categoryId) {
+    public UsageLog(ObjectId id, String userId, double timestamp, double duration, String app, String title, String url, ObjectId categoryId) {
+        this.id = id;
         this.userId = userId;
         this.timestamp = timestamp;
         this.duration = duration;

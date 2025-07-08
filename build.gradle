@@ -67,6 +67,9 @@ dependencies {
 	// Sentry
 	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.19.1'
 	implementation 'io.sentry:sentry-logback:7.19.1'
+
+	//Aho-corasick
+	implementation 'com.hankcs:aho-corasick-double-array-trie:1.2.2'
 }
 
 tasks.named('test') {

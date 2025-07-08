@@ -11,6 +11,5 @@ public interface LeaderboardService {
     void increaseScore(String categoryId, String userId, double duration, double timestamp);
     List<LeaderboardResponseDto> getLeaderboardPage(String category, int page, int size, LocalDate date, PeriodType periodType);
     LeaderboardResponseDto getUserScoreInfo(String category, String userId, LocalDate date, PeriodType periodType);
-    List<LeaderboardResponseDto> getAllLeaderboard(String category, LocalDate date);
     Map<String, List<LeaderboardResponseDto>> getLeaderboards();
 }

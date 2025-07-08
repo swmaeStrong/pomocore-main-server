@@ -2,7 +2,9 @@ package com.swmStrong.demo.domain.usageLog.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.common.util.EncryptionUtil;
 import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
 import com.swmStrong.demo.domain.usageLog.dto.*;
 import com.swmStrong.demo.domain.usageLog.dto.MergedCategoryUsageLogDto;
@@ -14,6 +16,7 @@ import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PatternClassifyMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -46,7 +49,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         this.redisRepository = redisRepository;
         this.categoryProvider = categoryProvider;
     }
-    //TODO: 서버 시간 내려주기?
+
     @Override
     public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
 
@@ -88,23 +91,33 @@ public class UsageLogServiceImpl implements UsageLogService {
                             .build())
                     .toList();
 
-            List<UsageLog> savedUsageLogs = usageLogRepository.saveAll(usageLogs);
+            List<UsageLog> securedUsageLogs = usageLogs.stream()
+                    .map(this::toSecuredEntity)
+                    .toList();
 
-            savedUsageLogs.stream()
+            usageLogRepository.saveAll(securedUsageLogs);
+
+            usageLogs.stream()
                     .map(UsageLog::getTimestamp)
                     .max(Double::compareTo)
                     .ifPresent(maxTimestamp -> 
                         redisRepository.setDataWithExpire(cacheKey, maxTimestamp.toString(), CACHE_EXPIRE_SECONDS)
                     );
 
-            for (UsageLog usageLog : savedUsageLogs) {
+            for (UsageLog usageLog: securedUsageLogs) {
+                System.out.println(EncryptionUtil.decrypt(usageLog.getTitle()));
+            }
+
+            for (int i = 0; i < securedUsageLogs.size(); i++) {
+                UsageLog securedUsageLog = securedUsageLogs.get(i);
+                UsageLog originalUsageLog = usageLogs.get(i);
                 redisStreamProducer.send(
                         StreamConfig.PATTERN_MATCH.getStreamKey(),
                         PatternClassifyMessage.builder()
-                                .usageLogId(usageLog.getId().toHexString())
-                                .app(usageLog.getApp())
-                                .title(usageLog.getTitle())
-                                .url(usageLog.getUrl())
+                                .usageLogId(securedUsageLog.getId().toHexString())
+                                .app(originalUsageLog.getApp())
+                                .title(originalUsageLog.getTitle())
+                                .url(originalUsageLog.getUrl())
                                 .build()
                 );
             }
@@ -130,17 +143,21 @@ public class UsageLogServiceImpl implements UsageLogService {
                 category = "Processing...";
             }
             
+            String decryptedApp = EncryptionUtil.decrypt(usageLog.getApp());
+            String decryptedTitle = EncryptionUtil.decrypt(usageLog.getTitle());
+            String decryptedUrl = EncryptionUtil.decrypt(usageLog.getUrl());
+            
             if (lastUsage == null || 
-                !lastUsage.title().equals(usageLog.getTitle()) ||
-                !lastUsage.app().equals(usageLog.getApp()) ||
+                !lastUsage.title().equals(decryptedTitle) ||
+                !lastUsage.app().equals(decryptedApp) ||
                 !lastUsage.category().equals(category) ||
-                !lastUsage.url().equals(usageLog.getUrl())
+                !lastUsage.url().equals(decryptedUrl)
             ) {
                 CategorizedUsageLogDto currentUsage = CategorizedUsageLogDto.builder()
-                        .app(usageLog.getApp())
+                        .app(decryptedApp)
                         .category(category)
-                        .title(usageLog.getTitle())
-                        .url(usageLog.getUrl())
+                        .title(decryptedTitle)
+                        .url(decryptedUrl)
                         .timestamp(TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE))
                         .build();
                 
@@ -163,18 +180,7 @@ public class UsageLogServiceImpl implements UsageLogService {
 
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
 
-        Map<String, String> mergedCategoryMap = Map.of(
-                "Development", "work",
-                "LLM", "work", 
-                "Documentation", "work",
-                "Design", "work",
-                "Video Editing", "work",
-                "Education", "work",
-                "Entertainment", "breaks",
-                "Game", "breaks",
-                "SNS", "breaks",
-                "Communication", "meetings"
-        );
+        Set<String> workCategories = WorkCategoryType.getAllValues();
 
         String currentMergedCategory = null;
         LocalDateTime sessionStartTime = null;
@@ -184,7 +190,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         
         for (UsageLog usageLog : usageLogs) {
             String mergedCategory = Optional.ofNullable(categoryMap.get(usageLog.getCategoryId()))
-                    .map(category -> mergedCategoryMap.getOrDefault(category, "others"))
+                    .map(category -> workCategories.contains(category)? "work":"breaks")
                     .orElse("unknown");
 
             LocalDateTime usageTime = TimeZoneUtil.convertUnixToLocalDateTime(usageLog.getTimestamp(), TimeZoneUtil.KOREA_TIMEZONE);
@@ -207,8 +213,8 @@ public class UsageLogServiceImpl implements UsageLogService {
                 }
                 currentMergedCategory = mergedCategory;
                 sessionStartTime = usageTime;
-                sessionApp = usageLog.getApp();
-                sessionTitle = usageLog.getTitle();
+                sessionApp = EncryptionUtil.decrypt(usageLog.getApp());
+                sessionTitle = EncryptionUtil.decrypt(usageLog.getTitle());
             }
             lastEndTime = usageEndTime;
         }
@@ -243,4 +249,83 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
     
     private record DateRange(double start, double end) {}
+
+    private UsageLog toSecuredEntity(UsageLog usageLog) {
+        // app, title, url 세 가지만 암호화
+        usageLog = UsageLog.builder()
+                .id(null)
+                .userId(usageLog.getUserId())
+                .timestamp(usageLog.getTimestamp())
+                .duration(usageLog.getDuration())
+                .app(EncryptionUtil.encrypt(usageLog.getApp()))
+                .title(EncryptionUtil.encrypt(usageLog.getTitle()))
+                .url(EncryptionUtil.encrypt(usageLog.getUrl()))
+                .build();
+        return usageLog;
+    }
+
+    @Override
+    @Async("asyncExecutor")
+    public void encryptExistingData() {
+        log.info("Starting encryption of existing unencrypted data...");
+
+        List<UsageLog> allUsageLogs = usageLogRepository.findAll();
+        log.info("Found {} usage logs to process", allUsageLogs.size());
+
+        int encryptedCount = 0;
+        int skippedCount = 0;
+        int batchSize = 100;
+        List<UsageLog> batchToSave = new ArrayList<>();
+
+        for (int i = allUsageLogs.size() - 1; i >= 0; i--) {
+            UsageLog usageLog = allUsageLogs.get(i);
+            try {
+                if (isAlreadyEncrypted(usageLog)) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                UsageLog encryptedUsageLog = UsageLog.builder()
+                        .id(usageLog.getId()) // 기존 ID 유지
+                        .userId(usageLog.getUserId())
+                        .timestamp(usageLog.getTimestamp())
+                        .duration(usageLog.getDuration())
+                        .categoryId(usageLog.getCategoryId())
+                        .app(EncryptionUtil.encrypt(usageLog.getApp()))
+                        .title(EncryptionUtil.encrypt(usageLog.getTitle()))
+                        .url(EncryptionUtil.encrypt(usageLog.getUrl()))
+                        .build();
+
+                batchToSave.add(encryptedUsageLog);
+                encryptedCount++;
+
+                if (batchToSave.size() >= batchSize) {
+                    usageLogRepository.saveAll(batchToSave);
+                    log.info("Processed {} records so far...", encryptedCount);
+                    batchToSave.clear();
+                }
+            } catch (Exception e) {
+                log.error("Failed to encrypt usage log with ID: {}, error: {}",
+                        usageLog.getId(), e.getMessage());
+            }
+        }
+
+        if (!batchToSave.isEmpty()) {
+            usageLogRepository.saveAll(batchToSave);
+        }
+
+        log.info("Encryption completed. Encrypted: {}, Skipped: {}, Total: {}",
+                encryptedCount, skippedCount, allUsageLogs.size());
+    }
+
+    private boolean isAlreadyEncrypted(UsageLog usageLog) {
+        try {
+            EncryptionUtil.decrypt(usageLog.getApp());
+            EncryptionUtil.decrypt(usageLog.getTitle());
+            EncryptionUtil.decrypt(usageLog.getUrl());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

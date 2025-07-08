@@ -273,6 +273,7 @@
         "grasshopper"
       ],
       "domainPatterns": [
+        "stitch.withgoogle.com",
         "figma.com",
         "adobe.com",
         "canva.com",
@@ -543,6 +544,7 @@
       "category": "Productivity",
       "priority": 10,
       "appPatterns": [
+        "pawcus",
         "jira",
         "linear",
         "asana",
@@ -882,6 +884,10 @@
         "tinkercad"
       ],
       "domainPatterns": [
+        "acmicpc.net",
+        "codeforces.com",
+        "atcoder.jp",
+        "leetcode.com",
         "khanacademy.org",
         "coursera.org",
         "udemy.com",

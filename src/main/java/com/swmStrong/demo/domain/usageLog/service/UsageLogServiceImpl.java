@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.Base64;
 
 @Slf4j
 @Service
@@ -103,10 +104,6 @@ public class UsageLogServiceImpl implements UsageLogService {
                     .ifPresent(maxTimestamp -> 
                         redisRepository.setDataWithExpire(cacheKey, maxTimestamp.toString(), CACHE_EXPIRE_SECONDS)
                     );
-
-            for (UsageLog usageLog: securedUsageLogs) {
-                System.out.println(EncryptionUtil.decrypt(usageLog.getTitle()));
-            }
 
             for (int i = 0; i < securedUsageLogs.size(); i++) {
                 UsageLog securedUsageLog = securedUsageLogs.get(i);
@@ -267,45 +264,73 @@ public class UsageLogServiceImpl implements UsageLogService {
     @Override
     @Async("asyncExecutor")
     public void encryptExistingData() {
-        log.info("Starting encryption of existing unencrypted data...");
+        log.info("Starting encryption/re-encryption of existing data...");
 
         List<UsageLog> allUsageLogs = usageLogRepository.findAll();
         log.info("Found {} usage logs to process", allUsageLogs.size());
 
-        int encryptedCount = 0;
-        int skippedCount = 0;
+        int newlyEncryptedCount = 0;
+        int reencryptedCount = 0;
+        int alreadyEncryptedCount = 0;
         int batchSize = 100;
         List<UsageLog> batchToSave = new ArrayList<>();
 
         for (int i = allUsageLogs.size() - 1; i >= 0; i--) {
             UsageLog usageLog = allUsageLogs.get(i);
             try {
-                if (isAlreadyEncrypted(usageLog)) {
-                    skippedCount++;
-                    continue;
-                }
+                EncryptionStatus status = getEncryptionStatus(usageLog);
                 
-                UsageLog encryptedUsageLog = UsageLog.builder()
-                        .id(usageLog.getId()) // 기존 ID 유지
-                        .userId(usageLog.getUserId())
-                        .timestamp(usageLog.getTimestamp())
-                        .duration(usageLog.getDuration())
-                        .categoryId(usageLog.getCategoryId())
-                        .app(EncryptionUtil.encrypt(usageLog.getApp()))
-                        .title(EncryptionUtil.encrypt(usageLog.getTitle()))
-                        .url(EncryptionUtil.encrypt(usageLog.getUrl()))
-                        .build();
+                UsageLog processedUsageLog = null;
+                
+                switch (status) {
+                    case ENCRYPTED_WITH_NEW_KEY:
+                        alreadyEncryptedCount++;
+                        continue; // Skip - already encrypted with new key
+                        
+                    case ENCRYPTED_WITH_LEGACY_KEY:
+                        // Re-encrypt with new key
+                        processedUsageLog = UsageLog.builder()
+                                .id(usageLog.getId()) // 기존 ID 유지
+                                .userId(usageLog.getUserId())
+                                .timestamp(usageLog.getTimestamp())
+                                .duration(usageLog.getDuration())
+                                .categoryId(usageLog.getCategoryId())
+                                .app(EncryptionUtil.reencryptIfNeeded(usageLog.getApp()))
+                                .title(EncryptionUtil.reencryptIfNeeded(usageLog.getTitle()))
+                                .url(EncryptionUtil.reencryptIfNeeded(usageLog.getUrl()))
+                                .build();
+                        reencryptedCount++;
+                        break;
+                        
+                    case NOT_ENCRYPTED:
+                        // Encrypt with new key
+                        processedUsageLog = UsageLog.builder()
+                                .id(usageLog.getId()) // 기존 ID 유지
+                                .userId(usageLog.getUserId())
+                                .timestamp(usageLog.getTimestamp())
+                                .duration(usageLog.getDuration())
+                                .categoryId(usageLog.getCategoryId())
+                                .app(EncryptionUtil.encrypt(usageLog.getApp()))
+                                .title(EncryptionUtil.encrypt(usageLog.getTitle()))
+                                .url(EncryptionUtil.encrypt(usageLog.getUrl()))
+                                .build();
+                        newlyEncryptedCount++;
+                        break;
+                }
 
-                batchToSave.add(encryptedUsageLog);
-                encryptedCount++;
+                if (processedUsageLog != null) {
+                    batchToSave.add(processedUsageLog);
+                }
 
                 if (batchToSave.size() >= batchSize) {
                     usageLogRepository.saveAll(batchToSave);
-                    log.info("Processed {} records so far...", encryptedCount);
+                    log.info("Processed {} records so far... (New: {}, Re-encrypted: {}, Already encrypted: {})",
+                            newlyEncryptedCount + reencryptedCount + alreadyEncryptedCount,
+                            newlyEncryptedCount, reencryptedCount, alreadyEncryptedCount);
                     batchToSave.clear();
                 }
             } catch (Exception e) {
-                log.error("Failed to encrypt usage log with ID: {}, error: {}",
+                log.error("Failed to process usage log with ID: {}, error: {}",
                         usageLog.getId(), e.getMessage());
             }
         }
@@ -314,18 +339,45 @@ public class UsageLogServiceImpl implements UsageLogService {
             usageLogRepository.saveAll(batchToSave);
         }
 
-        log.info("Encryption completed. Encrypted: {}, Skipped: {}, Total: {}",
-                encryptedCount, skippedCount, allUsageLogs.size());
+        log.info("Encryption completed. Newly encrypted: {}, Re-encrypted: {}, Already encrypted: {}, Total: {}",
+                newlyEncryptedCount, reencryptedCount, alreadyEncryptedCount, allUsageLogs.size());
+    }
+
+    private enum EncryptionStatus {
+        ENCRYPTED_WITH_NEW_KEY,
+        ENCRYPTED_WITH_LEGACY_KEY,
+        NOT_ENCRYPTED
+    }
+
+    private EncryptionStatus getEncryptionStatus(UsageLog usageLog) {
+        try {
+            // Try to decrypt with new key first
+            byte[] appBytes = Base64.getDecoder().decode(usageLog.getApp());
+            byte[] titleBytes = Base64.getDecoder().decode(usageLog.getTitle());
+            byte[] urlBytes = Base64.getDecoder().decode(usageLog.getUrl());
+            
+            // Check if data has minimum length for encrypted data
+            if (appBytes.length < 28 || titleBytes.length < 28 || urlBytes.length < 28) {
+                return EncryptionStatus.NOT_ENCRYPTED;
+            }
+            
+            // Try to decrypt with new SHA256 key
+            try {
+                EncryptionUtil.decrypt(usageLog.getApp());
+                EncryptionUtil.decrypt(usageLog.getTitle());
+                EncryptionUtil.decrypt(usageLog.getUrl());
+                return EncryptionStatus.ENCRYPTED_WITH_NEW_KEY;
+            } catch (Exception e) {
+                // If new key fails, it might be encrypted with legacy key
+                return EncryptionStatus.ENCRYPTED_WITH_LEGACY_KEY;
+            }
+        } catch (Exception e) {
+            // If base64 decode fails, data is not encrypted
+            return EncryptionStatus.NOT_ENCRYPTED;
+        }
     }
 
     private boolean isAlreadyEncrypted(UsageLog usageLog) {
-        try {
-            EncryptionUtil.decrypt(usageLog.getApp());
-            EncryptionUtil.decrypt(usageLog.getTitle());
-            EncryptionUtil.decrypt(usageLog.getUrl());
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        return getEncryptionStatus(usageLog) != EncryptionStatus.NOT_ENCRYPTED;
     }
 }

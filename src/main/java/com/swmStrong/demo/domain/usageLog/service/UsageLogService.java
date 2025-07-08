@@ -11,5 +11,4 @@ public interface UsageLogService {
     List<MergedCategoryUsageLogDto> getMergedCategoryUsageLogByUserId(String userId, LocalDate date);
     List<CategoryUsageDto> getUsageLogByUserIdAndDate(String userId, LocalDate date);
     List<CategoryHourlyUsageDto> getUsageLogByUserIdAndDateHourly(String userId, LocalDate date, Integer binSize);
-    void encryptExistingData();
 }

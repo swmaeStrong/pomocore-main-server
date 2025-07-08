@@ -4,7 +4,6 @@ public class WhiteListConfig {
     private static final String PREFIX = "";
 
     public static final String[] WHITE_LIST = {
-            PREFIX+"/auth/register",
             PREFIX+"/auth/login",
             PREFIX+"/auth/social-login",
             PREFIX+"/auth/refresh",

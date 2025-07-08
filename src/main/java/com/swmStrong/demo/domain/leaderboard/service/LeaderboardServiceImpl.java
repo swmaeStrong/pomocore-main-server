@@ -66,7 +66,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         }
 
         String key = generateKey(category, date, periodType);
-        return getPageByKey(key, page, size);
+        return getPageByKey(key, page, size, category, date);
     }
 
     @Override
@@ -183,6 +183,10 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size) {
+        return getPageByKey(key, page, size, null, null);
+    }
+
+    private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size, String category, LocalDate date) {
         Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardCache.findPageWithSize(key, page, size);
 
         Map<String, String> userNicknames = userInfoProvider.loadNicknamesByUserIds(
@@ -206,6 +210,34 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                             .build()
             );
         }
+
+        if (category != null && category.equals("total") && date != null) {
+            List<String> allCategories = workCategories.stream().toList();
+            
+            for (int i = 0; i < response.size(); i++) {
+                LeaderboardResponseDto dto = response.get(i);
+                List<CategoryDetailDto> details = new ArrayList<>();
+                
+                for (String cat : allCategories) {
+                    String categoryKey = generateDailyKey(cat, date);
+                    double categoryScore = leaderboardCache.findScoreByUserId(categoryKey, dto.userId());
+                    
+                    details.add(CategoryDetailDto.builder()
+                            .category(cat)
+                            .score(categoryScore)
+                            .build());
+                }
+                
+                response.set(i, LeaderboardResponseDto.builder()
+                        .userId(dto.userId())
+                        .nickname(dto.nickname())
+                        .score(dto.score())
+                        .rank(dto.rank())
+                        .details(details)
+                        .build());
+            }
+        }
+
         return response;
     }
 

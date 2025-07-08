@@ -93,25 +93,6 @@ public class LeaderboardController {
     }
 
     @Operation(
-            summary = "카테고리의 모든 유저 조회",
-            description =
-                "<p> 카테고리별로, 모든 유저의 점수, 순위를 출력한다. </p>" +
-                "<p> 페이징 없는 버전이다. </p>"
-    )
-    @GetMapping("/{category}/all")
-    public ResponseEntity<ApiResponse<List<LeaderboardResponseDto>>> getUsersByCategory(
-            @PathVariable String category,
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date
-    ) {
-        return CustomResponseEntity.of(
-                SuccessCode._OK,
-                leaderboardService.getAllLeaderboard(category, date)
-        );
-    }
-
-    @Operation(
             summary = "유저의 점수 조회 (일간)",
             description =
                 "<p> 유저의 카테고리 별 점수와 등수를 조회한다. </p>" +

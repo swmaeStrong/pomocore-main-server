@@ -2,8 +2,6 @@ package com.swmStrong.demo.domain.common.util;
 
 import org.springframework.beans.factory.annotation.Value;
 
-import org.springframework.util.DigestUtils;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -37,14 +35,6 @@ public class EncryptionUtil {
         }
     }
 
-    private static SecretKey getLegacySecretKey() {
-        byte[] key = DigestUtils.md5Digest((secretKeyString + salt).getBytes());
-        byte[] expandedKey = new byte[32];
-        System.arraycopy(key, 0, expandedKey, 0, 16);
-        System.arraycopy(key, 0, expandedKey, 16, 16);
-        return new SecretKeySpec(expandedKey, ALGORITHM);
-    }
-
     public static String encrypt(String plainText) {
         if (plainText == null || plainText.isEmpty()) {
             return plainText;
@@ -72,41 +62,6 @@ public class EncryptionUtil {
         }
     }
 
-    public static String reencryptIfNeeded(String data) {
-        if (data == null || data.isEmpty()) {
-            return data;
-        }
-
-        try {
-            byte[] encryptedWithIv = Base64.getDecoder().decode(data);
-            
-            // Validate minimum length
-            if (encryptedWithIv.length < GCM_IV_LENGTH + GCM_TAG_LENGTH) {
-                // Data is not encrypted, encrypt it
-                return encrypt(data);
-            }
-
-            // Try to decrypt with new key
-            try {
-                decryptWithKey(encryptedWithIv, getSecretKey());
-                // If successful, data is already encrypted with new key
-                return data;
-            } catch (Exception e) {
-                // Try to decrypt with legacy key and re-encrypt with new key
-                try {
-                    String decrypted = decryptWithKey(encryptedWithIv, getLegacySecretKey());
-                    return encrypt(decrypted);
-                } catch (Exception legacyException) {
-                    // Data is not encrypted, encrypt it
-                    return encrypt(data);
-                }
-            }
-        } catch (Exception e) {
-            // If base64 decode fails, data is not encrypted
-            return encrypt(data);
-        }
-    }
-
     public static String decrypt(String encryptedText) {
         if (encryptedText == null || encryptedText.isEmpty()) {
             return encryptedText;
@@ -114,23 +69,11 @@ public class EncryptionUtil {
 
         try {
             byte[] encryptedWithIv = Base64.getDecoder().decode(encryptedText);
-            
-            // Validate minimum length for IV + encrypted data + tag
+
             if (encryptedWithIv.length < GCM_IV_LENGTH + GCM_TAG_LENGTH) {
                 throw new IllegalArgumentException("Encrypted data is too short");
             }
-
-            // Try new SHA256 key first
-            try {
-                return decryptWithKey(encryptedWithIv, getSecretKey());
-            } catch (Exception e) {
-                // If SHA256 fails, try legacy MD5 key for backward compatibility
-                try {
-                    return decryptWithKey(encryptedWithIv, getLegacySecretKey());
-                } catch (Exception legacyException) {
-                    throw new RuntimeException("Failed to decrypt with both new and legacy keys", e);
-                }
-            }
+            return decryptWithKey(encryptedWithIv, getSecretKey());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -151,6 +94,4 @@ public class EncryptionUtil {
 
         return new String(decrypted, StandardCharsets.UTF_8);
     }
-
-
 }

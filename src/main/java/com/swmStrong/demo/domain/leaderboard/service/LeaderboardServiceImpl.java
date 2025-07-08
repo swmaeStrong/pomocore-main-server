@@ -66,7 +66,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         }
 
         String key = generateKey(category, date, periodType);
-        return getPageByKey(key, page, size, category, date);
+        return getPageByKey(key, page, size, category, date, periodType);
     }
 
     @Override
@@ -79,69 +79,30 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         if (date == null) {
             date = LocalDate.now();
         }
+
         String key = generateKey(category, date, periodType);
-        return getUserInfo(userId, key);
-    }
-
-    @Override
-    public List<LeaderboardResponseDto> getAllLeaderboard(String category, LocalDate date) {
-        if (date == null) {
-            date = LocalDate.now();
-        }
-
-        String key = generateDailyKey(category, date);
-        Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardCache.findAll(key);
-
-        Map<String, String> userNicknames = userInfoProvider.loadNicknamesByUserIds(
-                tuples.stream()
-                        .map(ZSetOperations.TypedTuple::getValue)
-                        .toList()
-        );
-
-        long rank = 1;
-        List<LeaderboardResponseDto> response = new ArrayList<>();
-        for (ZSetOperations.TypedTuple<String> tuple : tuples) {
-            String userId = tuple.getValue();
-            double score = Optional.ofNullable(tuple.getScore()).orElse(0.0);
-            response.add(
-                    LeaderboardResponseDto.builder()
-                            .userId(userId)
-                            .nickname(userNicknames.getOrDefault(userId, "unknown"))
-                            .score(score)
-                            .rank(rank++)
-                            .details(null)
-                            .build()
-            );
-        }
-
+        List<CategoryDetailDto> details = new ArrayList<>();
         if (category.equals("total")) {
             List<String> allCategories = workCategories.stream().toList();
-            
-            for (int i = 0; i < response.size(); i++) {
-                LeaderboardResponseDto dto = response.get(i);
-                List<CategoryDetailDto> details = new ArrayList<>();
-                
-                for (String cat : allCategories) {
-                    String categoryKey = generateDailyKey(cat, date);
-                    double categoryScore = leaderboardCache.findScoreByUserId(categoryKey, dto.userId());
-                    
-                    details.add(CategoryDetailDto.builder()
-                            .category(cat)
-                            .score(categoryScore)
-                            .build());
-                }
-                
-                response.set(i, LeaderboardResponseDto.builder()
-                        .userId(dto.userId())
-                        .nickname(dto.nickname())
-                        .score(dto.score())
-                        .rank(dto.rank())
-                        .details(details)
-                        .build());
+
+            for (String cat: allCategories) {
+                String workCategoryKey = generateKey(cat, date, periodType);
+                double categoryScore = leaderboardCache.findScoreByUserId(workCategoryKey, userId);
+                details.add(CategoryDetailDto.builder()
+                        .category(cat)
+                        .score(categoryScore)
+                        .build()
+                );
             }
         }
 
-        return response;
+        return LeaderboardResponseDto.builder()
+                .userId(userId)
+                .nickname(userInfoProvider.loadNicknameByUserId(userId))
+                .score(leaderboardCache.findScoreByUserId(key, userId))
+                .rank(leaderboardCache.findRankByUserId(key, userId) + 1)
+                .details(details)
+                .build();
     }
 
     @Override
@@ -182,11 +143,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         return String.format("%s:%s:%d-M%d", LEADERBOARD_KEY_PREFIX, category, year, month);
     }
 
-    private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size) {
-        return getPageByKey(key, page, size, null, null);
-    }
-
-    private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size, String category, LocalDate date) {
+    private List<LeaderboardResponseDto> getPageByKey(String key, int page, int size, String category, LocalDate date, PeriodType periodType) {
         Set<ZSetOperations.TypedTuple<String>> tuples = leaderboardCache.findPageWithSize(key, page, size);
 
         Map<String, String> userNicknames = userInfoProvider.loadNicknamesByUserIds(
@@ -219,7 +176,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
                 List<CategoryDetailDto> details = new ArrayList<>();
                 
                 for (String cat : allCategories) {
-                    String categoryKey = generateDailyKey(cat, date);
+                    String categoryKey = generateKey(cat, date, periodType);
                     double categoryScore = leaderboardCache.findScoreByUserId(categoryKey, dto.userId());
                     
                     details.add(CategoryDetailDto.builder()
@@ -239,17 +196,6 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         }
 
         return response;
-    }
-
-    private LeaderboardResponseDto getUserInfo(String userId, String key) {
-
-        return LeaderboardResponseDto.builder()
-                .userId(userId)
-                .nickname(userInfoProvider.loadNicknameByUserId(userId))
-                .score(leaderboardCache.findScoreByUserId(key, userId))
-                .rank(leaderboardCache.findRankByUserId(key, userId) + 1)
-                .details(null)
-                .build();
     }
 
     private void increaseScoreByCategoryAndUserId(String category, String userId, LocalDate day, double duration) {

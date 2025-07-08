@@ -197,8 +197,8 @@ public class UsageLogServiceImpl implements UsageLogService {
                 }
                 currentMergedCategory = mergedCategory;
                 sessionStartTime = usageTime;
-                sessionApp = usageLog.getApp();
-                sessionTitle = usageLog.getTitle();
+                sessionApp = EncryptionUtil.decrypt(usageLog.getApp());
+                sessionTitle = EncryptionUtil.decrypt(usageLog.getTitle());
             }
             lastEndTime = usageEndTime;
         }

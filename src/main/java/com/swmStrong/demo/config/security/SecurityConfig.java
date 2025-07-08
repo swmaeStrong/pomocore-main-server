@@ -112,7 +112,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("https://web.pawcus.dev");
-        config.addAllowedOrigin("https://dev-web.pawcus.dev");
+        config.addAllowedOrigin("https://web-develop.pawcus.dev");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

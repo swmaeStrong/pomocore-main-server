@@ -5,4 +5,5 @@ import org.bson.types.ObjectId;
 
 public interface UsageLogUpdateProvider {
     UsageLog updateCategory(ObjectId usageLogId, ObjectId categoryPatternId);
+    UsageLog loadByUsageLogId(ObjectId usageLogId);
 }

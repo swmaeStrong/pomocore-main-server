@@ -37,4 +37,9 @@ public class UsageLog {
     public void updateCategoryId(ObjectId categoryId) {
         this.categoryId = categoryId;
     }
+
+    public UsageLog updateDuration(double duration) {
+        this.duration = duration;
+        return this;
+    }
 }

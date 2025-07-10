@@ -58,19 +58,27 @@ public class PatternMatchStreamConsumer extends AbstractRedisStreamConsumer {
                     Map<Object, Object> valueMap = record.getValue();
                     PatternClassifyMessage message = objectMapper.convertValue(valueMap, PatternClassifyMessage.class);
 
-                    ObjectId CategoryPatternId = patternClassifier.classify(message.app(), message.title(), message.url());
-                    ObjectId usageLogId = new ObjectId(message.usageLogId());
-
-                    UsageLog usageLog = usageLogUpdateProvider.updateCategory(usageLogId, CategoryPatternId);
-
+                    UsageLog usageLog = null;
+                    if (message.categoryId().isEmpty()) {
+                        ObjectId CategoryPatternId = patternClassifier.classify(message.app(), message.title(), message.url());
+                        ObjectId usageLogId = new ObjectId(message.usageLogId());
+                        usageLog = usageLogUpdateProvider.updateCategory(usageLogId, CategoryPatternId);
+                    } else {
+                        usageLog = usageLogUpdateProvider.loadByUsageLogId(new ObjectId(message.usageLogId()));
+                    }
                     stringRedisTemplate.opsForStream().acknowledge(StreamConfig.PATTERN_MATCH.getGroup(), record);
+
+                    double duration = usageLog.getDuration();
+                    if (message.margin() != null) {
+                        duration = message.margin();
+                    }
 
                     redisStreamProducer.send(
                     StreamConfig.LEADERBOARD.getStreamKey(),
                     LeaderBoardUsageMessage.builder()
                             .userId(usageLog.getUserId())
                             .categoryId(usageLog.getCategoryId())
-                            .duration(usageLog.getDuration())
+                            .duration(duration)
                             .timestamp(usageLog.getTimestamp())
                             .build()
                     );

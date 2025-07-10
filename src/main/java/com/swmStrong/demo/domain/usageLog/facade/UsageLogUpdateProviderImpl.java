@@ -24,4 +24,10 @@ public class UsageLogUpdateProviderImpl implements UsageLogUpdateProvider {
         usageLog.updateCategoryId(categoryPatternId);
         return usageLogRepository.save(usageLog);
     }
+
+    @Override
+    public UsageLog loadByUsageLogId(ObjectId usageLogId) {
+        return usageLogRepository.findById(usageLogId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USAGE_LOG_NOT_FOUND));
+    }
 }

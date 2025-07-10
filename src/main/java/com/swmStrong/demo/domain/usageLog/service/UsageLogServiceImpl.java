@@ -30,6 +30,7 @@ public class UsageLogServiceImpl implements UsageLogService {
     private static final String USAGE_LOG_LAST_TIMESTAMP_PREFIX = "usageLog:lastTimestamp:";
     private static final long CACHE_EXPIRE_SECONDS = 86400; // 24 hours
     private static final double TIME_TOLERANCE_SECONDS = 60.0;
+    private static final double CONTINUITY_MARGIN_SECONDS = 0.5;
     private static final int GAP_THRESHOLD = 1;
 
     private final UsageLogRepository usageLogRepository;
@@ -50,16 +51,26 @@ public class UsageLogServiceImpl implements UsageLogService {
     }
 
     @Override
-    public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogDtoList) {
+    public void saveAll(String userId, List<SaveUsageLogDto> saveUsageLogs) {
+        if (saveUsageLogs.isEmpty()) return;
 
         double currentTimestamp = Instant.now().getEpochSecond();
         log.trace("current timestamp: {} ({})",  currentTimestamp, LocalDateTime.now());
-        String cacheKey = USAGE_LOG_LAST_TIMESTAMP_PREFIX + userId;
-        try {
-            String lastTimestampStr = redisRepository.getData(cacheKey);
-            Double lastTimestamp = lastTimestampStr != null ? Double.parseDouble(lastTimestampStr) : null;
 
-            for (SaveUsageLogDto dto : saveUsageLogDtoList) {
+        String lastTimeCacheKey = USAGE_LOG_LAST_TIMESTAMP_PREFIX + userId;
+        try {
+            Double lastTimestamp = null;
+            String lastTimeCacheValue = redisRepository.getData(lastTimeCacheKey);
+            if (lastTimeCacheValue != null) {
+                lastTimestamp = Double.parseDouble(lastTimeCacheValue);
+            }
+
+            ObjectId lastUsageLogId = usageLogRepository.findTopByUserIdOrderByTimestampDesc(userId)
+                    .map(UsageLog::getId)
+                    .orElse(null);
+            List<SaveUsageLogDto>mergedUsageLogs = mergeDuplicatedData(saveUsageLogs, lastUsageLogId);
+            double maxTimestamp = 0;
+            for (SaveUsageLogDto dto : mergedUsageLogs) {
                 if (dto.timestamp() > currentTimestamp) {
                     log.warn("Invalid future timestamp {} for user {}", dto.timestamp(), userId);
                     throw new ApiException(ErrorCode.REQUEST_TIME_IS_FUTURE);
@@ -77,49 +88,73 @@ public class UsageLogServiceImpl implements UsageLogService {
                             endTimestamp, userId);
                     throw new ApiException(ErrorCode.REQUEST_TIME_IS_OVER_FUTURE);
                 }
+
+                maxTimestamp = Math.max(maxTimestamp, endTimestamp);
             }
 
-            List<UsageLog> usageLogs = saveUsageLogDtoList.stream()
-                    .map(saveUsageLogDto -> UsageLog.builder()
+            List<UsageLog> existingUsageLogs = new ArrayList<>();
+            List<UsageLog> newUsageLogs = new ArrayList<>();
+
+            for (SaveUsageLogDto saveUsageLogDto : mergedUsageLogs) {
+                if (saveUsageLogDto.usageLogId() != null) {
+                    UsageLog existingUsageLog = usageLogRepository.findById(saveUsageLogDto.usageLogId())
+                            .orElseThrow(() -> new ApiException(ErrorCode.USAGE_LOG_NOT_FOUND));
+                    UsageLog updatedUsageLog = existingUsageLog.updateDuration(
+                            existingUsageLog.getDuration() + saveUsageLogDto.duration()
+                    );
+                    redisStreamProducer.send(
+                            StreamConfig.PATTERN_MATCH.getStreamKey(),
+                            PatternClassifyMessage.builder()
+                                    .usageLogId(existingUsageLog.getId().toHexString())
+                                    .categoryId(existingUsageLog.getCategoryId().toHexString())
+                                    .margin(saveUsageLogDto.duration())
+                                    .build()
+                    );
+                    existingUsageLogs.add(updatedUsageLog);
+                } else {
+                    UsageLog newUsageLog = UsageLog.builder()
                             .userId(userId)
                             .app(saveUsageLogDto.app())
                             .title(saveUsageLogDto.title())
                             .url(saveUsageLogDto.url())
                             .duration(saveUsageLogDto.duration())
                             .timestamp(saveUsageLogDto.timestamp())
-                            .build())
-                    .toList();
-
-            List<UsageLog> securedUsageLogs = usageLogs.stream()
-                    .map(this::toSecuredEntity)
-                    .toList();
-
-            usageLogRepository.saveAll(securedUsageLogs);
-
-            usageLogs.stream()
-                    .map(UsageLog::getTimestamp)
-                    .max(Double::compareTo)
-                    .ifPresent(maxTimestamp -> 
-                        redisRepository.setDataWithExpire(cacheKey, maxTimestamp.toString(), CACHE_EXPIRE_SECONDS)
-                    );
-
-            for (int i = 0; i < securedUsageLogs.size(); i++) {
-                UsageLog securedUsageLog = securedUsageLogs.get(i);
-                UsageLog originalUsageLog = usageLogs.get(i);
-                redisStreamProducer.send(
-                        StreamConfig.PATTERN_MATCH.getStreamKey(),
-                        PatternClassifyMessage.builder()
-                                .usageLogId(securedUsageLog.getId().toHexString())
-                                .app(originalUsageLog.getApp())
-                                .title(originalUsageLog.getTitle())
-                                .url(originalUsageLog.getUrl())
-                                .build()
-                );
+                            .build();
+                    newUsageLogs.add(newUsageLog);
+                }
             }
+
+            usageLogRepository.saveAll(existingUsageLogs);
+
+            if (!newUsageLogs.isEmpty()) {
+                List<UsageLog> securedUsageLogs = newUsageLogs.stream()
+                        .map(this::toSecuredEntity)
+                        .toList();
+
+                usageLogRepository.saveAll(securedUsageLogs);
+
+                for (int i = 0; i < securedUsageLogs.size(); i++) {
+                    UsageLog securedUsageLog = securedUsageLogs.get(i);
+                    UsageLog originalUsageLog = newUsageLogs.get(i);
+
+                    redisStreamProducer.send(
+                            StreamConfig.PATTERN_MATCH.getStreamKey(),
+                            PatternClassifyMessage.builder()
+                                    .usageLogId(securedUsageLog.getId().toHexString())
+                                    .app(originalUsageLog.getApp())
+                                    .title(originalUsageLog.getTitle())
+                                    .url(originalUsageLog.getUrl())
+                                    .build()
+                    );
+                }
+            }
+
+            redisRepository.setDataWithExpire(lastTimeCacheKey, maxTimestamp + "", CACHE_EXPIRE_SECONDS);
+
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            log.error("error occurred when save usage log, {}", e.getMessage());
+            log.error("error occurred when save usage log, {}", e);
             throw new ApiException(ErrorCode.LOG_SAVE_FAILED);
         }
     }
@@ -227,7 +262,55 @@ public class UsageLogServiceImpl implements UsageLogService {
         DateRange range = getDateRange(date);
         return usageLogRepository.findHourlyCategoryUsageByUserIdAndTimestampBetween(userId, range.start(), range.end(), binSize);
     }
-    
+
+    private List<SaveUsageLogDto> mergeDuplicatedData(List<SaveUsageLogDto> originalDtos, ObjectId lastUsageLogId) {
+        List<SaveUsageLogDto> mergedDtos = new ArrayList<>();
+
+        for (int i=0; i<originalDtos.size()-1; i++) {
+            if (isSame(originalDtos.get(i), originalDtos.get(i+1))) {
+                originalDtos.set(i+1, SaveUsageLogDto.merge(originalDtos.get(i+1), originalDtos.get(i)));
+            } else {
+                mergedDtos.add(originalDtos.get(i));
+            }
+        }
+        mergedDtos.add(originalDtos.get(originalDtos.size()-1));
+
+        UsageLog lastSavedUsageLog = null;
+        if (lastUsageLogId != null) {
+            lastSavedUsageLog = usageLogRepository.findById(lastUsageLogId).orElse(null);
+        }
+        if (lastSavedUsageLog != null) {
+            if (isSame(lastSavedUsageLog, mergedDtos.get(0))) {
+                mergedDtos.set(0, SaveUsageLogDto.checkSavedByUsageLogId(mergedDtos.get(0), lastSavedUsageLog.getId()));
+            }
+        }
+        return mergedDtos;
+    }
+
+    private boolean isSame(UsageLog original, SaveUsageLogDto updated) {
+        String originalApp = EncryptionUtil.decrypt(original.getApp());
+        String originalTitle = EncryptionUtil.decrypt(original.getTitle());
+        String originalUrl = EncryptionUtil.decrypt(original.getUrl());
+        boolean contentSame = originalApp.equals(updated.app()) && 
+                             originalTitle.equals(updated.title()) && 
+                             originalUrl.equals(updated.url());
+        double originalEndTime = original.getTimestamp() + original.getDuration();
+        double timeDifference = Math.abs(originalEndTime - updated.timestamp());
+        boolean timesContinuous = timeDifference <= CONTINUITY_MARGIN_SECONDS;
+        
+        return contentSame && timesContinuous;
+    }
+    private boolean isSame(SaveUsageLogDto original, SaveUsageLogDto updated) {
+        boolean contentSame = original.app().equals(updated.app()) && 
+                             original.title().equals(updated.title()) && 
+                             original.url().equals(updated.url());
+        double originalEndTime = original.timestamp() + original.duration();
+        double timeDifference = Math.abs(originalEndTime - updated.timestamp());
+        boolean timesContinuous = timeDifference <= CONTINUITY_MARGIN_SECONDS;
+        
+        return contentSame && timesContinuous;
+    }
+
     private DateRange getDateRange(LocalDate date) {
         if (date == null) {
             date = LocalDate.now();

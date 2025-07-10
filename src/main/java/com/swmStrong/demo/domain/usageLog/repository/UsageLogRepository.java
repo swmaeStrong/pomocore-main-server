@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UsageLogRepository extends MongoRepository<UsageLog, ObjectId> {
     List<UsageLog> findByUserId(String userId);
@@ -46,4 +47,6 @@ public interface UsageLogRepository extends MongoRepository<UsageLog, ObjectId> 
     );
 
     List<UsageLog> findUsageLogByUserIdAndTimestampBetween(String userId, double start, double end);
+    
+    Optional<UsageLog> findTopByUserIdOrderByTimestampDesc(String userId);
 }

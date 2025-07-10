@@ -49,7 +49,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
         increaseScoreByCategoryAndUserId(category, userId, day, duration);
         if (workCategories.contains(category)) {
-            increaseScoreByCategoryAndUserId("total", userId, day, duration);
+            increaseScoreByCategoryAndUserId("work", userId, day, duration);
         }
     }
 
@@ -82,7 +82,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
         String key = generateKey(category, date, periodType);
         List<CategoryDetailDto> details = new ArrayList<>();
-        if (category.equals("total")) {
+        if (category.equals("work")) {
             List<String> allCategories = workCategories.stream().toList();
 
             for (String cat: allCategories) {
@@ -168,7 +168,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             );
         }
 
-        if (category != null && category.equals("total") && date != null) {
+        if (category != null && category.equals("work") && date != null) {
             List<String> allCategories = workCategories.stream().toList();
             
             for (int i = 0; i < response.size(); i++) {

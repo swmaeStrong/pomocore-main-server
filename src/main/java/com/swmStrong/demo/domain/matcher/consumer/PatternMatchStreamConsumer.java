@@ -68,12 +68,17 @@ public class PatternMatchStreamConsumer extends AbstractRedisStreamConsumer {
                     }
                     stringRedisTemplate.opsForStream().acknowledge(StreamConfig.PATTERN_MATCH.getGroup(), record);
 
+                    double duration = usageLog.getDuration();
+                    if (message.margin() != null) {
+                        duration = message.margin();
+                    }
+
                     redisStreamProducer.send(
                     StreamConfig.LEADERBOARD.getStreamKey(),
                     LeaderBoardUsageMessage.builder()
                             .userId(usageLog.getUserId())
                             .categoryId(usageLog.getCategoryId())
-                            .duration(usageLog.getDuration())
+                            .duration(duration)
                             .timestamp(usageLog.getTimestamp())
                             .build()
                     );

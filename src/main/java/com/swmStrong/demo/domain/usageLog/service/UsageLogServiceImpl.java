@@ -69,7 +69,6 @@ public class UsageLogServiceImpl implements UsageLogService {
                     .map(UsageLog::getId)
                     .orElse(null);
             List<SaveUsageLogDto>mergedUsageLogs = mergeDuplicatedData(saveUsageLogs, lastUsageLogId);
-
             double maxTimestamp = 0;
             for (SaveUsageLogDto dto : mergedUsageLogs) {
                 if (dto.timestamp() > currentTimestamp) {
@@ -100,9 +99,16 @@ public class UsageLogServiceImpl implements UsageLogService {
                 if (saveUsageLogDto.usageLogId() != null) {
                     UsageLog existingUsageLog = usageLogRepository.findById(saveUsageLogDto.usageLogId())
                             .orElseThrow(() -> new ApiException(ErrorCode.USAGE_LOG_NOT_FOUND));
-
                     UsageLog updatedUsageLog = existingUsageLog.updateDuration(
                             existingUsageLog.getDuration() + saveUsageLogDto.duration()
+                    );
+                    redisStreamProducer.send(
+                            StreamConfig.PATTERN_MATCH.getStreamKey(),
+                            PatternClassifyMessage.builder()
+                                    .usageLogId(existingUsageLog.getId().toHexString())
+                                    .categoryId(existingUsageLog.getCategoryId().toHexString())
+                                    .margin(saveUsageLogDto.duration())
+                                    .build()
                     );
                     existingUsageLogs.add(updatedUsageLog);
                 } else {
@@ -118,23 +124,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                 }
             }
 
-
-            if (!existingUsageLogs.isEmpty()) {
-                usageLogRepository.saveAll(existingUsageLogs);
-
-                for (UsageLog existingUsageLog : existingUsageLogs) {
-                    redisStreamProducer.send(
-                            StreamConfig.PATTERN_MATCH.getStreamKey(),
-                            PatternClassifyMessage.builder()
-                                    .usageLogId(existingUsageLog.getId().toHexString())
-                                    .categoryId(existingUsageLog.getCategoryId().toHexString())
-                                    .app(null)
-                                    .title(null)
-                                    .url(null)
-                                    .build()
-                    );
-                }
-            }
+            usageLogRepository.saveAll(existingUsageLogs);
 
             if (!newUsageLogs.isEmpty()) {
                 List<UsageLog> securedUsageLogs = newUsageLogs.stream()
@@ -154,7 +144,6 @@ public class UsageLogServiceImpl implements UsageLogService {
                                     .app(originalUsageLog.getApp())
                                     .title(originalUsageLog.getTitle())
                                     .url(originalUsageLog.getUrl())
-                                    .categoryId(null)
                                     .build()
                     );
                 }
@@ -302,8 +291,6 @@ public class UsageLogServiceImpl implements UsageLogService {
         String originalApp = EncryptionUtil.decrypt(original.getApp());
         String originalTitle = EncryptionUtil.decrypt(original.getTitle());
         String originalUrl = EncryptionUtil.decrypt(original.getUrl());
-        
-
         boolean contentSame = originalApp.equals(updated.app()) && 
                              originalTitle.equals(updated.title()) && 
                              originalUrl.equals(updated.url());
@@ -317,7 +304,6 @@ public class UsageLogServiceImpl implements UsageLogService {
         boolean contentSame = original.app().equals(updated.app()) && 
                              original.title().equals(updated.title()) && 
                              original.url().equals(updated.url());
-
         double originalEndTime = original.timestamp() + original.duration();
         double timeDifference = Math.abs(originalEndTime - updated.timestamp());
         boolean timesContinuous = timeDifference <= CONTINUITY_MARGIN_SECONDS;

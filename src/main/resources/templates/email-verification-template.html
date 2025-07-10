@@ -4,132 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Verification - Pawcus</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            padding: 20px 0;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 10px 10px 0 0;
-            margin: -20px -20px 20px -20px;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-        }
-        .content {
-            padding: 20px 0;
-        }
-        .verification-code {
-            text-align: center;
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border: 2px dashed #007BFF;
-        }
-        .verification-code h2 {
-            color: #007BFF;
-            font-size: 32px;
-            margin: 0;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 5px;
-        }
-        .cta-button {
-            display: inline-block;
-            background-color: #007BFF;
-            color: white;
-            padding: 15px 35px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin: 20px 0;
-            font-size: 16px;
-        }
-        .info-box {
-            background-color: #E7F3FF;
-            border: 1px solid #B3D7FF;
-            color: #004A8C;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .steps {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-left: 4px solid #007BFF;
-            margin: 20px 0;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            color: #666;
-            font-size: 14px;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>✉️ 이메일 인증</h1>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #374151; background: linear-gradient(135deg, #EFF6FF 0%, #FDF4FF 50%, #FEF3FE 100%); margin: 0; padding: 20px; min-height: 100vh;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: rgba(255, 255, 255, 0.95); padding: 0; border-radius: 20px; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.1); overflow: hidden;">
+        <div style="text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%); color: white; position: relative; overflow: hidden;">
+            <h1 style="margin: 0; font-size: 32px; font-weight: 700; position: relative; z-index: 1;">이메일 인증</h1>
         </div>
         
-        <div class="content">
-            <p>안녕하세요 <strong>{{username}}</strong>님!</p>
+        <div style="padding: 40px 30px;">
+            <p style="font-size: 18px; color: #1F2937; margin-bottom: 20px;">안녕하세요 <strong style="color: #8B5CF6;">{{username}}</strong>님!</p>
             
             <p>Pawcus 계정 생성을 완료하기 위해 이메일 주소 인증이 필요합니다.</p>
             
-            <div class="info-box">
-                <strong>📧 인증 방법:</strong> 아래 인증 코드를 입력하거나 버튼을 클릭하세요.
+            <div style="background: linear-gradient(135deg, #EFF6FF 0%, #F3E8FF 100%); border: 1px solid #E0E7FF; color: #4338CA; padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 15px;">
+                <strong style="color: #4C1D95;">📧 인증 방법:</strong> 아래 인증 코드를 입력하거나 버튼을 클릭하세요.
             </div>
             
-            <div class="verification-code">
-                <p style="margin: 0; font-size: 14px; color: #666;">인증 코드</p>
-                <h2>{{verification_code}}</h2>
-                <p style="margin: 0; font-size: 12px; color: #666;">위 코드를 복사해서 인증 페이지에 입력하세요</p>
+            <div style="text-align: center; background: linear-gradient(135deg, #FDF4FF 0%, #F3E8FF 100%); padding: 30px; border-radius: 16px; margin: 30px 0; border: 2px solid #E9D5FF; position: relative;">
+                <p style="font-size: 14px; color: #6B7280; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">인증 코드</p>
+                <h2 style="color: #7C3AED; font-size: 36px; margin: 10px 0; font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace; letter-spacing: 6px; font-weight: 700;">{{verification_code}}</h2>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #6B7280;">위 코드를 복사해서 인증 페이지에 입력하세요</p>
             </div>
             
             <div style="text-align: center;">
-                <a href="{{verification_url}}" class="cta-button">이메일 인증 완료하기</a>
+                <a href="{{verification_url}}" style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 600; margin: 20px 0; font-size: 16px; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);">이메일 인증 완료하기</a>
             </div>
             
-            <div class="steps">
+            <div style="background-color: #FAFBFC; padding: 20px; border-left: 4px solid #8B5CF6; border-radius: 8px; margin: 20px 0;">
                 <p><strong>📋 인증 단계:</strong></p>
-                <ol>
-                    <li>위의 "이메일 인증 완료하기" 버튼을 클릭</li>
-                    <li>또는 인증 코드 <strong>{{verification_code}}</strong>를 입력</li>
-                    <li>인증 완료 후 Pawcus 서비스 이용 가능</li>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li style="margin: 8px 0; color: #4B5563;">위의 "이메일 인증 완료하기" 버튼을 클릭</li>
+                    <li style="margin: 8px 0; color: #4B5563;">또는 인증 코드 <strong>{{verification_code}}</strong>를 입력</li>
+                    <li style="margin: 8px 0; color: #4B5563;">인증 완료 후 Pawcus 서비스 이용 가능</li>
                 </ol>
             </div>
             
-            <p><strong>⏰ 유효 시간:</strong> 이 인증 코드는 <strong>{{expiry_time}}분</strong> 동안 유효합니다.</p>
+            <div style="text-align: center; margin: 30px 0; padding: 16px; background-color: #FEF3FE; border-radius: 12px; color: #6B21A8;">
+                <p style="margin: 0;">⏰ 이 인증 코드는 <strong style="color: #7C3AED; font-size: 18px;">{{expiry_time}}분</strong> 동안 유효합니다.</p>
+            </div>
             
             <p>인증 코드가 만료되었거나 문제가 있다면, 새로운 인증 코드를 요청해 주세요.</p>
             
             <p>또는 아래 링크를 복사해서 브라우저에 직접 입력하세요:</p>
-            <p style="word-break: break-all; background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace;">{{verification_url}}</p>
+            <p style="word-break: break-all; background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); padding: 16px; border-radius: 12px; font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace; font-size: 14px; color: #6B7280; border: 1px solid #E5E7EB; margin-top: 10px;">{{verification_url}}</p>
         </div>
         
-        <div class="footer">
-            <p>Pawcus Team<br>
+        <div style="text-align: center; padding: 30px; background-color: #FAFBFC; color: #6B7280; font-size: 14px; border-top: 1px solid #E5E7EB;">
+            <p style="margin: 5px 0;">Pawcus Team<br>
             이 이메일은 자동으로 발송된 메일입니다.<br>
             본인이 요청하지 않았다면 이 이메일을 무시하세요.</p>
         </div>

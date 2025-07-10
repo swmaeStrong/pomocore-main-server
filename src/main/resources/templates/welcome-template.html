@@ -4,92 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Pawcus</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            padding: 20px 0;
-            background-color: #4CAF50;
-            color: white;
-            border-radius: 10px 10px 0 0;
-            margin: -20px -20px 20px -20px;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-        }
-        .content {
-            padding: 20px 0;
-        }
-        .welcome-message {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        .cta-button {
-            display: inline-block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            color: #666;
-            font-size: 14px;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🐾 Welcome to Pawcus!</h1>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #374151; background: linear-gradient(135deg, #DBEAFE 0%, #EDE9FE 33%, #FCE7F3 66%, #FEF3C7 100%); margin: 0; padding: 20px; min-height: 100vh;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: rgba(255, 255, 255, 0.95); padding: 0; border-radius: 20px; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.1); overflow: hidden;">
+        <div style="text-align: center; padding: 50px 20px; background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%); color: white; position: relative; overflow: hidden;">
+            <div style="font-size: 48px; margin-bottom: 10px;">🐾</div>
+            <h1 style="margin: 0; font-size: 36px; font-weight: 700; position: relative; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">Welcome to Pawcus!</h1>
         </div>
         
-        <div class="content">
-            <p class="welcome-message">안녕하세요 <strong>{{username}}</strong>님!</p>
+        <div style="padding: 40px 30px;">
+            <p style="font-size: 20px; margin-bottom: 25px; color: #1F2937;">안녕하세요 <strong style="color: #8B5CF6; font-weight: 600;">{{username}}</strong>님!</p>
             
-            <p>Pawcus에 가입해 주셔서 감사합니다. 이제 Pawcus의 강력한 로그 추적 기능을 통한 생산성 변화를 직접 경험해보세요! </p>
+            <p style="font-size: 16px; color: #4B5563; margin-bottom: 30px; line-height: 1.8;">Pawcus에 가입해 주셔서 감사합니다. 이제 Pawcus의 강력한 로그 추적 기능을 통한 생산성 변화를 직접 경험해보세요!</p>
             
-            <p>Pawcus에서 할 수 있는 것들:</p>
-            <ul>
-                <li>🏆 리더보드에서 다른 사용자들과 경쟁</li>
-                <li>📊 개인화된 통계 및 분석</li>
-                <li>🎯 목표 설정 및 달성</li>
-                <li>🤝 커뮤니티 참여</li>
-            </ul>
+            <div style="background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%); padding: 25px; border-radius: 16px; margin: 30px 0; border: 1px solid #E5E7EB;">
+                <p style="margin: 0 0 15px 0; font-weight: 600; color: #1F2937;">Pawcus에서 할 수 있는 것들:</p>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 12px 0; font-size: 16px; color: #374151; display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">🏆</span> 리더보드에서 다른 사용자들과 경쟁
+                    </li>
+                    <li style="padding: 12px 0; font-size: 16px; color: #374151; display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">📊</span> 개인화된 통계 및 분석
+                    </li>
+                    <li style="padding: 12px 0; font-size: 16px; color: #374151; display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">🎯</span> 목표 설정 및 달성
+                    </li>
+                    <li style="padding: 12px 0; font-size: 16px; color: #374151; display: flex; align-items: center;">
+                        <span style="font-size: 24px; margin-right: 12px;">🤝</span> 커뮤니티 참여
+                    </li>
+                </ul>
+            </div>
             
             <div style="text-align: center;">
-                <a href="{{blog_url}}" class="cta-button"> Pawcus 팀 활동 찾아보기 </a>
+                <a href="{{blog_url}}" style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 600; margin: 25px 0; font-size: 16px; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);"> Pawcus 팀 활동 찾아보기 </a>
             </div>
 
-            <p>궁금한 점이 있으시면 언제든지 문의해 주세요.</p>
+            <p style="color: #4B5563; margin-top: 30px;">궁금한 점이 있으시면 언제든지 문의해 주세요.</p>
 
-            <p>즐거운 Pawcus 여정 되세요! 🎉</p>
+            <p style="text-align: center; font-size: 18px; color: #6B7280; margin-top: 30px;">즐거운 Pawcus 여정 되세요<span style="font-size: 32px; margin-left: 8px;">🎉</span></p>
         </div>
         
-        <div class="footer">
-            <p>Pawcus Team<br>
+        <div style="text-align: center; padding: 30px; background-color: #FAFBFC; color: #6B7280; font-size: 14px; border-top: 1px solid #E5E7EB;">
+            <p style="margin: 5px 0;">Pawcus Team<br>
             이 이메일은 자동으로 발송된 메일입니다.</p>
         </div>
     </div>

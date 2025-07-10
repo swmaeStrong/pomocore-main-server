@@ -9,7 +9,8 @@ public enum WorkCategoryType {
     DOCUMENTATION("Documentation"),
     DESIGN("Design"),
     VIDEO_EDITING("Video Editing"),
-    EDUCATION("Education");
+    EDUCATION("Education"),
+    PRODUCTIVITY("Productivity"),;
 
     private final String category;
 

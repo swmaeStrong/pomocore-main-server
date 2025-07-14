@@ -2,7 +2,10 @@ package com.swmStrong.demo.domain.pomodoro.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.pomodoro.dto.PomodoroResponseDto;
+import com.swmStrong.demo.domain.pomodoro.dto.SessionResponseDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
 import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
@@ -20,6 +23,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -95,5 +99,67 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .build()
             );
         }
+    }
+
+    @Override
+    public List<PomodoroResponseDto> getPomodoroSessionResult(String userId, LocalDate date) {
+        if (!userInfoProvider.existsUserById(userId)) {
+            throw new ApiException(ErrorCode.USER_NOT_FOUND);
+        }
+        List<PomodoroResponseDto> pomodoroResponseDtoList = new ArrayList<>();
+        int maxSession = pomodoroUsageLogRepository.findMaxSessionByUserIdAndSessionDate(userId, date);
+
+        System.out.println(maxSession);
+        for (int i = 1; i <= maxSession; i++) {
+            List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionAndSessionDate(userId, i, date);
+            System.out.println(pomodoroUsageLogList);
+            if (pomodoroUsageLogList.isEmpty()) {
+                continue;
+            }
+            
+            List<SessionResponseDto> sessionResponseDtoList = new ArrayList<>();
+            int sessionMinutes = 0;
+            double workTime = 0;
+            double afkTime = 0;
+            double breakTime = 0;
+
+            Set<String> workCategories = WorkCategoryType.getAllValues();
+            for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
+                sessionMinutes = pomodoroUsageLog.getSessionMinutes();
+                
+                String category = pomodoroUsageLog.getCategoryId() != null 
+                    ? categoryProvider.getCategoryById(pomodoroUsageLog.getCategoryId())
+                    : null;
+                if (category != null) {
+                    if (category.equals("AFK")) {
+                        afkTime += pomodoroUsageLog.getDuration();
+                    } else if (workCategories.contains(category)) {
+                        workTime += pomodoroUsageLog.getDuration();
+                    } else {
+                        breakTime += pomodoroUsageLog.getDuration();
+                    }
+                }
+                SessionResponseDto sessionResponseDto = new SessionResponseDto(
+                    pomodoroUsageLog.getTimestamp(),
+                    pomodoroUsageLog.getDuration(),
+                    category
+                );
+                sessionResponseDtoList.add(sessionResponseDto);
+            }
+            
+            PomodoroResponseDto pomodoroResponseDto = PomodoroResponseDto.builder()
+                .workTime(workTime)
+                .afkTime(afkTime)
+                .breakTime(breakTime)
+                .sessionDate(date)
+                .session(i)
+                .sessionMinutes(sessionMinutes)
+                .usageLogs(sessionResponseDtoList)
+                .build();
+                
+            pomodoroResponseDtoList.add(pomodoroResponseDto);
+        }
+        
+        return pomodoroResponseDtoList;
     }
 }

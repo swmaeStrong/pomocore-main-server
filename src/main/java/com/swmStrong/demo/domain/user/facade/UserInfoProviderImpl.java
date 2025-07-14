@@ -33,4 +33,9 @@ public class UserInfoProviderImpl implements UserInfoProvider {
         }
         return nicknames;
     }
+
+    @Override
+    public boolean existsUserById(String userId) {
+        return userRepository.existsById(userId);
+    }
 }

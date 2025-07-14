@@ -6,4 +6,5 @@ import java.util.Map;
 public interface UserInfoProvider {
     String loadNicknameByUserId(String userId);
     Map<String, String> loadNicknamesByUserIds(List<String> userIds);
+    boolean existsUserById(String userId);
 }

@@ -164,7 +164,7 @@ public class UsageLogServiceImpl implements UsageLogService {
         List<CategorizedUsageLogDto> categorizedUsageLogDtos = new ArrayList<>();
         DateRange range = getDateRange(date);
         List<UsageLog> usageLogs = usageLogRepository.findUsageLogByUserIdAndTimestampBetween(userId, range.start(), range.end());
-        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
+        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         CategorizedUsageLogDto lastUsage = null;
         for (UsageLog usageLog : usageLogs) {
             String category = categoryMap.get(usageLog.getCategoryId());
@@ -207,7 +207,7 @@ public class UsageLogServiceImpl implements UsageLogService {
                 .sorted(Comparator.comparing(UsageLog::getTimestamp))
                 .toList();
 
-        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMap();
+        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
 
         Set<String> workCategories = WorkCategoryType.getAllValues();
 

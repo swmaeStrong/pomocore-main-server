@@ -9,5 +9,6 @@ public interface CategoryProvider {
     List<String> getCategories();
     String getCategoryById(ObjectId categoryId);
     ObjectId getCategoryIdByCategory(String category);
-    Map<ObjectId, String> getCategoryMap();
+    Map<ObjectId, String> getCategoryMapById();
+    Map<String, ObjectId> getCategoryMapByCategory();
 }

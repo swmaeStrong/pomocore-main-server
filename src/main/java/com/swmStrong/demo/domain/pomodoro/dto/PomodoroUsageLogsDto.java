@@ -14,7 +14,6 @@ public record PomodoroUsageLogsDto(
             String title,
             String app,
             String url,
-            String category,
             double duration,
             double timestamp
     ) {}

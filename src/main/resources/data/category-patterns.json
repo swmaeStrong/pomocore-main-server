@@ -1,6 +1,12 @@
 {
   "categoryPatterns": [
     {
+      "category": "AFK",
+      "priority": 1000,
+      "appPatterns": [],
+      "domainPatterns": []
+    },
+    {
       "category": "Uncategorized",
       "priority": 100,
       "appPatterns": [],

@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.goal.service;
 
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
+import com.swmStrong.demo.domain.goal.dto.DeleteUserGoalDto;
 import com.swmStrong.demo.domain.goal.dto.GoalResponseDto;
 import com.swmStrong.demo.domain.goal.dto.SaveUserGoalDto;
 import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
@@ -48,6 +49,11 @@ public class GoalServiceImpl implements GoalService {
             }
         }
         return goalResponseDtoList;
+    }
+
+    @Override
+    public void deleteUserGoal(String userId, DeleteUserGoalDto deleteUserGoalDto) {
+        redisRepository.deleteData(generateKey(userId, deleteUserGoalDto.category()));
     }
 
     private String generateKey(String userId, String category) {

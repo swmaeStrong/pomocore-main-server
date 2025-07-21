@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
+import com.swmStrong.demo.domain.goal.dto.DeleteUserGoalDto;
 import com.swmStrong.demo.domain.goal.dto.GoalResponseDto;
 import com.swmStrong.demo.domain.goal.dto.SaveUserGoalDto;
 import com.swmStrong.demo.domain.goal.service.GoalService;
@@ -41,6 +42,23 @@ public class GoalController {
         goalService.saveUserGoal(principal.userId(), saveUserGoalDto);
         return CustomResponseEntity.of(
                 SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "목표 삭제",
+            description =
+                    "<p> 유저의 목표를 삭제한다. </p>"
+    )
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestBody DeleteUserGoalDto deleteUserGoalDto
+    ) {
+        goalService.deleteUserGoal(principal.userId(), deleteUserGoalDto);
+        return CustomResponseEntity.of(
+                SuccessCode._NO_CONTENT
         );
     }
 

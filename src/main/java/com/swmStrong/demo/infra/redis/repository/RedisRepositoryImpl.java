@@ -23,6 +23,10 @@ public class RedisRepositoryImpl implements RedisRepository {
         redisTemplate.opsForValue().set(key, value, expireDuration);
     }
 
+    public <T> void setData(String key, T value) {
+        redisTemplate.opsForValue().set(key, value.toString());
+    }
+
     public void deleteData(String key) {
         redisTemplate.delete(key);
     }

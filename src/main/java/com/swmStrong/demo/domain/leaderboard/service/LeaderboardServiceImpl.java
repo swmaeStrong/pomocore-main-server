@@ -118,7 +118,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         return response;
     }
 
-    private String generateKey(String category, LocalDate date, PeriodType periodType) {
+    public String generateKey(String category, LocalDate date, PeriodType periodType) {
         return switch (periodType) {
             case DAILY -> generateDailyKey(category, date);
             case WEEKLY -> generateWeeklyKey(category, date);

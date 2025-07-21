@@ -12,4 +12,5 @@ public interface LeaderboardService {
     List<LeaderboardResponseDto> getLeaderboardPage(String category, int page, int size, LocalDate date, PeriodType periodType);
     LeaderboardResponseDto getUserScoreInfo(String category, String userId, LocalDate date, PeriodType periodType);
     Map<String, List<LeaderboardResponseDto>> getLeaderboards();
+    String generateKey(String category, LocalDate date, PeriodType periodType);
 }

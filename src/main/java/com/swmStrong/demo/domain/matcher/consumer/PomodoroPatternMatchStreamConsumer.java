@@ -51,9 +51,10 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                     Map<Object, Object> valueMap = record.getValue();
                     PomodoroPatternClassifyMessage message = objectMapper.convertValue(valueMap, PomodoroPatternClassifyMessage.class);
 
-                    ObjectId categoryId = patternClassifier.classify(message.app(), message.title(), message.url());
-                    pomodoroUpdateProvider.updatePomodoroUsageLogByCategoryId(new ObjectId(message.pomodoroUsageLogId()), categoryId);
-                    pomodoroUpdateProvider.updateCategorizedDataByCategoryId(new ObjectId(message.categorizedDataId()), categoryId);
+                    PatternClassifier.ClassifiedResult result = patternClassifier.classify(message.app(), message.title(), message.url());
+                    pomodoroUpdateProvider.updatePomodoroUsageLogByCategoryId(new ObjectId(message.pomodoroUsageLogId()), result.categoryPatternId());
+                    pomodoroUpdateProvider.updateCategorizedDataByCategoryId(new ObjectId(message.categorizedDataId()), result.categoryPatternId(), result.isLLMBased());
+
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);

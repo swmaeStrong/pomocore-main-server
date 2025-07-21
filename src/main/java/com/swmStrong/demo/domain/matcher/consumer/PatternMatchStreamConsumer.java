@@ -60,9 +60,9 @@ public class PatternMatchStreamConsumer extends AbstractRedisStreamConsumer {
 
                     UsageLog usageLog = null;
                     if (message.categoryId().isEmpty()) {
-                        ObjectId CategoryPatternId = patternClassifier.classify(message.app(), message.title(), message.url());
+                        PatternClassifier.ClassifiedResult result = patternClassifier.classify(message.app(), message.title(), message.url());
                         ObjectId usageLogId = new ObjectId(message.usageLogId());
-                        usageLog = usageLogUpdateProvider.updateCategory(usageLogId, CategoryPatternId);
+                        usageLog = usageLogUpdateProvider.updateCategory(usageLogId, result.categoryPatternId());
                     } else {
                         usageLog = usageLogUpdateProvider.loadByUsageLogId(new ObjectId(message.usageLogId()));
                     }

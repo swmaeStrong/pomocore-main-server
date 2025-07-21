@@ -57,32 +57,32 @@ public class PomodoroServiceImpl implements PomodoroService {
         List<CategorizedData> categorizedDataList = new ArrayList<>();
 
         for (PomodoroUsageLogsDto.PomodoroDto pomodoroDto: pomodoroUsageLogsDto.usageLogs()) {
-            PomodoroUsageLog pomodoroUsageLog = PomodoroUsageLog.builder()
-                    .session(pomodoroUsageLogsDto.session())
-                    .sessionMinutes(pomodoroUsageLogsDto.sessionMinutes())
-                    .sessionDate(pomodoroUsageLogsDto.sessionDate())
-                    .userId(userId)
-                    .app(pomodoroDto.app())
-                    .duration(pomodoroDto.duration())
-                    .timestamp(pomodoroDto.timestamp())
-                    .build();
-            pomodoroUsageLogList.add(pomodoroUsageLog);
-
             CategorizedData categorizedData = CategorizedData.builder()
                     .url(pomodoroDto.url())
                     .title(pomodoroDto.title())
                     .app(pomodoroDto.app())
                     .build();
             categorizedDataList.add(categorizedData);
+
+            PomodoroUsageLog pomodoroUsageLog = PomodoroUsageLog.builder()
+                    .session(pomodoroUsageLogsDto.session())
+                    .sessionMinutes(pomodoroUsageLogsDto.sessionMinutes())
+                    .sessionDate(pomodoroUsageLogsDto.sessionDate())
+                    .userId(userId)
+                    .duration(pomodoroDto.duration())
+                    .timestamp(pomodoroDto.timestamp())
+                    .build();
+            pomodoroUsageLogList.add(pomodoroUsageLog);
+
         }
 
-        pomodoroUsageLogList = pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
         categorizedDataList = categorizedDataRepository.saveAll(categorizedDataList);
+        pomodoroUsageLogList = pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
 
         for (int i=0; i<pomodoroUsageLogList.size(); i++) {
             PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogList.get(i);
             CategorizedData categorizedData = categorizedDataList.get(i);
-            if (pomodoroUsageLog.getCategoryId() != null) continue;
+
             redisStreamProducer.send(
                     StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),
                     PomodoroPatternClassifyMessage.builder()
@@ -101,10 +101,10 @@ public class PomodoroServiceImpl implements PomodoroService {
         if (!userInfoProvider.existsUserById(userId)) {
             throw new ApiException(ErrorCode.USER_NOT_FOUND);
         }
+
         List<PomodoroResponseDto> pomodoroResponseDtoList = new ArrayList<>();
         int maxSession = pomodoroUsageLogRepository.findMaxSessionByUserIdAndSessionDate(userId, date);
 
-        System.out.println(maxSession);
         for (int i = 1; i <= maxSession; i++) {
             List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionAndSessionDate(userId, i, date);
             System.out.println(pomodoroUsageLogList);
@@ -157,4 +157,8 @@ public class PomodoroServiceImpl implements PomodoroService {
         
         return pomodoroResponseDtoList;
     }
+
+    //TODO: 각 세션을 조회하고, 그 점수를 계산해서 특정 저장소에 넣는 로직 구현
+
+    
 }

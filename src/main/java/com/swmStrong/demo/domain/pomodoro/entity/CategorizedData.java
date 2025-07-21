@@ -20,6 +20,8 @@ public class CategorizedData {
 
     private ObjectId categoryId;
 
+    private boolean IsLLMBased;
+
     @Builder
     public CategorizedData(String app, String url, String title, ObjectId categoryId) {
         this.app = app;
@@ -30,5 +32,9 @@ public class CategorizedData {
 
     public void updateCategoryId(ObjectId categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public void checkLLMBased(boolean isLLMBased) {
+        this.IsLLMBased = isLLMBased;
     }
 }

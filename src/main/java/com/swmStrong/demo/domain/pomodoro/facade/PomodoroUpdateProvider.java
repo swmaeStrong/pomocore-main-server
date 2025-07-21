@@ -23,22 +23,23 @@ public class PomodoroUpdateProvider {
         this.pomodoroUsageLogRepository = pomodoroUsageLogRepository;
     }
 
-    public PomodoroUsageLog updatePomodoroUsageLogByCategoryId(ObjectId pomodoroUsageLogId, ObjectId categoryId) {
+    public void updatePomodoroUsageLogByCategoryId(ObjectId pomodoroUsageLogId, ObjectId categoryId) {
         PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogRepository.findById(pomodoroUsageLogId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USAGE_LOG_NOT_FOUND));
 
         pomodoroUsageLog.updateCategoryId(categoryId);
         pomodoroUsageLogRepository.save(pomodoroUsageLog);
-        return pomodoroUsageLog;
     }
 
 
-    public CategorizedData updateCategorizedDataByCategoryId(ObjectId categorizedDataId, ObjectId categoryId) {
+    public void updateCategorizedDataByCategoryId(ObjectId categorizedDataId, ObjectId categoryId, boolean isLLMBased) {
         CategorizedData categorizedData = categorizedDataRepository.findById(categorizedDataId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USAGE_LOG_NOT_FOUND));
 
         categorizedData.updateCategoryId(categoryId);
+        if  (isLLMBased) {
+            categorizedData.checkLLMBased();
+        }
         categorizedDataRepository.save(categorizedData);
-        return categorizedData;
     }
 }

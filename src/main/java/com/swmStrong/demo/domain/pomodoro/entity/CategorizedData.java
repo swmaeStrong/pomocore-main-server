@@ -20,15 +20,22 @@ public class CategorizedData {
 
     private ObjectId categoryId;
 
+    private boolean IsLLMBased;
+
     @Builder
     public CategorizedData(String app, String url, String title, ObjectId categoryId) {
         this.app = app;
         this.url = url;
         this.title = title;
         this.categoryId = categoryId;
+        this.IsLLMBased = false;
     }
 
     public void updateCategoryId(ObjectId categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public void checkLLMBased() {
+        this.IsLLMBased = true;
     }
 }

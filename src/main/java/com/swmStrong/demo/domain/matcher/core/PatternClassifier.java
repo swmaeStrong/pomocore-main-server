@@ -60,30 +60,30 @@ public class PatternClassifier {
         log.info("app and domain tries initialized");
     }
 
-    public ObjectId classify(String app, String title, String url) {
+    public ClassifiedResult classify(String app, String title, String url) {
         log.trace("start classify: {}, {}, {}", app, title, url);
         String query = getQuery(app, title, url);
         ObjectId objectId;
 
         // trie (1차 분류) -> 1차 분류에서 걸러지지 않는 것: 브라우징류의 모호한 것들
         objectId = classifyFromAppTrie(app);
-        if (objectId != null) return objectId;
+        if (objectId != null) return new ClassifiedResult(objectId, false);
         //trie (1.5차 분류) -> 1차 분류에서 걸러지지 않지만, 브라우징에서 확연하게 걸러낼 수 있는 것들 (domain 기반)
         if (url != null && !url.isEmpty()) {
             objectId = classifyFromDomainTrie(url);
-            if (objectId != null) return objectId;
+            if (objectId != null) return new ClassifiedResult(objectId, false);
         }
         // cache (2차 분류) -> 하위 레이어에서 분류한 것들을 캐싱
         objectId = classifyFromCache(query);
-        if (objectId != null) return objectId;
+        if (objectId != null) return new ClassifiedResult(objectId, true);
         // ML (3차 분류) -> 하위 레이어에서 분류한 것들을 통해 유사도 기반 클러스터링
         objectId = classifyFromML(app, title, url);
         if (objectId != null) return putCache(query, objectId);
         // LLM (4차 분류) -> 여기까지 도달한 경우 프롬프팅을 통해 카테고리 도출
         objectId = classifyFromLLM(query);
         if (objectId != null) return putCache(query, objectId);
-        return categoryPatternRepository.findByCategory("Uncategorized")
-                .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND)).getId();
+        return new ClassifiedResult(categoryPatternRepository.findByCategory("Uncategorized")
+                .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND)).getId(), true);
     }
 
     private ObjectId classifyFromAppTrie(String app) {
@@ -124,8 +124,15 @@ public class PatternClassifier {
         return String.format("app: %s, title: %s, url: %s", app, title, url);
     }
 
-    private ObjectId putCache(String query, ObjectId objectId) {
+    private ClassifiedResult putCache(String query, ObjectId objectId) {
         classificationCache.put(query, objectId);
-        return objectId;
+        return new ClassifiedResult(objectId, true);
+    }
+
+    public record ClassifiedResult(
+            ObjectId categoryPatternId,
+            boolean isLLMBased
+    ) {
+
     }
 }

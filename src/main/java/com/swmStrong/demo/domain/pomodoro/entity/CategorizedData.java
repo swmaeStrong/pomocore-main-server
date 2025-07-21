@@ -28,14 +28,13 @@ public class CategorizedData {
         this.url = url;
         this.title = title;
         this.categoryId = categoryId;
-        this.IsLLMBased = false;
     }
 
     public void updateCategoryId(ObjectId categoryId) {
         this.categoryId = categoryId;
     }
 
-    public void checkLLMBased() {
-        this.IsLLMBased = true;
+    public void checkLLMBased(boolean isLLMBased) {
+        this.IsLLMBased = isLLMBased;
     }
 }

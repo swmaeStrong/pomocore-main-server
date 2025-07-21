@@ -77,12 +77,11 @@ public class PomodoroServiceImpl implements PomodoroService {
         }
 
         categorizedDataList = categorizedDataRepository.saveAll(categorizedDataList);
+        pomodoroUsageLogList = pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
 
         for (int i=0; i<pomodoroUsageLogList.size(); i++) {
             PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogList.get(i);
             CategorizedData categorizedData = categorizedDataList.get(i);
-
-            pomodoroUsageLog.updateCategorizedDataId(categorizedData.getId());
 
             redisStreamProducer.send(
                     StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),
@@ -95,7 +94,6 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .build()
             );
         }
-        pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
     }
 
     @Override

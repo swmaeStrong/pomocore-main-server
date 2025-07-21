@@ -37,9 +37,7 @@ public class PomodoroUpdateProvider {
                 .orElseThrow(() -> new ApiException(ErrorCode.USAGE_LOG_NOT_FOUND));
 
         categorizedData.updateCategoryId(categoryId);
-        if  (isLLMBased) {
-            categorizedData.checkLLMBased();
-        }
+        categorizedData.checkLLMBased(isLLMBased);
         categorizedDataRepository.save(categorizedData);
     }
 }

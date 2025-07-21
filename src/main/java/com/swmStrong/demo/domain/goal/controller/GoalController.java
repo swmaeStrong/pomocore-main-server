@@ -50,7 +50,8 @@ public class GoalController {
             security = @SecurityRequirement(name = "bearerAuth"),
             summary = "목표 삭제",
             description =
-                    "<p> 유저의 목표를 삭제한다. </p>"
+                    "<p> 유저의 목표를 삭제한다. </p>" +
+                    "<p> period에 넣을 수 있는 값: daily, weekly, monthly </p>"
     )
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> delete(

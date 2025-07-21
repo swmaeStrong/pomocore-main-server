@@ -39,7 +39,7 @@ public class GoalServiceImpl implements GoalService {
     @Override
     public List<GoalResponseDto> getUserGoals(String userId, LocalDate date, String period) {
         List<GoalResponseDto> goalResponseDtoList = new ArrayList<>();
-        PeriodType periodType = PeriodType.valueOf(period);
+        PeriodType periodType = PeriodType.valueOf(period.toUpperCase());
 
         for (String category: getCategoryList()) {
             String key = generateKey(userId, category);

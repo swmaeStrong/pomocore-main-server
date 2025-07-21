@@ -1,8 +1,7 @@
 package com.swmStrong.demo.domain.goal.dto;
 
-public record SaveUserGoalDto(
+public record DeleteUserGoalDto(
         String category,
-        int goalSeconds,
         String period
 ) {
 }

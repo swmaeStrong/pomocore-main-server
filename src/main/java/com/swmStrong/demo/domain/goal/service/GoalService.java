@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface GoalService {
     void saveUserGoal(String userId, SaveUserGoalDto saveUserGoalDto);
-    List<GoalResponseDto> getUserGoals(String userId, LocalDate date, String periodType);
+    List<GoalResponseDto> getUserGoals(String userId, LocalDate date);
     void deleteUserGoal(String userId, DeleteUserGoalDto deleteUserGoalDto);
 }

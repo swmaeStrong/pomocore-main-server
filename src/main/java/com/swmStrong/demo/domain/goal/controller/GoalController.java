@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@RequestMapping("/goal")
 @RestController
 public class GoalController {
 
@@ -32,7 +33,7 @@ public class GoalController {
             summary = "목표 설정",
             description =
                     "<p> 유저의 목표를 설정한다. </p>" +
-                    "<p> 주간, 월간 목표 같은건 아직 못정한다. </p>"
+                    "<p> period에 넣을 수 있는 값: daily, weekly, monthly </p>"
     )
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> save(
@@ -66,22 +67,18 @@ public class GoalController {
             security = @SecurityRequirement(name = "bearerAuth"),
             summary = "목표 조회",
             description =
-                    "<p> 목표와 달성치를 조회한다. </p>" +
-                    "<p> 입력 가능한 period: daily, weekly, monthly </p>" +
-                    "<p> 설정 목표애 대한 분기 처리를 안했기 때문에 daily를 넣으면 된다. </p>"
+                    "<p> 목표와 달성치를 조회한다. </p>"
     )
     @GetMapping("/{period}")
     public ResponseEntity<ApiResponse<List<GoalResponseDto>>> getUserGoals(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date,
-            @PathVariable
-            String period
+            LocalDate date
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                goalService.getUserGoals(principal.userId(), date, period)
+                goalService.getUserGoals(principal.userId(), date)
         );
     }
 }

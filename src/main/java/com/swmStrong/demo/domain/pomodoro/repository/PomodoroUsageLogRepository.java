@@ -18,5 +18,5 @@ public interface PomodoroUsageLogRepository extends MongoRepository<PomodoroUsag
                 .orElse(0);
     }
     
-    List<PomodoroUsageLog> findByUserIdAndSessionAndSessionDate(String userId, int session, LocalDate sessionDate);
+    List<PomodoroUsageLog> findByUserIdAndSessionAndSessionDateOrderByTimestamp(String userId, int session, LocalDate sessionDate);
 }

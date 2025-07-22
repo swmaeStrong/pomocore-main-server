@@ -16,6 +16,7 @@ import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PomodoroPatternClassifyMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -82,15 +83,19 @@ public class PomodoroServiceImpl implements PomodoroService {
         for (int i=0; i<pomodoroUsageLogList.size(); i++) {
             PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogList.get(i);
             CategorizedData categorizedData = categorizedDataList.get(i);
-
+            boolean isEnd = pomodoroUsageLogsDto.isEnd() && i == pomodoroUsageLogList.size() - 1;
             redisStreamProducer.send(
                     StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),
                     PomodoroPatternClassifyMessage.builder()
+                    .userId(userId)
                     .pomodoroUsageLogId(pomodoroUsageLog.getId().toHexString())
                     .categorizedDataId(categorizedData.getId().toHexString())
                     .title(categorizedData.getTitle())
                     .url(categorizedData.getUrl())
                     .app(categorizedData.getApp())
+                    .sessionDate(pomodoroUsageLogsDto.sessionDate())
+                    .session(pomodoroUsageLogsDto.session())
+                    .isEnd(isEnd)
                     .build()
             );
         }
@@ -106,7 +111,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         int maxSession = pomodoroUsageLogRepository.findMaxSessionByUserIdAndSessionDate(userId, date);
 
         for (int i = 1; i <= maxSession; i++) {
-            List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionAndSessionDate(userId, i, date);
+            List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionAndSessionDateOrderByTimestamp(userId, i, date);
             System.out.println(pomodoroUsageLogList);
             if (pomodoroUsageLogList.isEmpty()) {
                 continue;

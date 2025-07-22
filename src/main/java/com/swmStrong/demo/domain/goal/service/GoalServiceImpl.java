@@ -34,8 +34,10 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    public void saveUserGoal(String userId, SaveUserGoalDto saveUserGoalDto) {
-        redisRepository.setData(generateKey(userId, saveUserGoalDto.category(), saveUserGoalDto.period(), LocalDate.now()), saveUserGoalDto.goalSeconds());
+    public void saveUserGoal(String userId, List<SaveUserGoalDto> saveUserGoalDtoList) {
+        for (SaveUserGoalDto saveUserGoalDto : saveUserGoalDtoList) {
+            redisRepository.setData(generateKey(userId, saveUserGoalDto.category(), saveUserGoalDto.period(), LocalDate.now()), saveUserGoalDto.goalSeconds());
+        }
     }
 
     @Override

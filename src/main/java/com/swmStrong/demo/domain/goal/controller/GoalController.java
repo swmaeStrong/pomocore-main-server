@@ -38,9 +38,9 @@ public class GoalController {
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> save(
             @AuthenticationPrincipal SecurityPrincipal principal,
-            @RequestBody SaveUserGoalDto saveUserGoalDto
+            @RequestBody List<SaveUserGoalDto> saveUserGoalDtoList
     ) {
-        goalService.saveUserGoal(principal.userId(), saveUserGoalDto);
+        goalService.saveUserGoal(principal.userId(), saveUserGoalDtoList);
         return CustomResponseEntity.of(
                 SuccessCode._OK
         );

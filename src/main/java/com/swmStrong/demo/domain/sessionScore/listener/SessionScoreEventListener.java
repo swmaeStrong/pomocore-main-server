@@ -59,8 +59,8 @@ public class SessionScoreEventListener {
                 .session(event.session())
                 .sessionDate(event.sessionDate())
                 .user(userInfoProvider.loadByUserId(event.userId()))
-                .startedAt(first.getTimestamp())
-                .endedAt(last.getTimestamp() + last.getDuration())
+                .timestamp(first.getTimestamp())
+                .duration(last.getDuration()+last.getTimestamp()-first.getTimestamp())
                 .build();
 
         sessionScoreRepository.save(sessionScore);

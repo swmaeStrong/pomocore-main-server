@@ -8,6 +8,7 @@ import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.service.SessionScoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.List;
 
+@Tag(name = "세션 점수")
 @RequestMapping("/session")
 @RestController
 public class SessionScoreController {
@@ -30,9 +32,12 @@ public class SessionScoreController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "유저 통계 정보 확인",
+            summary = "유저 세션 정보 확인",
             description =
-                    "<p> 일단 기본정보 서빙 </p>"
+                    "<p> 해당 일자의 세션 정보를 확인한다. </p>" +
+                    "<p> 제공되는 정보의 경우 usage-log/pomodoro에서 isEnd 플래그가 true인 경우 해당 로그가 자동 생성된다. </p>" +
+                    "<p> title의 경우 현재 무조건 빈값으로 나가나, 이후 llm으로 생성할 수 있다. </p>" +
+                    "<p> 지금 당장은 점수 계산이 문제 있을 수 있으니 피드백 ㄱㄱ </p>"
     )
     @GetMapping
     public ResponseEntity<ApiResponse<List<SessionScoreResponseDto>>> get(

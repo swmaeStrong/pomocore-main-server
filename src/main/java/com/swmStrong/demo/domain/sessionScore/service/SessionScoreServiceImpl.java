@@ -1,0 +1,62 @@
+package com.swmStrong.demo.domain.sessionScore.service;
+
+import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
+import com.swmStrong.demo.domain.pomodoro.facade.PomodoroSessionProvider;
+import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
+import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
+import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
+import org.bson.types.ObjectId;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class SessionScoreServiceImpl implements SessionScoreService {
+
+    private final SessionScoreRepository sessionScoreRepository;
+    private final PomodoroSessionProvider pomodoroSessionProvider;
+    private final CategoryProvider categoryProvider;
+
+    public SessionScoreServiceImpl(
+            SessionScoreRepository sessionScoreRepository,
+            PomodoroSessionProvider pomodoroSessionProvider,
+            CategoryProvider categoryProvider
+    ) {
+        this.sessionScoreRepository = sessionScoreRepository;
+        this.pomodoroSessionProvider = pomodoroSessionProvider;
+        this.categoryProvider = categoryProvider;
+    }
+
+    public List<SessionScoreResponseDto> get(String userId, LocalDate date) {
+        List<SessionScore> sessionScoreList = sessionScoreRepository.findByUserIdAndSessionDate(userId, date);
+        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
+
+        return sessionScoreList.stream()
+                .map(sessionScore -> {
+                    // 해당 세션의 상세 데이터 가져오기
+                    List<PomodoroUsageLog> sessionLogs = pomodoroSessionProvider
+                            .loadByUserIdAndSessionAndSessionDate(userId, sessionScore.getSession(), sessionScore.getSessionDate());
+                    
+                    // 상세 정보 생성
+                    List<SessionScoreResponseDto.SessionDetailDto> details = sessionLogs.stream()
+                            .map(log -> new SessionScoreResponseDto.SessionDetailDto(
+                                    categoryMap.getOrDefault(log.getCategoryId(), "Unknown"),
+                                    log.getTimestamp(),
+                                    log.getDuration()
+                            )).toList();
+                    
+                    return SessionScoreResponseDto.builder()
+                            .session(sessionScore.getSession())
+                            .sessionDate(sessionScore.getSessionDate())
+                            .score(sessionScore.getScore())
+                            .title(sessionScore.getTitle())
+                            .timestamp(sessionScore.getTimestamp())
+                            .duration(sessionScore.getDuration())
+                            .details(details)
+                            .build();
+                }).toList();
+    }
+}

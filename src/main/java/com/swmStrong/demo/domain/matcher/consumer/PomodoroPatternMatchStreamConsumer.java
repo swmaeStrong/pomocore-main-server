@@ -6,8 +6,10 @@ import com.swmStrong.demo.domain.pomodoro.facade.PomodoroUpdateProvider;
 import com.swmStrong.demo.infra.redis.stream.AbstractRedisStreamConsumer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PomodoroPatternClassifyMessage;
+import com.swmStrong.demo.message.event.SessionEndedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -23,17 +25,20 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
     private final ObjectMapper objectMapper;
     private final PatternClassifier patternClassifier;
     private final PomodoroUpdateProvider pomodoroUpdateProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PomodoroPatternMatchStreamConsumer(
             StringRedisTemplate stringRedisTemplate,
             ObjectMapper objectMapper,
             PatternClassifier patternClassifier,
-            PomodoroUpdateProvider pomodoroUpdateProvider
+            PomodoroUpdateProvider pomodoroUpdateProvider,
+            ApplicationEventPublisher eventPublisher
     ) {
         super(stringRedisTemplate);
         this.objectMapper = objectMapper;
         this.patternClassifier = patternClassifier;
         this.pomodoroUpdateProvider = pomodoroUpdateProvider;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -55,6 +60,14 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                     pomodoroUpdateProvider.updatePomodoroUsageLogByCategoryId(new ObjectId(message.pomodoroUsageLogId()), result.categoryPatternId());
                     pomodoroUpdateProvider.updateCategorizedDataByCategoryId(new ObjectId(message.categorizedDataId()), result.categoryPatternId(), result.isLLMBased());
 
+                    if (message.isEnd()) {
+                        eventPublisher.publishEvent(SessionEndedEvent.builder()
+                                .userId(message.userId())
+                                .session(message.session())
+                                .sessionDate(message.sessionDate())
+                                .build()
+                        );
+                    }
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);

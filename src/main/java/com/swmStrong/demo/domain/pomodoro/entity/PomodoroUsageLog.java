@@ -5,12 +5,15 @@ import lombok.Builder;
 import lombok.Getter;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 
 import java.time.LocalDate;
 
 
 @Getter
 @Document(collection = "pomodoro_usage_log")
+@CompoundIndex(name = "userId_sessionDate_session_timestamp_idx", 
+               def = "{'userId': 1, 'sessionDate': 1, 'session': 1, 'timestamp': 1}")
 public class PomodoroUsageLog {
 
     @Id

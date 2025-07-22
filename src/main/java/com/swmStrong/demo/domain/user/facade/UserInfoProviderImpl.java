@@ -38,4 +38,9 @@ public class UserInfoProviderImpl implements UserInfoProvider {
     public boolean existsUserById(String userId) {
         return userRepository.existsById(userId);
     }
+
+    @Override
+    public User loadByUserId(String userId) {
+        return userRepository.findById(userId).orElse(null);
+    }
 }

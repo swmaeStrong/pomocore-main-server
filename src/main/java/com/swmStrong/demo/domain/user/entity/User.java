@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.user.entity;
 import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
+import com.swmStrong.demo.domain.streak.entity.Streak;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,9 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private Role role = Role.UNREGISTERED;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Streak streak;
 
     private String profileImageUrl;
     private String profileImageKey;

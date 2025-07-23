@@ -15,6 +15,7 @@ import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PomodoroPatternClassifyMessage;
+import com.swmStrong.demo.message.event.UsageLogCreatedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -33,19 +34,22 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
     private final RedisStreamProducer redisStreamProducer;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public PomodoroServiceImpl(
             CategorizedDataRepository categorizedDataRepository,
             PomodoroUsageLogRepository pomodoroUsageLogRepository,
             UserInfoProvider userInfoProvider,
             CategoryProvider categoryProvider,
-            RedisStreamProducer redisStreamProducer
+            RedisStreamProducer redisStreamProducer,
+            ApplicationEventPublisher applicationEventPublisher
     ) {
         this.categorizedDataRepository = categorizedDataRepository;
         this.pomodoroUsageLogRepository = pomodoroUsageLogRepository;
         this.userInfoProvider = userInfoProvider;
         this.categoryProvider = categoryProvider;
         this.redisStreamProducer = redisStreamProducer;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -99,6 +103,12 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .build()
             );
         }
+        applicationEventPublisher.publishEvent(UsageLogCreatedEvent.builder()
+                .userId(userId)
+                .activityDate(pomodoroUsageLogsDto.sessionDate())
+                .build()
+        );
+
     }
 
     @Override

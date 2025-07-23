@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface GoalService {
-    void saveUserGoal(String userId, List<SaveUserGoalDto> saveUserGoalDtoList);
+    void saveUserGoal(String userId, SaveUserGoalDto saveUserGoalDto);
     List<GoalResponseDto> getUserGoals(String userId, LocalDate date);
     void deleteUserGoal(String userId, DeleteUserGoalDto deleteUserGoalDto);
 }

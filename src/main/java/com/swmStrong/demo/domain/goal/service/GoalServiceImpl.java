@@ -1,5 +1,7 @@
 package com.swmStrong.demo.domain.goal.service;
 
+import com.swmStrong.demo.common.exception.ApiException;
+import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.goal.dto.DeleteUserGoalDto;
@@ -21,7 +23,7 @@ public class GoalServiceImpl implements GoalService {
     private final CategoryProvider categoryProvider;
     private final LeaderboardProvider leaderboardProvider;
 
-    private static final String GOAL_PREFIX = "goal";
+    public static final String GOAL_PREFIX = "goal";
 
     public GoalServiceImpl(
             RedisRepository redisRepository,
@@ -41,7 +43,7 @@ public class GoalServiceImpl implements GoalService {
     @Override
     public List<GoalResponseDto> getUserGoals(String userId, LocalDate date) {
         List<GoalResponseDto> goalResponseDtoList = new ArrayList<>();
-
+        //스캔으로 변경
         for (String category: getCategoryList()) {
             for (PeriodType periodType: PeriodType.values()) {
                 String key = generateKey(userId, category, periodType.toString(), LocalDate.now());

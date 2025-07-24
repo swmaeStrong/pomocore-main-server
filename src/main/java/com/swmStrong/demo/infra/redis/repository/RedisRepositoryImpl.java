@@ -4,7 +4,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 
 @Component
 public class RedisRepositoryImpl implements RedisRepository {
@@ -37,5 +42,19 @@ public class RedisRepositoryImpl implements RedisRepository {
             redisTemplate.expire(key, timeout, unit);
         }
         return count;
+    }
+
+    @Override
+    public Set<String> findKeys(String regex) {
+        Set<String> keys = new HashSet<>();
+        ScanOptions options = ScanOptions.scanOptions().match(regex).count(1000).build();
+        
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+            }
+        }
+        
+        return keys;
     }
 }

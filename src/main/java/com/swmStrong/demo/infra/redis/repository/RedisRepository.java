@@ -1,5 +1,6 @@
 package com.swmStrong.demo.infra.redis.repository;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public interface RedisRepository {
@@ -8,4 +9,5 @@ public interface RedisRepository {
     <T> void setData(String key, T value);
     void deleteData(String key);
     Long incrementWithExpireIfFirst(String key, long timeout, TimeUnit unit);
+    Set<String> findKeys(String regex);
 }

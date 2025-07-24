@@ -19,6 +19,7 @@ public enum ErrorCode implements BaseCode {
     FILE_SIZE_EXCEEDED("4008", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE("4009", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
     BAD_WORD_FILTER("400A", "닉네임에 금지단어가 포함되어 있습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_KEY("400B", "유효하지 않은 키값입니다.", HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.domain.matcher.core.PatternClassifier;
 import com.swmStrong.demo.domain.pomodoro.facade.PomodoroUpdateProvider;
 import com.swmStrong.demo.infra.redis.stream.AbstractRedisStreamConsumer;
+import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
+import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
 import com.swmStrong.demo.message.dto.PomodoroPatternClassifyMessage;
 import com.swmStrong.demo.message.event.SessionEndedEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -26,19 +28,22 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
     private final PatternClassifier patternClassifier;
     private final PomodoroUpdateProvider pomodoroUpdateProvider;
     private final ApplicationEventPublisher eventPublisher;
+    private final RedisStreamProducer redisStreamProducer;
 
     public PomodoroPatternMatchStreamConsumer(
             StringRedisTemplate stringRedisTemplate,
             ObjectMapper objectMapper,
             PatternClassifier patternClassifier,
             PomodoroUpdateProvider pomodoroUpdateProvider,
-            ApplicationEventPublisher eventPublisher
+            ApplicationEventPublisher eventPublisher,
+            RedisStreamProducer redisStreamProducer
     ) {
         super(stringRedisTemplate);
         this.objectMapper = objectMapper;
         this.patternClassifier = patternClassifier;
         this.pomodoroUpdateProvider = pomodoroUpdateProvider;
         this.eventPublisher = eventPublisher;
+        this.redisStreamProducer = redisStreamProducer;
     }
 
     @Override
@@ -68,6 +73,16 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                                 .build()
                         );
                     }
+
+                    redisStreamProducer.send(
+                            StreamConfig.LEADERBOARD.getStreamKey(),
+                            LeaderBoardUsageMessage.builder()
+                                    .userId(message.userId())
+                                    .categoryId(result.categoryPatternId())
+                                    .duration(message.duration())
+                                    .timestamp(message.timestamp())
+                                    .build()
+                    );
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);

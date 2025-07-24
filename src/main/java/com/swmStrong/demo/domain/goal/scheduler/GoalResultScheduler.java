@@ -8,6 +8,7 @@ import com.swmStrong.demo.domain.goal.repository.GoalResultRepository;
 import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.Set;
 import static com.swmStrong.demo.domain.goal.service.GoalServiceImpl.GOAL_PREFIX;
 
 @Service
+@Slf4j
 public class GoalResultScheduler {
 
     private final GoalResultRepository goalResultRepository;
@@ -41,15 +43,17 @@ public class GoalResultScheduler {
     }
 
     @Async
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void saveUserGoalResult() {
         Set<String> goalKeys = redisRepository.findKeys(GOAL_PREFIX + ":*");
         List<GoalResult> goalResultList = new ArrayList<>();
         for (String key : goalKeys) {
+            log.info("key = {}",key);
             ParsedKey parsedKey = parseKey(key);
             int goal = Integer.parseInt(redisRepository.getData(key));
             int achieved = (int) leaderboardProvider.getUserScore(parsedKey.userId(), parsedKey.category(), parsedKey.date(), parsedKey.periodType());
-
+            System.out.println(achieved);
+            //TODO: user 없으면 넘기기 (탈퇴 등)
             goalResultList.add(GoalResult.builder()
                     .user(userInfoProvider.loadByUserId(parsedKey.userId()))
                     .goalSeconds(goal)

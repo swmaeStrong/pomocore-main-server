@@ -99,6 +99,8 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .app(categorizedData.getApp())
                     .sessionDate(pomodoroUsageLogsDto.sessionDate())
                     .session(pomodoroUsageLogsDto.session())
+                    .duration(pomodoroUsageLog.getDuration())
+                    .timestamp(pomodoroUsageLog.getTimestamp())
                     .isEnd(isEnd)
                     .build()
             );

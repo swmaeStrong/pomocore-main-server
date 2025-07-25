@@ -128,7 +128,7 @@ public class SessionScoreEventListener {
         score -= (int) Math.pow(2, (double) disturbCount/2);
         score -= disturbSeconds / 10 * 2;
 
-        return score;
+        return Math.max(0, score);
     }
 
     record IntervalEvent(

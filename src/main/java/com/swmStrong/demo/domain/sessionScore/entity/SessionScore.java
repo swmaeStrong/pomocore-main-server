@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-@Table(name = "session_score")
+@Table(name = "session_score", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "session_date", "session"})
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -22,8 +24,10 @@ public class SessionScore {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    @Column(name = "session_date", nullable = false)
     private LocalDate sessionDate;
 
+    @Column(name = "session", nullable = false)
     private int session;
 
     private int score;

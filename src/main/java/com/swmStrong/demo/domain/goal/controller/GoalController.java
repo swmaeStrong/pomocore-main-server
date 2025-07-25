@@ -72,16 +72,13 @@ public class GoalController {
             description =
                     "<p> 목표와 달성치를 조회한다. </p>"
     )
-    @GetMapping("/{period}")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<GoalResponseDto>>> getUserGoals(
-            @AuthenticationPrincipal SecurityPrincipal principal,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date
+            @AuthenticationPrincipal SecurityPrincipal principal
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                goalService.getUserGoals(principal.userId(), date)
+                goalService.getCurrentGoals(principal.userId())
         );
     }
 }

@@ -8,13 +8,13 @@ import com.swmStrong.demo.domain.goal.repository.GoalResultRepository;
 import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -43,22 +43,38 @@ public class GoalResultScheduler {
     }
 
     @Async
-    @Scheduled(cron = "0 * * * * *")
-    public void saveUserGoalResult() {
-        Set<String> goalKeys = redisRepository.findKeys(GOAL_PREFIX + ":*");
+    @Scheduled(cron = "0 0 0 * * *")
+    public void saveUserGoalResultDaily() {
+        saveUserGoalResult("DAILY");
+    }
+
+    @Async
+    @Scheduled(cron = "0 0 0 * * mon")
+    public void saveUserGoalResultWeekly() {
+        saveUserGoalResult("WEEKLY");
+    }
+
+    @Async
+    @Scheduled(cron = "0 0 0 1 * *")
+    public void saveUserGoalResultMonthly() {
+        saveUserGoalResult("MONTHLY");
+    }
+
+
+    public void saveUserGoalResult(String period) {
+        LocalDate date = LocalDate.now().minusDays(1);
+        Set<String> goalKeys = redisRepository.findKeys(GOAL_PREFIX + ":*" + period);
         List<GoalResult> goalResultList = new ArrayList<>();
         for (String key : goalKeys) {
-            log.info("key = {}",key);
             ParsedKey parsedKey = parseKey(key);
             int goal = Integer.parseInt(redisRepository.getData(key));
-            int achieved = (int) leaderboardProvider.getUserScore(parsedKey.userId(), parsedKey.category(), parsedKey.date(), parsedKey.periodType());
-            System.out.println(achieved);
+            int achieved = (int) leaderboardProvider.getUserScore(parsedKey.userId(), parsedKey.category(), date, parsedKey.periodType());
             //TODO: user 없으면 넘기기 (탈퇴 등)
             goalResultList.add(GoalResult.builder()
                     .user(userInfoProvider.loadByUserId(parsedKey.userId()))
                     .goalSeconds(goal)
                     .achievedSeconds(achieved)
-                    .date(parsedKey.date())
+                    .date(date)
                     .periodType(parsedKey.periodType())
                     .build()
             );
@@ -75,39 +91,19 @@ public class GoalResultScheduler {
 
         String userId = values[1];
         String category = values[2];
-        String dateStr = values[3];
+        PeriodType periodType = PeriodType.valueOf(values[3]);
 
-        LocalDate date;
-        PeriodType periodType;
-
-        if (dateStr.contains("M")) {
-            periodType = PeriodType.MONTHLY;
-            String[] parts = dateStr.split("-M");
-            int year = Integer.parseInt(parts[0]);
-            int month = Integer.parseInt(parts[1]);
-            date = LocalDate.of(year, month, 1);
-        } else if (dateStr.contains("-") && dateStr.split("-").length == 2 && !dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            periodType = PeriodType.WEEKLY;
-            String[] parts = dateStr.split("-");
-            int year = Integer.parseInt(parts[0]);
-            int weekNumber = Integer.parseInt(parts[1]);
-            WeekFields weekFields = WeekFields.ISO;
-            date = LocalDate.of(year, 1, 1)
-                    .with(weekFields.weekBasedYear(), year)
-                    .with(weekFields.weekOfWeekBasedYear(), weekNumber)
-                    .with(weekFields.dayOfWeek(), 1);
-        } else {
-            periodType = PeriodType.DAILY;
-            date = LocalDate.parse(dateStr);
-        }
-
-        return new ParsedKey(userId, category, date, periodType);
+        return ParsedKey.builder()
+                .userId(userId)
+                .category(category)
+                .periodType(periodType)
+                .build();
     }
 
+    @Builder
     public record ParsedKey(
             String userId,
             String category,
-            LocalDate date,
             PeriodType periodType
     ) {}
 }

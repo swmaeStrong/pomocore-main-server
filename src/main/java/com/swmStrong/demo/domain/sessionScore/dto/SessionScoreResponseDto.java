@@ -17,6 +17,7 @@ public record SessionScoreResponseDto(
 ) {
     public record SessionDetailDto(
             String category,
+            String categoryDetail,
             double timestamp,
             double duration
     ) {}

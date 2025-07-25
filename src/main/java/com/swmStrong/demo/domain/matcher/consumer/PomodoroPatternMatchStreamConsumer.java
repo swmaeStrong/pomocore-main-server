@@ -45,7 +45,7 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
         this.eventPublisher = eventPublisher;
         this.redisStreamProducer = redisStreamProducer;
     }
-
+    // TODO : 개수 늘리는 법 찾아 보기
     @Override
     protected void consume() {
         while (isRunning()) {

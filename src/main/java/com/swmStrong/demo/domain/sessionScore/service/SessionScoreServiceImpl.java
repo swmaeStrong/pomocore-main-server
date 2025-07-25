@@ -70,7 +70,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         } else if (category.equals("afk")) {
             return "afk";
         } else {
-            return "interrupt";
+            return "distraction";
         }
     }
 }

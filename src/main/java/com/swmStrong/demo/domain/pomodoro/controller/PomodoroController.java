@@ -7,6 +7,7 @@ import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroResponseDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
 import com.swmStrong.demo.domain.pomodoro.service.PomodoroService;
+import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,7 +52,7 @@ public class PomodoroController {
                     "<p> 일단 기본정보 서빙 </p>"
     )
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PomodoroResponseDto>>> getPomodoroSessionResult(
+    public ResponseEntity<ApiResponse<List<CategoryUsageDto>>> getPomodoroSessionResult(
             @AuthenticationPrincipal SecurityPrincipal securityPrincipal,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -59,7 +60,7 @@ public class PomodoroController {
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                pomodoroService.getPomodoroSessionResult(securityPrincipal.userId(), date)
+                pomodoroService.getUsageLogByUserIdAndDateBetween(securityPrincipal.userId(), date)
         );
     }
 }

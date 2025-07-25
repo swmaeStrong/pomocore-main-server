@@ -1,7 +1,9 @@
 package com.swmStrong.demo.domain.pomodoro.repository;
 
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
+import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.time.LocalDate;
@@ -19,4 +21,19 @@ public interface PomodoroUsageLogRepository extends MongoRepository<PomodoroUsag
     }
     
     List<PomodoroUsageLog> findByUserIdAndSessionAndSessionDateOrderByTimestamp(String userId, int session, LocalDate sessionDate);
+
+    @Aggregation(
+            pipeline = {
+                    "{ $match: { userId: ?0, timestamp: { $gte: ?1, $lt: ?2 } } }",
+                    "{ $group: { _id: '$categoryId', duration: { $sum: '$duration' } } }",
+                    "{ $lookup: { from: 'category_pattern', localField: '_id', foreignField: '_id', as: 'patternDocs' } }",
+                    "{ $unwind: { path: '$patternDocs', preserveNullAndEmptyArrays: true } }",
+                    "{ $project: { category: '$patternDocs.category', duration: 1 } }"
+            }
+    )
+    List<CategoryUsageDto> findByUserIdAndTimestampBetween(
+            String userId,
+            double start,
+            double end
+    );
 }

@@ -11,6 +11,7 @@ import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.repository.CategorizedDataRepository;
 import com.swmStrong.demo.domain.pomodoro.repository.PomodoroUsageLogRepository;
+import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
@@ -21,9 +22,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -32,7 +33,6 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final CategorizedDataRepository categorizedDataRepository;
     private final PomodoroUsageLogRepository pomodoroUsageLogRepository;
     private final UserInfoProvider userInfoProvider;
-    private final CategoryProvider categoryProvider;
     private final RedisStreamProducer redisStreamProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -47,7 +47,6 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.categorizedDataRepository = categorizedDataRepository;
         this.pomodoroUsageLogRepository = pomodoroUsageLogRepository;
         this.userInfoProvider = userInfoProvider;
-        this.categoryProvider = categoryProvider;
         this.redisStreamProducer = redisStreamProducer;
         this.applicationEventPublisher = applicationEventPublisher;
     }
@@ -110,72 +109,16 @@ public class PomodoroServiceImpl implements PomodoroService {
                 .activityDate(pomodoroUsageLogsDto.sessionDate())
                 .build()
         );
-
     }
 
     @Override
-    public List<PomodoroResponseDto> getPomodoroSessionResult(String userId, LocalDate date) {
-        if (!userInfoProvider.existsUserById(userId)) {
-            throw new ApiException(ErrorCode.USER_NOT_FOUND);
-        }
+    public List<CategoryUsageDto> getUsageLogByUserIdAndDateBetween(String userId, LocalDate date) {
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
 
-        List<PomodoroResponseDto> pomodoroResponseDtoList = new ArrayList<>();
-        int maxSession = pomodoroUsageLogRepository.findMaxSessionByUserIdAndSessionDate(userId, date);
+        double startTimestamp = start.atZone(java.time.ZoneId.systemDefault()).toEpochSecond();
+        double endTimestamp = end.atZone(java.time.ZoneId.systemDefault()).toEpochSecond();
 
-        for (int i = 1; i <= maxSession; i++) {
-            List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionAndSessionDateOrderByTimestamp(userId, i, date);
-            System.out.println(pomodoroUsageLogList);
-            if (pomodoroUsageLogList.isEmpty()) {
-                continue;
-            }
-            
-            List<SessionResponseDto> sessionResponseDtoList = new ArrayList<>();
-            int sessionMinutes = 0;
-            double workTime = 0;
-            double afkTime = 0;
-            double breakTime = 0;
-
-            Set<String> workCategories = WorkCategoryType.getAllValues();
-            for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
-                sessionMinutes = pomodoroUsageLog.getSessionMinutes();
-                
-                String category = pomodoroUsageLog.getCategoryId() != null 
-                    ? categoryProvider.getCategoryById(pomodoroUsageLog.getCategoryId())
-                    : null;
-                if (category != null) {
-                    if (category.equals("AFK")) {
-                        afkTime += pomodoroUsageLog.getDuration();
-                    } else if (workCategories.contains(category)) {
-                        workTime += pomodoroUsageLog.getDuration();
-                    } else {
-                        breakTime += pomodoroUsageLog.getDuration();
-                    }
-                }
-                SessionResponseDto sessionResponseDto = new SessionResponseDto(
-                    pomodoroUsageLog.getTimestamp(),
-                    pomodoroUsageLog.getDuration(),
-                    category
-                );
-                sessionResponseDtoList.add(sessionResponseDto);
-            }
-            
-            PomodoroResponseDto pomodoroResponseDto = PomodoroResponseDto.builder()
-                .workTime(workTime)
-                .afkTime(afkTime)
-                .breakTime(breakTime)
-                .sessionDate(date)
-                .session(i)
-                .sessionMinutes(sessionMinutes)
-                .usageLogs(sessionResponseDtoList)
-                .build();
-                
-            pomodoroResponseDtoList.add(pomodoroResponseDto);
-        }
-        
-        return pomodoroResponseDtoList;
+        return pomodoroUsageLogRepository.findByUserIdAndTimestampBetween(userId, startTimestamp, endTimestamp);
     }
-
-    //TODO: 각 세션을 조회하고, 그 점수를 계산해서 특정 저장소에 넣는 로직 구현
-
-    
 }

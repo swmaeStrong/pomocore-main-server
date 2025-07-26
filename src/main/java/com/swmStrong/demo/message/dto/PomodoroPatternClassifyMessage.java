@@ -14,6 +14,7 @@ public record PomodoroPatternClassifyMessage(
     String app,
     int session,
     LocalDate sessionDate,
+    int sessionMinutes,
     double duration,
     double timestamp,
     boolean isEnd

@@ -30,7 +30,14 @@ public class SessionScore {
     @Column(name = "session", nullable = false)
     private int session;
 
-    private int score;
+    @Column(name = "session_minutes", nullable = false)
+    private int sessionMinutes;
+
+    @Column(name = "distracted_count")
+    private int distractedCount;
+
+    @Column(name = "distracted_seconds")
+    private int distractedSeconds;
 
     private String title;
 
@@ -39,13 +46,17 @@ public class SessionScore {
     private double duration;
 
     @Builder
-    public SessionScore(User user, int score, String title, double timestamp, double duration, LocalDate sessionDate, int session) {
+    public SessionScore(User user, String title, double timestamp, double duration, int sessionMinutes,
+                        LocalDate sessionDate, int session, int  distractedCount, int distractedSeconds
+    ) {
         this.user = user;
-        this.score = score;
         this.title = title;
         this.timestamp = timestamp;
         this.duration = duration;
         this.sessionDate = sessionDate;
         this.session = session;
+        this.distractedCount = distractedCount;
+        this.distractedSeconds = distractedSeconds;
+        this.sessionMinutes = sessionMinutes;
     }
 }

@@ -2,11 +2,8 @@ package com.swmStrong.demo.domain.pomodoro.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
-import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
-import com.swmStrong.demo.domain.pomodoro.dto.PomodoroResponseDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
-import com.swmStrong.demo.domain.pomodoro.dto.SessionResponseDto;
 import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.repository.CategorizedDataRepository;
@@ -91,6 +88,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                     StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),
                     PomodoroPatternClassifyMessage.builder()
                     .userId(userId)
+                    .sessionMinutes(pomodoroUsageLogsDto.sessionMinutes())
                     .pomodoroUsageLogId(pomodoroUsageLog.getId().toHexString())
                     .categorizedDataId(categorizedData.getId().toHexString())
                     .title(categorizedData.getTitle())

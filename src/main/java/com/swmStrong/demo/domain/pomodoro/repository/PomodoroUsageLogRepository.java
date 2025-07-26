@@ -28,7 +28,8 @@ public interface PomodoroUsageLogRepository extends MongoRepository<PomodoroUsag
                     "{ $group: { _id: '$categoryId', duration: { $sum: '$duration' } } }",
                     "{ $lookup: { from: 'category_pattern', localField: '_id', foreignField: '_id', as: 'patternDocs' } }",
                     "{ $unwind: { path: '$patternDocs', preserveNullAndEmptyArrays: true } }",
-                    "{ $project: { category: '$patternDocs.category', duration: 1 } }"
+                    "{ $project: { category: '$patternDocs.category', duration: 1 } }",
+                    "{ $match:  { category:  { $ne : 'AFK' } } }",
             }
     )
     List<CategoryUsageDto> findByUserIdAndTimestampBetween(

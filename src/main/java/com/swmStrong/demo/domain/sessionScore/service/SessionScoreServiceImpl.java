@@ -51,11 +51,20 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                                     log.getTimestamp(),
                                     log.getDuration()
                             )).toList();
-                    
+
+                    int scoreByDistractedCount = (int) Math.pow(2, (double) sessionScore.getDistractedCount()/2);
+                    int scoreByDistractedSeconds = sessionScore.getDistractedSeconds() / 10 * 2;
+                    int score = 100 - scoreByDistractedSeconds - scoreByDistractedCount;
+
                     return SessionScoreResponseDto.builder()
                             .session(sessionScore.getSession())
+                            .sessionMinutes(sessionScore.getSessionMinutes())
                             .sessionDate(sessionScore.getSessionDate())
-                            .score(sessionScore.getScore())
+                            .distractedCount(sessionScore.getDistractedCount())
+                            .distractedSeconds(sessionScore.getDistractedSeconds())
+                            .distractedCountScore(scoreByDistractedCount)
+                            .distractedSecondsScore(scoreByDistractedSeconds)
+                            .score(score)
                             .title(sessionScore.getTitle())
                             .timestamp(sessionScore.getTimestamp())
                             .duration(sessionScore.getDuration())

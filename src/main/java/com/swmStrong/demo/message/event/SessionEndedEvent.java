@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public record SessionEndedEvent(
         String userId,
         int session,
-        LocalDate sessionDate
+        LocalDate sessionDate,
+        int sessionMinutes
 ) {
 }

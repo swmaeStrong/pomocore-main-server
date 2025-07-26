@@ -47,9 +47,8 @@ public class SessionScoreEventListener {
         PomodoroUsageLog last = pomodoroUsageLogList.get(pomodoroUsageLogList.size() - 1);
         double totalDuration = last.getTimestamp() + last.getDuration() - first.getTimestamp();
         double sessionSeconds = event.sessionMinutes() * 60;
-        // 중간에 탈주한 drop out은 패널티 2배 적용 (대신 count 적용은 하지 않음)
         double dropOutTime = Math.max((sessionSeconds - totalDuration - 10) * 2, 0);
-        Result result = calculatePomodoroScore(pomodoroUsageLogList, pomodoroUsageLogList.get(0).getSessionMinutes(), event.userId(), event.session(), event.sessionDate(), dropOutTime);
+        Result result = calculatePomodoroScore(pomodoroUsageLogList, dropOutTime);
 
         SessionScore sessionScore = SessionScore.builder()
                 .title("")
@@ -72,9 +71,9 @@ public class SessionScoreEventListener {
      * 2) 점수의 감소는 방해로 정의한 사용 로그와 afk 로그에 의해 발생한다. <br>
      * 3) afk와 방해의 횟수와 시간을 합산해 적용한다. <br>
      * 4) 10초 이상의 경우 매 10초마다 2점을 추가로 감점한다. <br>
-     * TODO: 25분 세션에 7분만 하고 끝내면 점수 계산 ( 나머지를 afk 수준으로 계산 )
+     * 5) 중간에 탈주한 drop out은 패널티 2배 적용 (대신 count 적용은 하지 않음)
      */
-    private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList, int sessionMinutes, String userId, int session, LocalDate sessionDate, double dropOutTime) {
+    private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList, double dropOutTime) {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategoryType.getAllValues();
 

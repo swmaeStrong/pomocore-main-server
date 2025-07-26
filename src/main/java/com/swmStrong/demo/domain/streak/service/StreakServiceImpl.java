@@ -40,7 +40,7 @@ public class StreakServiceImpl implements StreakService {
         }
 
         Streak streak = streakRepository.findByUserId(userId)
-                .orElse(
+                .orElseGet(() ->
                         streakRepository.save(
                                 Streak.builder()
                                         .user(user)

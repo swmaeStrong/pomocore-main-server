@@ -67,7 +67,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
     private String convertCategory(String category, Set<String> workCategories) {
         if (workCategories.contains(category)) {
             return "work";
-        } else if (category.equals("afk")) {
+        } else if (category.equals("AFK")) {
             return "afk";
         } else {
             return "distraction";

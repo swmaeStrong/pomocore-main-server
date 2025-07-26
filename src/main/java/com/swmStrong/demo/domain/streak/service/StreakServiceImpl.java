@@ -5,8 +5,11 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.streak.dto.DailyActivityResponseDto;
 import com.swmStrong.demo.domain.streak.dto.StreakResponseDto;
 import com.swmStrong.demo.domain.streak.entity.DailyActivity;
+import com.swmStrong.demo.domain.streak.entity.Streak;
 import com.swmStrong.demo.domain.streak.repository.DailyActivityRepository;
 import com.swmStrong.demo.domain.streak.repository.StreakRepository;
+import com.swmStrong.demo.domain.user.entity.User;
+import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,19 +20,34 @@ public class StreakServiceImpl implements StreakService {
 
     private final StreakRepository streakRepository;
     private final DailyActivityRepository dailyActivityRepository;
+    private final UserInfoProvider userInfoProvider;
 
     public StreakServiceImpl(
             StreakRepository streakRepository,
-            DailyActivityRepository dailyActivityRepository
+            DailyActivityRepository dailyActivityRepository,
+            UserInfoProvider userInfoProvider
     ) {
         this.streakRepository = streakRepository;
         this.dailyActivityRepository = dailyActivityRepository;
+        this.userInfoProvider = userInfoProvider;
     }
 
     @Override
     public StreakResponseDto getStreakCount(String userId) {
-        return StreakResponseDto.of(streakRepository.findByUserId(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND)));
+        User user = userInfoProvider.loadByUserId(userId);
+        if (user == null) {
+            throw new ApiException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        Streak streak = streakRepository.findByUserId(userId)
+                .orElse(
+                        streakRepository.save(
+                                Streak.builder()
+                                        .user(user)
+                                        .build()
+                        )
+                );
+        return StreakResponseDto.of(streak);
     }
 
     @Override

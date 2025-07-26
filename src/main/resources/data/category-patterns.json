@@ -3,8 +3,12 @@
     {
       "category": "AFK",
       "priority": 1000,
-      "appPatterns": [],
-      "domainPatterns": []
+      "appPatterns": [
+        "afk"
+      ],
+      "domainPatterns": [
+        "afk"
+      ]
     },
     {
       "category": "Uncategorized",
@@ -359,7 +363,7 @@
       ]
     },
     {
-      "category": "Communication",
+      "category": "Meetings",
       "priority": 6,
       "appPatterns": [
         "slack",
@@ -382,19 +386,12 @@
         "line",
         "mattermost",
         "rocket chat",
-        "telegram",
-        "telegram desktop",
         "signal",
         "signal desktop",
-        "whatsapp",
-        "whatsapp desktop",
         "messages",
         "imessage",
         "viber",
         "wechat",
-        "kakao talk",
-        "kakaotalk",
-        "카카오톡",
         "hangouts",
         "google chat",
         "gmail",
@@ -430,6 +427,13 @@
       "category": "SNS",
       "priority": 8,
       "appPatterns": [
+        "kakao talk",
+        "kakaotalk",
+        "카카오톡",
+        "telegram",
+        "telegram desktop",
+        "whatsapp",
+        "whatsapp desktop",
         "instagram",
         "threads",
         "facebook",

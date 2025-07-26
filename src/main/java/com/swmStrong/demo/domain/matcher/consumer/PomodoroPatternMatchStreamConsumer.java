@@ -70,6 +70,7 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                                 .userId(message.userId())
                                 .session(message.session())
                                 .sessionDate(message.sessionDate())
+                                .sessionMinutes(message.sessionMinutes())
                                 .build()
                         );
                     }

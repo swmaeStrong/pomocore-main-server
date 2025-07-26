@@ -10,6 +10,7 @@ public record SessionScoreResponseDto(
     String title,
     int session,
     LocalDate sessionDate,
+    int sessionMinutes,
     double timestamp,
     double duration,
     int distractedCount,

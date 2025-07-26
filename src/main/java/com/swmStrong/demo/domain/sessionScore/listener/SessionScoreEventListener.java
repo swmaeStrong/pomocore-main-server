@@ -41,25 +41,26 @@ public class SessionScoreEventListener {
     public void handleSessionEnded(SessionEndedEvent event) {
         log.info("Session ended event received: userId={}, session={}, sessionDate={}",
                 event.userId(), event.session(), event.sessionDate());
-
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroSessionProvider.loadByUserIdAndSessionAndSessionDate(event.userId(), event.session(), event.sessionDate());
 
-        int score = 0;
-        if (!pomodoroUsageLogList.isEmpty()) {
-            score = calculatePomodoroScore(pomodoroUsageLogList, pomodoroUsageLogList.get(0).getSessionMinutes(), event.userId(), event.session(), event.sessionDate());
-        }
-        //TODO: last의 timestamp가 목표 시간보다 적으면 감점처리 (중간에 어디 감)
         PomodoroUsageLog first = pomodoroUsageLogList.get(0);
         PomodoroUsageLog last = pomodoroUsageLogList.get(pomodoroUsageLogList.size() - 1);
+        double totalDuration = last.getTimestamp() + last.getDuration() - first.getTimestamp();
+        double sessionSeconds = event.sessionMinutes() * 60;
+        // 중간에 탈주한 drop out은 패널티 2배 적용 (대신 count 적용은 하지 않음)
+        double dropOutTime = Math.max((sessionSeconds - totalDuration - 10) * 2, 0);
+        Result result = calculatePomodoroScore(pomodoroUsageLogList, pomodoroUsageLogList.get(0).getSessionMinutes(), event.userId(), event.session(), event.sessionDate(), dropOutTime);
 
         SessionScore sessionScore = SessionScore.builder()
                 .title("")
-                .score(score)
                 .session(event.session())
                 .sessionDate(event.sessionDate())
                 .user(userInfoProvider.loadByUserId(event.userId()))
                 .timestamp(first.getTimestamp())
                 .duration(last.getDuration()+last.getTimestamp()-first.getTimestamp())
+                .sessionMinutes(event.sessionMinutes())
+                .distractedCount(result.distractedCount())
+                .distractedSeconds(result.distractedSeconds())
                 .build();
 
         sessionScoreRepository.save(sessionScore);
@@ -70,14 +71,10 @@ public class SessionScoreEventListener {
      * 1) 최대 점수는 100점이다. <br>
      * 2) 점수의 감소는 방해로 정의한 사용 로그와 afk 로그에 의해 발생한다. <br>
      * 3) afk와 방해의 횟수와 시간을 합산해 적용한다. <br>
-     * 4) 10초 이상의 경우 매 10초마다 2점을 추가로 감점한다.
+     * 4) 10초 이상의 경우 매 10초마다 2점을 추가로 감점한다. <br>
+     * TODO: 25분 세션에 7분만 하고 끝내면 점수 계산 ( 나머지를 afk 수준으로 계산 )
      */
-    private int calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList, int sessionMinutes, String userId, int session, LocalDate sessionDate) {
-        // 뭐 한게 없으면 0점
-        if (pomodoroUsageLogList == null || pomodoroUsageLogList.isEmpty()) {
-            return 0;
-        }
-
+    private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList, int sessionMinutes, String userId, int session, LocalDate sessionDate, double dropOutTime) {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategoryType.getAllValues();
 
@@ -85,14 +82,12 @@ public class SessionScoreEventListener {
                 .filter(log -> !workCategories.contains(categoryMap.get(log.getCategoryId())))
                 .toList();
 
-        // 방해 받은 적이 없다면 일단 100점
-        int score = 100;
         if (disturbUsageLog.isEmpty()) {
-            return score;
+            return new Result(0, 0);
         }
 
-        int disturbCount = 0;
-        int disturbSeconds = 0;
+        int distractedCount = 0;
+        int distractedSeconds = (int) dropOutTime;
         IntervalEvent[] intervalEvents = new IntervalEvent[2*disturbUsageLog.size()];
         int idx = 0;
         for (PomodoroUsageLog log : disturbUsageLog) {
@@ -109,14 +104,14 @@ public class SessionScoreEventListener {
         
         for (IntervalEvent time : intervalEvents) {
             if (inDisturbInterval) {
-                disturbSeconds += (int) Math.ceil(time.timestamp - lastTimestamp);
+                distractedSeconds += (int) Math.ceil(time.timestamp - lastTimestamp);
             }
             
             if (time.isEnd) {
                 activeIntervals--;
             } else {
                 if (activeIntervals == 0) {
-                    disturbCount++;
+                    distractedCount++;
                 }
                 activeIntervals++;
             }
@@ -125,16 +120,16 @@ public class SessionScoreEventListener {
             lastTimestamp = time.timestamp;
         }
 
-        score -= (int) Math.pow(2, (double) disturbCount/2);
-        score -= disturbSeconds / 10 * 2;
-
-        return Math.max(0, score);
+        return new Result(distractedCount, distractedSeconds);
     }
 
     record IntervalEvent(
             double timestamp,
             boolean isEnd
-    ) {
+    ) {}
 
-    }
+    record Result(
+            int distractedCount,
+            int distractedSeconds
+    ) {}
 }

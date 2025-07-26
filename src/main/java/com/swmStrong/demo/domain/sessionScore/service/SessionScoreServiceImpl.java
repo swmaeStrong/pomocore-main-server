@@ -58,6 +58,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
 
                     return SessionScoreResponseDto.builder()
                             .session(sessionScore.getSession())
+                            .sessionMinutes(sessionScore.getSessionMinutes())
                             .sessionDate(sessionScore.getSessionDate())
                             .distractedCount(sessionScore.getDistractedCount())
                             .distractedSeconds(sessionScore.getDistractedSeconds())

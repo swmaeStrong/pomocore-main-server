@@ -5,7 +5,6 @@ import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.pomodoro.dto.DistractedDetailsDto;
-import com.swmStrong.demo.domain.pomodoro.dto.PomodoroResponseDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
 import com.swmStrong.demo.domain.pomodoro.service.PomodoroService;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
@@ -50,7 +49,7 @@ public class PomodoroController {
             security = @SecurityRequirement(name = "bearerAuth"),
             summary = "유저 통계 정보 확인",
             description =
-                    "<p> 일단 기본정보 서빙 </p>"
+                    "<p> 파이차트용 기본정보 서빙 </p>"
     )
     @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryUsageDto>>> getPomodoroSessionResult(
@@ -72,7 +71,7 @@ public class PomodoroController {
                     "<p> 유저 세션의 기본 정보를 가지고 있다고 가정한다. </p>" +
                     "<p> 해당 가정에 의해 여기서는 방해한 앱에 접근한 횟수와 시간만을 반환한다. </p>"
     )
-    @GetMapping("/details/")
+    @GetMapping("/details")
     public ResponseEntity<ApiResponse<List<DistractedDetailsDto>>> getDistractedApps(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @RequestParam int session,

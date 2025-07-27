@@ -89,6 +89,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         for (int i=0; i<pomodoroUsageLogList.size(); i++) {
             PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogList.get(i);
             CategorizedData categorizedData = categorizedDataList.get(i);
+            pomodoroUsageLog.updateCategorizedDataId(categorizedData.getId());
             boolean isEnd = pomodoroUsageLogsDto.isEnd() && i == pomodoroUsageLogList.size() - 1;
             redisStreamProducer.send(
                     StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),
@@ -108,6 +109,9 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .build()
             );
         }
+        
+        pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
+        
         applicationEventPublisher.publishEvent(UsageLogCreatedEvent.builder()
                 .userId(userId)
                 .activityDate(pomodoroUsageLogsDto.sessionDate())
@@ -131,19 +135,24 @@ public class PomodoroServiceImpl implements PomodoroService {
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategoryType.getAllValues();
-
+        log.trace("pomodoroUsageLogList: {}", pomodoroUsageLogList);
+        for (PomodoroUsageLog usageLog:  pomodoroUsageLogList) {
+            log.trace("id: {}", usageLog.getCategorizedDataId());
+        }
         List<PomodoroUsageLog> distractedUsageLogList = pomodoroUsageLogList.stream()
                 .filter(pomodoroUsageLog -> !workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId())))
                 .toList();
-
+        log.trace("distractedUsageLogList: {}", distractedUsageLogList);
         Set<ObjectId> categorizedDataIds = distractedUsageLogList.stream()
                 .map(PomodoroUsageLog::getCategorizedDataId)
                 .collect(Collectors.toSet());
-
+        for (ObjectId categorizedDataId : categorizedDataIds) {
+            log.trace("categorizedDataId: {}", categorizedDataId);
+        }
         Map<ObjectId, CategorizedData> categorizedDataMap = categorizedDataRepository.findAllById(categorizedDataIds)
                 .stream()
                 .collect(Collectors.toMap(CategorizedData::getId, Function.identity()));
-
+        log.trace("categorizedDataMap: {}", categorizedDataMap);
         Map<String, Integer> distractedCountMap = new HashMap<>();
         Map<String, Double> distractedDurationMap = new HashMap<>();
 
@@ -165,6 +174,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                             .build()
             );
         }
+        log.trace("distractedDetailsDtoList: {}", distractedDetailsDtoList);
         return distractedDetailsDtoList;
         // 횟수는 의미가 없다.
         // 각 App에 접근한 횟수로 인해 감소된 점수는 카운트할 수 없다.

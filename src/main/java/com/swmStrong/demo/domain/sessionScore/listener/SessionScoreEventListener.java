@@ -13,7 +13,6 @@ import org.bson.types.ObjectId;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Slf4j
@@ -59,7 +58,7 @@ public class SessionScoreEventListener {
                 .duration(last.getDuration()+last.getTimestamp()-first.getTimestamp())
                 .sessionMinutes(event.sessionMinutes())
                 .distractedCount(result.distractedCount())
-                .distractedSeconds(result.distractedSeconds())
+                .distractedDuration(result.distractedDuration())
                 .build();
 
         sessionScoreRepository.save(sessionScore);
@@ -77,19 +76,19 @@ public class SessionScoreEventListener {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategoryType.getAllValues();
 
-        List<PomodoroUsageLog> disturbUsageLog = pomodoroUsageLogList.stream()
+        List<PomodoroUsageLog> distractingUsageLog = pomodoroUsageLogList.stream()
                 .filter(log -> !workCategories.contains(categoryMap.get(log.getCategoryId())))
                 .toList();
 
-        if (disturbUsageLog.isEmpty()) {
+        if (distractingUsageLog.isEmpty()) {
             return new Result(0, 0);
         }
 
         int distractedCount = 0;
-        int distractedSeconds = (int) dropOutTime;
-        IntervalEvent[] intervalEvents = new IntervalEvent[2*disturbUsageLog.size()];
+        int distractedDuration = (int) dropOutTime;
+        IntervalEvent[] intervalEvents = new IntervalEvent[2*distractingUsageLog.size()];
         int idx = 0;
-        for (PomodoroUsageLog log : disturbUsageLog) {
+        for (PomodoroUsageLog log : distractingUsageLog) {
             intervalEvents[idx++] = new IntervalEvent(log.getTimestamp(), false);
             intervalEvents[idx++] = new IntervalEvent(log.getTimestamp()+log.getDuration() + 0.5, true);
         }
@@ -103,7 +102,7 @@ public class SessionScoreEventListener {
         
         for (IntervalEvent time : intervalEvents) {
             if (inDisturbInterval) {
-                distractedSeconds += (int) Math.ceil(time.timestamp - lastTimestamp);
+                distractedDuration += (int) Math.ceil(time.timestamp - lastTimestamp);
             }
             
             if (time.isEnd) {
@@ -119,7 +118,7 @@ public class SessionScoreEventListener {
             lastTimestamp = time.timestamp;
         }
 
-        return new Result(distractedCount, distractedSeconds);
+        return new Result(distractedCount, distractedDuration);
     }
 
     record IntervalEvent(
@@ -129,6 +128,6 @@ public class SessionScoreEventListener {
 
     record Result(
             int distractedCount,
-            int distractedSeconds
+            int distractedDuration
     ) {}
 }

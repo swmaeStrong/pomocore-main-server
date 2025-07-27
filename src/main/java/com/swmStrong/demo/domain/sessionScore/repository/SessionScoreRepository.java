@@ -9,4 +9,5 @@ import java.util.List;
 public interface SessionScoreRepository extends JpaRepository<SessionScore, Long> {
     SessionScore findByUserIdAndSessionAndSessionDate(String userId, int session, LocalDate sessionDate);
     List<SessionScore> findByUserIdAndSessionDate(String userId, LocalDate sessionDate);
+    List<SessionScore> findAllByUserIdAndSessionDate(String userId, LocalDate sessionDate);
 }

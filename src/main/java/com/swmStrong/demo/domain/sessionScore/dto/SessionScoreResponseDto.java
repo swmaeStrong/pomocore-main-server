@@ -13,10 +13,6 @@ public record SessionScoreResponseDto(
     int sessionMinutes,
     double timestamp,
     double duration,
-    int distractedCount,
-    int distractedSeconds,
-    int distractedCountScore,
-    int distractedSecondsScore,
     int score,
     List<SessionDetailDto> details
 ) {

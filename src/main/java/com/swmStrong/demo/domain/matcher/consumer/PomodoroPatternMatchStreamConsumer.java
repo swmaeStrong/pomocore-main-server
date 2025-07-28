@@ -65,6 +65,8 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                     pomodoroUpdateProvider.updatePomodoroUsageLogByCategoryId(new ObjectId(message.pomodoroUsageLogId()), result.categoryPatternId());
                     pomodoroUpdateProvider.updateCategorizedDataByCategoryId(new ObjectId(message.categorizedDataId()), result.categoryPatternId(), result.isLLMBased());
 
+                    stringRedisTemplate.opsForStream().acknowledge(StreamConfig.PATTERN_MATCH.getGroup(), record);
+
                     if (message.isEnd()) {
                         eventPublisher.publishEvent(SessionEndedEvent.builder()
                                 .userId(message.userId())

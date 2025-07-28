@@ -5,9 +5,7 @@ import java.util.List;
 
 public record PomodoroUsageLogsDto(
         LocalDate sessionDate,
-        int session,
         int sessionMinutes,
-        boolean isEnd,
         List<PomodoroDto> usageLogs
 ) {
     public record PomodoroDto(

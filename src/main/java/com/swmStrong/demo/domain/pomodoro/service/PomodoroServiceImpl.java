@@ -10,6 +10,7 @@ import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.repository.CategorizedDataRepository;
 import com.swmStrong.demo.domain.pomodoro.repository.PomodoroUsageLogRepository;
+import com.swmStrong.demo.domain.sessionScore.facade.SessionNumberProvider;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
@@ -35,6 +36,7 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final PomodoroUsageLogRepository pomodoroUsageLogRepository;
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
+    private final SessionNumberProvider sessionNumberProvider;
     private final RedisStreamProducer redisStreamProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -43,6 +45,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             PomodoroUsageLogRepository pomodoroUsageLogRepository,
             UserInfoProvider userInfoProvider,
             CategoryProvider categoryProvider,
+            SessionNumberProvider sessionNumberProvider,
             RedisStreamProducer redisStreamProducer,
             ApplicationEventPublisher applicationEventPublisher
     ) {
@@ -50,6 +53,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.pomodoroUsageLogRepository = pomodoroUsageLogRepository;
         this.userInfoProvider = userInfoProvider;
         this.categoryProvider = categoryProvider;
+        this.sessionNumberProvider = sessionNumberProvider;
         this.redisStreamProducer = redisStreamProducer;
         this.applicationEventPublisher = applicationEventPublisher;
     }
@@ -62,6 +66,7 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         List<PomodoroUsageLog> pomodoroUsageLogList = new ArrayList<>();
         List<CategorizedData> categorizedDataList = new ArrayList<>();
+        int session = sessionNumberProvider.getNextSessionByUserIDAndSessionDate(userId, pomodoroUsageLogsDto.sessionDate());
 
         for (PomodoroUsageLogsDto.PomodoroDto pomodoroDto: pomodoroUsageLogsDto.usageLogs()) {
             CategorizedData categorizedData = CategorizedData.builder()
@@ -72,7 +77,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             categorizedDataList.add(categorizedData);
 
             PomodoroUsageLog pomodoroUsageLog = PomodoroUsageLog.builder()
-                    .session(pomodoroUsageLogsDto.session())
+                    .session(session)
                     .sessionMinutes(pomodoroUsageLogsDto.sessionMinutes())
                     .sessionDate(pomodoroUsageLogsDto.sessionDate())
                     .userId(userId)
@@ -84,13 +89,19 @@ public class PomodoroServiceImpl implements PomodoroService {
         }
 
         categorizedDataList = categorizedDataRepository.saveAll(categorizedDataList);
-        pomodoroUsageLogList = pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
 
         for (int i=0; i<pomodoroUsageLogList.size(); i++) {
             PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogList.get(i);
             CategorizedData categorizedData = categorizedDataList.get(i);
             pomodoroUsageLog.updateCategorizedDataId(categorizedData.getId());
-            boolean isEnd = pomodoroUsageLogsDto.isEnd() && i == pomodoroUsageLogList.size() - 1;
+        }
+        
+        pomodoroUsageLogList = pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
+
+        for (int i=0; i<pomodoroUsageLogList.size(); i++) {
+            PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogList.get(i);
+            CategorizedData categorizedData = categorizedDataList.get(i);
+            boolean isEnd = i == pomodoroUsageLogList.size() - 1;
             redisStreamProducer.send(
                     StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),
                     PomodoroPatternClassifyMessage.builder()
@@ -102,16 +113,14 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .url(categorizedData.getUrl())
                     .app(categorizedData.getApp())
                     .sessionDate(pomodoroUsageLogsDto.sessionDate())
-                    .session(pomodoroUsageLogsDto.session())
+                    .session(session)
                     .duration(pomodoroUsageLog.getDuration())
                     .timestamp(pomodoroUsageLog.getTimestamp())
                     .isEnd(isEnd)
                     .build()
             );
         }
-        
-        pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
-        
+
         applicationEventPublisher.publishEvent(UsageLogCreatedEvent.builder()
                 .userId(userId)
                 .activityDate(pomodoroUsageLogsDto.sessionDate())

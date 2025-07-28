@@ -4,8 +4,12 @@ import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.user.dto.UserRequestDto;
 import com.swmStrong.demo.domain.streak.entity.Streak;
+import com.swmStrong.demo.domain.userGroup.entity.UserGroup;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,8 +24,11 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role = Role.UNREGISTERED;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Streak streak;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<UserGroup> groups = new ArrayList<>();
 
     private String profileImageUrl;
     private String profileImageKey;

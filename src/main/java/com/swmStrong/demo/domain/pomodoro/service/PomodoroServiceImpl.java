@@ -160,7 +160,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         }
         Map<ObjectId, CategorizedData> categorizedDataMap = categorizedDataRepository.findAllById(categorizedDataIds)
                 .stream()
-                .collect(Collectors.toMap(CategorizedData::getId, Function.identity()));
+                .collect(Collectors.toMap(CategorizedData::getId, Function.identity(), (existing, replacement) -> existing));
         log.trace("categorizedDataMap: {}", categorizedDataMap);
         Map<String, Integer> distractedCountMap = new HashMap<>();
         Map<String, Double> distractedDurationMap = new HashMap<>();

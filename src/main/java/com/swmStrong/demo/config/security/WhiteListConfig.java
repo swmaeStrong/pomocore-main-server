@@ -24,6 +24,7 @@ public class WhiteListConfig {
             PREFIX+"/usage-log",
             PREFIX+"/usage-log/hour",
             PREFIX+"/usage-log/time-line",
-            PREFIX+"/actuator/**"
+            PREFIX+"/actuator/**",
+            PREFIX+"/group/search"
     };
 }

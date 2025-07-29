@@ -8,6 +8,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +25,7 @@ public class Group extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User owner;
 
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
     private List<UserGroup> users = new ArrayList<>();
@@ -31,8 +33,9 @@ public class Group extends BaseEntity {
     @Column(name = "name", nullable = false, unique = true, length = 32)
     private String name;
 
-    @Column(name = "tag", nullable = false, length = 16)
-    private String tag;
+    @Column(columnDefinition = "text[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    private List<String> tags;
 
     @Column(name = "description", length = 1024)
     private String description;
@@ -44,12 +47,32 @@ public class Group extends BaseEntity {
     private boolean isPublic = true;
 
     @Builder
-    public Group(User user, String name, String tag, String description, String groundRule, boolean isPublic) {
-        this.user = user;
+    public Group(User owner, String name, List<String> tags, String description, String groundRule, boolean isPublic) {
+        this.owner = owner;
         this.name = name;
-        this.tag = tag;
+        this.tags = tags;
         this.description = description;
         this.groundRule = groundRule;
         this.isPublic = isPublic;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateGroundRule(String groundRule) {
+        this.groundRule = groundRule;
+    }
+
+    public void updateIsPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateTags(List<String> tags) {
+        this.tags = new ArrayList<>(tags);
     }
 }

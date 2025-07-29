@@ -14,7 +14,7 @@ import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "group")
+@Table(name = "\"group\"")
 @Entity
 public class Group extends BaseEntity {
     @Id

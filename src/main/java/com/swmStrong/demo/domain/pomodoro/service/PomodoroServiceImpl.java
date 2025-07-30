@@ -144,24 +144,19 @@ public class PomodoroServiceImpl implements PomodoroService {
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategoryType.getAllValues();
-        log.trace("pomodoroUsageLogList: {}", pomodoroUsageLogList);
-        for (PomodoroUsageLog usageLog:  pomodoroUsageLogList) {
-            log.trace("id: {}", usageLog.getCategorizedDataId());
-        }
+
         List<PomodoroUsageLog> distractedUsageLogList = pomodoroUsageLogList.stream()
                 .filter(pomodoroUsageLog -> !workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId())))
                 .toList();
-        log.trace("distractedUsageLogList: {}", distractedUsageLogList);
+
         Set<ObjectId> categorizedDataIds = distractedUsageLogList.stream()
                 .map(PomodoroUsageLog::getCategorizedDataId)
                 .collect(Collectors.toSet());
-        for (ObjectId categorizedDataId : categorizedDataIds) {
-            log.trace("categorizedDataId: {}", categorizedDataId);
-        }
+
         Map<ObjectId, CategorizedData> categorizedDataMap = categorizedDataRepository.findAllById(categorizedDataIds)
                 .stream()
                 .collect(Collectors.toMap(CategorizedData::getId, Function.identity(), (existing, replacement) -> existing));
-        log.trace("categorizedDataMap: {}", categorizedDataMap);
+
         Map<String, Integer> distractedCountMap = new HashMap<>();
         Map<String, Double> distractedDurationMap = new HashMap<>();
 
@@ -183,21 +178,8 @@ public class PomodoroServiceImpl implements PomodoroService {
                             .build()
             );
         }
-        log.trace("distractedDetailsDtoList: {}", distractedDetailsDtoList);
+
         return distractedDetailsDtoList;
-        // 횟수는 의미가 없다.
-        // 각 App에 접근한 횟수로 인해 감소된 점수는 카운트할 수 없다.
-        // 각 App에 접근한 횟수의 합은 총 distraction Block의 개수와 다르다. -> block 은 덩어리로 계산하고, 접근한 횟수는 각각의 App 로그를 합산한 결과다.
-        // 하지만, 특정 App에 단순히 접근한 횟수를 서빙할 수 있다. -> 단순히 합산하면 되는 문제다. 25분동안 카톡에 30번 접근했다는 알람도 의미를 가질 수는 있다.
-        // 시간은 의미가 있다.
-        // 각 App에 접근한 시간으로 인해 감소된 점수는 카운트할 수 있다.
-        // 각 App에 의해 까인 점수는 의미를 가지기 어렵다 -> 왜? 점수는 횟수와 시간으로 나뉜다. 하지만 횟수가 나뉘어 있는 경우 위의 이유로 구분하기 어렵다.
-        // 각 App에 접근한 시간은 의미를 가질 수 있다. -> 왜? 시간은 그 자체로 의미를 가지며, 시간으로 인해 손해 본 점수를 (특정 App접속 시간/총 방해 App접속 시간 * 감소된 점수) 으로 나타낼 수 있다.
 
-        // 세션은 정보를 들고 있지만, UsageLog들은 정보를 들고 있지 않다.
-        // 그리고 이 api는 세션 정보를 가지고 있다는 가정 하에 요청할 수 있다.
-        // 그리고 웹은 세션에 추가적으로 요청을 보내는 것보다, 정보를 쥐고 있는게 훨씬 낫다.
-
-        // 그럼 여기서는 List< DistractedApp, duration, count > 만 보내야 하는가?
     }
 }

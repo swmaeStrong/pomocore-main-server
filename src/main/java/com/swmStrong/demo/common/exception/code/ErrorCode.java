@@ -20,6 +20,8 @@ public enum ErrorCode implements BaseCode {
     INVALID_FILE_TYPE("4009", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
     BAD_WORD_FILTER("400A", "금지단어가 포함되어 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_KEY("400B", "유효하지 않은 키값입니다.", HttpStatus.BAD_REQUEST),
+    GROUP_OWNER_CANT_QUIT("400C", "그룹장은 탈퇴할 수 없습니다.", HttpStatus.BAD_REQUEST),
+    GROUP_HAS_USER("400D", "삭제하려는 그룹에 유저가 남아있습니다.",  HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),

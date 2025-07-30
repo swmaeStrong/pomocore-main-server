@@ -166,7 +166,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             CategorizedData categorizedData = categorizedDataMap.get(log.getCategorizedDataId());
             if (categorizedData != null) {
                 String app = categorizedData.getApp();
-                if (Browsers.browserSet.contains(app.toLowerCase())) {
+                if (Browsers.patterns.contains(app.toLowerCase())) {
                     app = DomainExtractor.extractDomain(app);
                 }
                 distractedCountMap.merge(app, 1, Integer::sum);

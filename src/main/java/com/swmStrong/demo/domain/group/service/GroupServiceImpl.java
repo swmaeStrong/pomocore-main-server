@@ -30,11 +30,14 @@ public class GroupServiceImpl implements GroupService{
         this.userGroupRepository = userGroupRepository;
     }
 
+    @Transactional
     @Override
     public void createGroup(String userId, CreateGroupDto createGroupDto) {
         if (!validateGroupName(createGroupDto.groupName())) {
             throw new ApiException(ErrorCode.GROUP_NAME_ALREADY_EXISTS);
         }
+
+        User user = userInfoProvider.loadByUserId(userId);
 
         Group group = Group.builder()
                 .owner(userInfoProvider.loadByUserId(userId))
@@ -46,6 +49,9 @@ public class GroupServiceImpl implements GroupService{
                 .build();
 
         groupRepository.save(group);
+
+        UserGroup userGroup = new UserGroup(user, group);
+        userGroupRepository.save(userGroup);
     }
 
     @Override
@@ -58,9 +64,9 @@ public class GroupServiceImpl implements GroupService{
 
     @Transactional
     @Override
-    public void joinGroup(String userId, String groupId) {
+    public void joinGroup(String userId, Long groupId) {
         User user = userInfoProvider.loadByUserId(userId);
-        Group group = groupRepository.findById(Long.parseLong(groupId))
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 
         if (userGroupRepository.existsByUserAndGroup(user, group)) {
@@ -69,6 +75,19 @@ public class GroupServiceImpl implements GroupService{
 
         UserGroup userGroup = new UserGroup(user, group);
         userGroupRepository.save(userGroup);
+    }
+
+    @Override
+    public void quitGroup(String userId, Long groupId) {
+        User user = userInfoProvider.loadByUserId(userId);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        if (group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_CANT_QUIT);
+        }
+
+        userGroupRepository.deleteByUserAndGroup(user, group);
     }
 
     @Override
@@ -103,6 +122,26 @@ public class GroupServiceImpl implements GroupService{
         }
 
         groupRepository.save(group);
+    }
+
+    @Override
+    public void deleteGroup(String userId, Long groupId) {
+        User user = userInfoProvider.loadByUserId(userId);
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        long memberCount = userGroupRepository.countByGroup(group);
+        if (memberCount > 1) {
+            throw new ApiException(ErrorCode.GROUP_HAS_USER);
+        }
+
+        groupRepository.delete(group);
+        userGroupRepository.deleteByGroup(group);
     }
 
     @Override

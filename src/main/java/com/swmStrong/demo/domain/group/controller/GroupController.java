@@ -64,11 +64,50 @@ public class GroupController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "그룹 조회",
+            summary = "그룹 가입",
             description =
-                    "<p> 그룹 전체를 조회한다. </p>" +
-                    "<p> 웹뷰/네이티브 구현 여부에 따라 검색 구현이 달라질 수 있어 전체 반환만 우선 작성 </p>"
+                    "<p> 해당 그룹에 가입한다. </p>" +
+                    "<p> 이미 가입된 그룹일 경우 에러를 반환한다. </p>"
     )
+    @PreAuthorize("hasAuthority('USER')")
+    @PostMapping("/{groupId}/join")
+    public ResponseEntity<ApiResponse<Void>> joinGroup(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId
+    ) {
+        groupService.joinGroup(principal.userId(), groupId);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 탈퇴",
+            description =
+                    "<p> 해당 그룹에서 탈퇴한다. </p>" +
+                    "<p> 그룹장은 탈퇴할 수 없다. </p>"
+    )
+    @PreAuthorize("hasAuthority('USER')")
+    @DeleteMapping("/{groupId}/quit")
+    public ResponseEntity<ApiResponse<Void>> quitGroup(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId
+    ) {
+        groupService.quitGroup(principal.userId(), groupId);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 수정",
+            description =
+                    "<p> 그룹 정보를 수정한다. </p>" +
+                    "<p> 그룹장만 수정할 수 있다. </p>"
+    )
+    @PreAuthorize("hasAuthority('USER')")
     @PatchMapping("/{groupId}")
     public ResponseEntity<ApiResponse<Void>> updateGroup(
             @AuthenticationPrincipal SecurityPrincipal principal,
@@ -78,6 +117,25 @@ public class GroupController {
         groupService.updateGroup(principal.userId(), groupId, updateGroupDto);
         return CustomResponseEntity.of(
                 SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 삭제",
+            description =
+                    "<p> 그룹을 삭제한다. </p>" +
+                    "<p> 그룹장만 삭제할 수 있으며, 그룹에 혼자만 남았을 때만 삭제 가능하다. </p>"
+    )
+    @PreAuthorize("hasAuthority('USER')")
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<ApiResponse<Void>> deleteGroup(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId
+    ) {
+        groupService.deleteGroup(principal.userId(), groupId);
+        return CustomResponseEntity.of(
+                SuccessCode._NO_CONTENT
         );
     }
 }

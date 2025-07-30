@@ -9,7 +9,9 @@ import java.util.List;
 public interface GroupService {
     void createGroup(String userId, CreateGroupDto createGroupDto);
     List<GroupListResponseDto> getGroups();
-    void joinGroup(String userId, String groupId);
+    void joinGroup(String userId, Long groupId);
+    void quitGroup(String userId, Long groupId);
     void updateGroup(String userId, Long groupId, UpdateGroupDto updateGroupDto);
+    void deleteGroup(String userId, Long groupId);
     boolean validateGroupName(String groupName);
 }

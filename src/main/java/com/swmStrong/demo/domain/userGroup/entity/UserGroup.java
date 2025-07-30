@@ -31,4 +31,9 @@ public class UserGroup extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
+    
+    public UserGroup(User user, Group group) {
+        this.user = user;
+        this.group = group;
+    }
 }

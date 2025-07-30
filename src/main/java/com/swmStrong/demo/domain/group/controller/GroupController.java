@@ -5,6 +5,7 @@ import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.group.dto.CreateGroupDto;
+import com.swmStrong.demo.domain.group.dto.GroupDetailsDto;
 import com.swmStrong.demo.domain.group.dto.GroupListResponseDto;
 import com.swmStrong.demo.domain.group.dto.UpdateGroupDto;
 import com.swmStrong.demo.domain.group.service.GroupService;
@@ -59,6 +60,32 @@ public class GroupController {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 groupService.getGroups()
+        );
+    }
+
+    @Operation(
+            summary = "내 그룹 조회",
+            description =
+                    "<p> 내가 가입한 그룹을 조회한다. </p>"
+    )
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<GroupListResponseDto>>> getMyGroups(@AuthenticationPrincipal SecurityPrincipal principal) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getMyGroups(principal.userId())
+        );
+    }
+
+    @Operation(
+            summary = "그룹 상세 조회",
+            description =
+                    "<p> 그룹의 정보를 상세 조회한다. </p>"
+    )
+    @GetMapping("/{groupId}")
+    public ResponseEntity<ApiResponse<GroupDetailsDto>> getGroupDetails(@PathVariable Long groupId) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getGroupDetails(groupId)
         );
     }
 

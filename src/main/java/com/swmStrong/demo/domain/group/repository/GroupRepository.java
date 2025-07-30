@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.group.repository;
 
 import com.swmStrong.demo.domain.group.entity.Group;
+import com.swmStrong.demo.domain.user.entity.User;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +17,6 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     List<Group> findByAllTagsContaining(@Param("tags") List<String> tags);
 
     boolean existsByName(String name);
+
+    List<Group> findByOwner(User owner);
 }

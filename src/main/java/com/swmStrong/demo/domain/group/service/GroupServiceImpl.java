@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
 import com.swmStrong.demo.domain.group.dto.CreateGroupDto;
+import com.swmStrong.demo.domain.group.dto.GroupDetailsDto;
 import com.swmStrong.demo.domain.group.dto.GroupListResponseDto;
 import com.swmStrong.demo.domain.group.dto.UpdateGroupDto;
 import com.swmStrong.demo.domain.group.entity.Group;
@@ -55,11 +56,30 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
+    public List<GroupListResponseDto> getMyGroups(String userId) {
+        User user = userInfoProvider.loadByUserId(userId);
+
+        List<Group> groupList = groupRepository.findByOwner(user);
+
+        return groupList.stream()
+                .map(GroupListResponseDto::of)
+                .toList();
+    }
+
+    @Override
     public List<GroupListResponseDto> getGroups() {
         List<Group> groupList = groupRepository.findAll();
         return groupList.stream()
                 .map(GroupListResponseDto::of)
                 .toList();
+    }
+
+    @Override
+    public GroupDetailsDto getGroupDetails(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        return GroupDetailsDto.of(group);
     }
 
     @Transactional
@@ -72,6 +92,7 @@ public class GroupServiceImpl implements GroupService{
         if (userGroupRepository.existsByUserAndGroup(user, group)) {
             throw new ApiException(ErrorCode.GROUP_ALREADY_JOINED);
         }
+
 
         UserGroup userGroup = new UserGroup(user, group);
         userGroupRepository.save(userGroup);

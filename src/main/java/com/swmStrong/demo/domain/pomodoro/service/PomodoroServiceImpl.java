@@ -2,8 +2,10 @@ package com.swmStrong.demo.domain.pomodoro.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.categoryPattern.enums.Browsers;
 import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.common.util.DomainExtractor;
 import com.swmStrong.demo.domain.pomodoro.dto.DistractedDetailsDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
 import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
@@ -164,6 +166,9 @@ public class PomodoroServiceImpl implements PomodoroService {
             CategorizedData categorizedData = categorizedDataMap.get(log.getCategorizedDataId());
             if (categorizedData != null) {
                 String app = categorizedData.getApp();
+                if (Browsers.browserSet.contains(app.toLowerCase())) {
+                    app = DomainExtractor.extractDomain(app);
+                }
                 distractedCountMap.merge(app, 1, Integer::sum);
                 distractedDurationMap.merge(app, log.getDuration(), Double::sum);
             }

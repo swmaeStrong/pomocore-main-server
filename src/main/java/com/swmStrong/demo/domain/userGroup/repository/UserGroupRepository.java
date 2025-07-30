@@ -12,8 +12,16 @@ import java.util.Optional;
 public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
     
     boolean existsByUserAndGroup(User user, Group group);
+
+    Optional<UserGroup> findByGroup(Group group);
     
     Optional<UserGroup> findByUserAndGroup(User user, Group group);
     
     void deleteByUserAndGroup(User user, Group group);
+
+    boolean existsByGroup(Group group);
+
+    long countByGroup(Group group);
+
+    void deleteByGroup(Group group);
 }

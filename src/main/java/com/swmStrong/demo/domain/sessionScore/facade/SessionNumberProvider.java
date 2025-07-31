@@ -19,11 +19,11 @@ public class SessionNumberProvider {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int getNextSessionByUserIDAndSessionDate(String userId, LocalDate date) {
+    public int getSessionByUserIDAndSessionDate(String userId, LocalDate date) {
         Object lock = userLocks.computeIfAbsent(userId, k -> new Object());
         synchronized (lock) {
             return sessionScoreRepository.findMaxSessionByUserIdAndSessionDateWithLock(userId, date)
-                    .orElse(0) + 1;
+                    .orElse(0);
         }
     }
 }

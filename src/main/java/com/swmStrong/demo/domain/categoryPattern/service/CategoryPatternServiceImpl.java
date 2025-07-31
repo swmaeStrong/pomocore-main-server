@@ -84,7 +84,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
             throw new ApiException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         categoryPatternRepository.deletePatternCategoryByCategory(category);
-        patternClassifier.init();
     }
 
     @Override
@@ -119,7 +118,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
         if (updateCategoryRequestDto.category() != null) {
             categoryPattern.updateCategory(updateCategoryRequestDto.category());
-            patternClassifier.init();
         }
         categoryPatternRepository.save(categoryPattern);
     }

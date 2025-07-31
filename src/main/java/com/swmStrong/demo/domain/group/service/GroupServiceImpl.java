@@ -3,9 +3,7 @@ package com.swmStrong.demo.domain.group.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
-import com.swmStrong.demo.domain.group.dto.CreateGroupDto;
-import com.swmStrong.demo.domain.group.dto.GroupListResponseDto;
-import com.swmStrong.demo.domain.group.dto.UpdateGroupDto;
+import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.entity.Group;
 import com.swmStrong.demo.domain.group.repository.GroupRepository;
 import com.swmStrong.demo.domain.user.entity.User;
@@ -55,6 +53,70 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
+    public void banMember(String userId, Long groupId, BanMemberDto banMemberDto) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+        User user = userInfoProvider.loadByUserId(userId);
+
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        User bannedUser = userInfoProvider.loadByUserId(banMemberDto.userId());
+
+        if (bannedUser.equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_CANT_QUIT);
+        }
+
+        UserGroup userGroup = userGroupRepository.findByUserAndGroup(bannedUser, group)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_USER_NOT_FOUND));
+
+        userGroupRepository.delete(userGroup);
+    }
+
+    @Override
+    public void authorizeOwner(String userId, Long groupId, AuthorizeMemberDto authorizeMemberDto) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        User user = userInfoProvider.loadByUserId(userId);
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        User newOwner = userInfoProvider.loadByUserId(authorizeMemberDto.userId());
+
+        group.updateOwner(newOwner);
+
+        groupRepository.save(group);
+    }
+
+    @Override
+    public GroupDetailsDto getGroupDetails(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        List<GroupMember> memberList = userGroupRepository.findByGroup(group).stream()
+                .map(userGroup -> GroupMember.builder()
+                            .userId(userGroup.getUser().getId())
+                            .nickname(userGroup.getUser().getNickname())
+                            .build())
+                .toList();
+
+        return GroupDetailsDto.of(group, memberList);
+    }
+
+    @Override
+    public List<GroupListResponseDto> getMyGroups(String userId) {
+        User user = userInfoProvider.loadByUserId(userId);
+
+        List<UserGroup> userGroupList = userGroupRepository.findByUser(user);
+        return userGroupList.stream()
+                .map(userGroup -> GroupListResponseDto.of(userGroup.getGroup()))
+                .toList();
+    }
+
+    @Override
     public List<GroupListResponseDto> getGroups() {
         List<Group> groupList = groupRepository.findAll();
         return groupList.stream()
@@ -72,6 +134,8 @@ public class GroupServiceImpl implements GroupService{
         if (userGroupRepository.existsByUserAndGroup(user, group)) {
             throw new ApiException(ErrorCode.GROUP_ALREADY_JOINED);
         }
+
+        //TODO: private 입장 시 확인 절차
 
         UserGroup userGroup = new UserGroup(user, group);
         userGroupRepository.save(userGroup);

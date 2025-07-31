@@ -45,6 +45,7 @@ public enum ErrorCode implements BaseCode {
     NICKNAME_NOT_FOUND("4049", "해당하는 닉네임을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     USAGE_LOG_NOT_FOUND("404A", "해당하는 사용 기록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     GROUP_NOT_FOUND("404B", "해당하는 그룹을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    GROUP_USER_NOT_FOUND("404C", "해당 그룹에서 유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // --- 409 CONFLICT ---
     _CONFLICT("4090", "이미 존재하는 리소스입니다.", HttpStatus.CONFLICT),

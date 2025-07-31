@@ -4,9 +4,7 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.group.dto.CreateGroupDto;
-import com.swmStrong.demo.domain.group.dto.GroupListResponseDto;
-import com.swmStrong.demo.domain.group.dto.UpdateGroupDto;
+import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -44,6 +42,73 @@ public class GroupController {
         groupService.createGroup(principal.userId(), createGroupDto);
         return CustomResponseEntity.of(
                 SuccessCode._CREATED
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 강퇴",
+            description =
+                    "<p> 그룹에서 유저를 강퇴한다. </p>" +
+                    "<p> 그룹장만 사용할 수 있다. </p>"
+    )
+    @DeleteMapping("/{groupId}/ban")
+    public ResponseEntity<ApiResponse<Void>> banUserInGroup(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId,
+            @RequestBody BanMemberDto banMemberDto
+    ) {
+        groupService.banMember(principal.userId(), groupId, banMemberDto);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹장 권한 위임",
+            description =
+                    "<p> 그룹장 권한을 위임한다. </p>" +
+                    "<p> 그룹장만 사용할 수 있다. </p>"
+    )
+    @PatchMapping("/{groupId}/authorize")
+    public ResponseEntity<ApiResponse<Void>> authorizeUserInGroup(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId,
+            @RequestBody AuthorizeMemberDto authorizeMemberDto
+    ) {
+        groupService.authorizeOwner(principal.userId(), groupId, authorizeMemberDto);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 상세 조회",
+            description =
+                    "<p> 선택한 그룹의 상세 정보를 조회한다. </p>" +
+                    "<p> TODO: 뷰 구현에 따라 여기는 가입된 유저만 볼 수 있도록 처리해야 한다. </p>"
+    )
+    @GetMapping("/{groupId}")
+    public ResponseEntity<ApiResponse<GroupDetailsDto>> getGroupDetails(@PathVariable Long groupId) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getGroupDetails(groupId)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "내 그룹 조회",
+            description =
+                    "<p> 내가 속한 그룹을 조회한다. </p>"
+    )
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<List<GroupListResponseDto>>> getMyGroups(@AuthenticationPrincipal SecurityPrincipal principal) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getMyGroups(principal.userId())
         );
     }
 
@@ -136,6 +201,20 @@ public class GroupController {
         groupService.deleteGroup(principal.userId(), groupId);
         return CustomResponseEntity.of(
                 SuccessCode._NO_CONTENT
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 이름 유효성 검사",
+            description =
+                    "<p> 그룹 이름을 검사한다. </p>"
+    )
+    @GetMapping("/name/check")
+    public ResponseEntity<ApiResponse<Boolean>> checkGroupName(@RequestParam String name) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.validateGroupName(name)
         );
     }
 }

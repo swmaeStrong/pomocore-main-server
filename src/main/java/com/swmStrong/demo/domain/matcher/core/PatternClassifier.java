@@ -7,6 +7,7 @@ import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepository;
 import com.swmStrong.demo.domain.common.util.DomainExtractor;
 import com.swmStrong.demo.domain.common.util.Trie;
+import com.hankcs.algorithm.AhoCorasickDoubleArrayTrie;
 import com.swmStrong.demo.infra.LLM.LLMClassifier;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -15,7 +16,9 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -26,7 +29,7 @@ public class PatternClassifier implements InitializingBean {
     private final LLMClassifier classifier;
 
     public Trie<ObjectId> appTrie;
-    public Trie<ObjectId> domainTrie;
+    public AhoCorasickDoubleArrayTrie<ObjectId> domainTrie;
     
     // 초기화 완료 상태 추적
     private volatile boolean initialized = false;
@@ -45,7 +48,8 @@ public class PatternClassifier implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         appTrie = new Trie<>();
-        domainTrie = new Trie<>();
+        domainTrie = new AhoCorasickDoubleArrayTrie<>();
+        Map<String, ObjectId> domainPatternMap = new HashMap<>();
 
         List<CategoryPattern> categoryPatterns = categoryPatternRepository.findAll();
         for (CategoryPattern categoryPattern: categoryPatterns) {
@@ -59,10 +63,13 @@ public class PatternClassifier implements InitializingBean {
 
             if (categoryPattern.getDomainPatterns() != null && !categoryPattern.getDomainPatterns().isEmpty()) {
                 for (String pattern: categoryPattern.getDomainPatterns()) {
-                    domainTrie.insert(categoryId, pattern);
+                    domainPatternMap.put(pattern, categoryId);
                 }
             }
         }
+
+        domainTrie.build(domainPatternMap);
+        
         initialized = true; // 초기화 완료 플래그 설정
         log.info("PatternClassifier initialized successfully - appTrie and domainTrie are ready");
     }
@@ -116,15 +123,27 @@ public class PatternClassifier implements InitializingBean {
     }
 
     private ObjectId classifyFromDomainTrie(String domain) {
-        // Extract clean domain from URL if it's a full URL
-        String cleanDomain = DomainExtractor.extractDomain(domain);
+        String cleanDomain = DomainExtractor.extractDomainWithPath(domain);
         if (cleanDomain == null) {
             log.warn("Failed to extract domain from: {}", domain);
             return null;
         }
-        log.trace("trie layer with domain: {} (extracted: {})", domain, cleanDomain);
+        log.trace("aho-corasick layer with domain: {} (extracted: {})", domain, cleanDomain);
         ensureInitialized(); // 안전 장치: 지연 초기화 확인
-        return domainTrie != null ? domainTrie.search(cleanDomain, true) : null;
+        
+        if (domainTrie == null) {
+            return null;
+        }
+
+        List<AhoCorasickDoubleArrayTrie.Hit<ObjectId>> matches = domainTrie.parseText(cleanDomain);
+
+        if (!matches.isEmpty()) {
+            ObjectId categoryId = matches.get(0).value;
+            log.trace("Domain pattern matched: {} -> category: {}", cleanDomain, categoryId);
+            return categoryId;
+        }
+        
+        return null;
     }
     
     /**

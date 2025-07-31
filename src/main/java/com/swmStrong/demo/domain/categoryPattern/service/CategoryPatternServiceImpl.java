@@ -49,11 +49,8 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
         categoryPatternRepository.addPattern(category, patternType, patternRequestDto.pattern());
         
-        if (patternType == PatternType.APP) {
-            patternClassifier.appTrie.insert(categoryPattern.getId(), patternRequestDto.pattern());
-        } else {
-            patternClassifier.domainTrie.insert(categoryPattern.getId(), patternRequestDto.pattern());
-        }
+        // Rebuild the pattern classifier to include new pattern
+        rebuildPatternClassifier();
     }
 
     @Override
@@ -70,12 +67,8 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
         }
 
         categoryPatternRepository.removePattern(category, patternType, patternRequestDto.pattern());
-        
-        if (patternType == PatternType.APP) {
-            patternClassifier.appTrie.remove(patternRequestDto.pattern());
-        } else {
-            patternClassifier.domainTrie.remove(patternRequestDto.pattern());
-        }
+
+        rebuildPatternClassifier();
     }
 
     @Override
@@ -84,6 +77,8 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
             throw new ApiException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         categoryPatternRepository.deletePatternCategoryByCategory(category);
+
+        rebuildPatternClassifier();
     }
 
     @Override
@@ -108,11 +103,12 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
 
     @Override
     public void updateCategory(String category, UpdateCategoryRequestDto updateCategoryRequestDto) {
-
         CategoryPattern categoryPattern = categoryPatternRepository.findByCategory(category)
                 .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        if (categoryPatternRepository.existsByCategory(updateCategoryRequestDto.category())) {
+        if (updateCategoryRequestDto.category() != null && 
+            !updateCategoryRequestDto.category().equals(category) &&
+            categoryPatternRepository.existsByCategory(updateCategoryRequestDto.category())) {
             throw new ApiException(ErrorCode.DUPLICATE_CATEGORY);
         }
 
@@ -125,5 +121,9 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
     @Override
     public boolean existsByCategory(String category) {
         return categoryPatternRepository.existsByCategory(category);
+    }
+
+    private void rebuildPatternClassifier() {
+        patternClassifier.afterPropertiesSet();
     }
 }

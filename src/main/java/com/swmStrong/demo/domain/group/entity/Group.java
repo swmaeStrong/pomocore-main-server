@@ -75,4 +75,8 @@ public class Group extends BaseEntity {
     public void updateTags(List<String> tags) {
         this.tags = new ArrayList<>(tags);
     }
+
+    public void updateOwner(User owner) {
+        this.owner = owner;
+    }
 }

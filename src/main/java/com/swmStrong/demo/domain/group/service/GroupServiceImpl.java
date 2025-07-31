@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class GroupServiceImpl implements GroupService{
@@ -53,9 +52,44 @@ public class GroupServiceImpl implements GroupService{
         userGroupRepository.save(userGroup);
     }
 
-    //TODO: 추방
+    @Override
+    public void banMember(String userId, Long groupId, BanMemberDto banMemberDto) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+        User user = userInfoProvider.loadByUserId(userId);
 
-    //TODO: 그룹장 위임
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        User bannedUser = userInfoProvider.loadByUserId(banMemberDto.userId());
+
+        if (bannedUser.equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_CANT_QUIT);
+        }
+
+        UserGroup userGroup = userGroupRepository.findByUserAndGroup(bannedUser, group)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_USER_NOT_FOUND));
+
+        userGroupRepository.delete(userGroup);
+    }
+
+    @Override
+    public void authorizeOwner(String userId, Long groupId, AuthorizeMemberDto authorizeMemberDto) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        User user = userInfoProvider.loadByUserId(userId);
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        User newOwner = userInfoProvider.loadByUserId(authorizeMemberDto.userId());
+
+        group.updateOwner(newOwner);
+
+        groupRepository.save(group);
+    }
 
     @Override
     public GroupDetailsDto getGroupDetails(Long groupId) {

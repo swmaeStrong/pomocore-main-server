@@ -59,7 +59,7 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
 """;
 
     public String getClassificationPrompt(String query) {
-        return CLASSIFICATION_PROMPT_TEMPLATE.formatted(query);
+        return getBehaviorClassificationPromptV1(query);
     }
 
     public String getBehaviorClassificationPromptV0(String query) {

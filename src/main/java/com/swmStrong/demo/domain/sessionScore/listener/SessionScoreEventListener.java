@@ -75,13 +75,19 @@ public class SessionScoreEventListener {
     private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList, double dropOutTime) {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategoryType.getAllValues();
+        double afkDuration = 0;
 
-        List<PomodoroUsageLog> distractingUsageLog = pomodoroUsageLogList.stream()
-                .filter(log -> !workCategories.contains(categoryMap.get(log.getCategoryId())))
-                .toList();
+        List<PomodoroUsageLog> distractingUsageLog = new ArrayList<>();
+        for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
+            if (categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Unknown").equals("afk")) {
+                afkDuration += pomodoroUsageLog.getDuration();
+            } else if (!workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Unknown"))) {
+                distractingUsageLog.add(pomodoroUsageLog);
+            }
+        }
 
         if (distractingUsageLog.isEmpty()) {
-            return new Result(0, 0);
+            return new Result(0, 0, afkDuration);
         }
 
         int distractedCount = 0;
@@ -90,7 +96,7 @@ public class SessionScoreEventListener {
         int idx = 0;
         for (PomodoroUsageLog log : distractingUsageLog) {
             intervalEvents[idx++] = new IntervalEvent(log.getTimestamp(), false);
-            intervalEvents[idx++] = new IntervalEvent(log.getTimestamp()+log.getDuration() + 0.5, true);
+            intervalEvents[idx++] = new IntervalEvent(log.getTimestamp()+log.getDuration() + 5, true);
         }
 
         Arrays.sort(intervalEvents, Comparator.comparing(IntervalEvent::timestamp)
@@ -118,7 +124,7 @@ public class SessionScoreEventListener {
             lastTimestamp = time.timestamp;
         }
 
-        return new Result(distractedCount, distractedDuration);
+        return new Result(distractedCount, distractedDuration, afkDuration);
     }
 
     record IntervalEvent(
@@ -128,6 +134,7 @@ public class SessionScoreEventListener {
 
     record Result(
             int distractedCount,
-            int distractedDuration
+            int distractedDuration,
+            double afkDuration
     ) {}
 }

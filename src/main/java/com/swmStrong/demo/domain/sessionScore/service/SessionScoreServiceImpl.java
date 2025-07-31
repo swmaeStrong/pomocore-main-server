@@ -66,7 +66,8 @@ public class SessionScoreServiceImpl implements SessionScoreService {
 
                     int scoreByDistractedCount = (int) Math.pow(2, (double) sessionScore.getDistractedCount()/2);
                     int scoreByDistractedSeconds = sessionScore.getDistractedDuration() / 10 * 2;
-                    int score = Math.max(0, 100 - scoreByDistractedSeconds - scoreByDistractedCount);
+                    int score = Math.max(30, 100 - scoreByDistractedSeconds - scoreByDistractedCount);
+                    score -= (int) sessionScore.getAfkDuration() / 10 * 2;
 
                     return SessionScoreResponseDto.builder()
                             .session(sessionScore.getSession())
@@ -91,7 +92,8 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                 .map(sessionScore -> {
                     int scoreByDistractedCount = (int) Math.pow(2, (double) sessionScore.getDistractedCount()/2);
                     int scoreByDistractedSeconds = sessionScore.getDistractedDuration() / 10 * 2;
-                    int score = Math.max(0, 100 - scoreByDistractedSeconds - scoreByDistractedCount);
+                    int score = Math.max(30, 100 - scoreByDistractedSeconds - scoreByDistractedCount);
+                    score -= (int) sessionScore.getAfkDuration() / 10 * 2;
 
                     return SessionDashboardDto.builder()
                             .session(sessionScore.getSession())

@@ -17,8 +17,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -29,6 +28,7 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
     private final PomodoroUpdateProvider pomodoroUpdateProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisStreamProducer redisStreamProducer;
+    private final Map<String, List<PomodoroPatternClassifyMessage>> sessionGroups = new HashMap<>();
 
     public PomodoroPatternMatchStreamConsumer(
             StringRedisTemplate stringRedisTemplate,
@@ -56,7 +56,7 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                                 StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
                                 StreamOffset.create(StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),  ReadOffset.from(">"))
                         );
-
+                
                 for (MapRecord<String, Object, Object> record: records) {
                     Map<Object, Object> valueMap = record.getValue();
                     PomodoroPatternClassifyMessage message = objectMapper.convertValue(valueMap, PomodoroPatternClassifyMessage.class);
@@ -65,7 +65,24 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                     pomodoroUpdateProvider.updatePomodoroUsageLogByCategoryId(new ObjectId(message.pomodoroUsageLogId()), result.categoryPatternId());
                     pomodoroUpdateProvider.updateCategorizedDataByCategoryId(new ObjectId(message.categorizedDataId()), result.categoryPatternId(), result.isLLMBased());
 
-                    stringRedisTemplate.opsForStream().acknowledge(StreamConfig.PATTERN_MATCH.getGroup(), record);
+                    stringRedisTemplate.opsForStream().acknowledge(StreamConfig.POMODORO_PATTERN_MATCH.getGroup(), record);
+
+                    String sessionKey = message.userId() + ":" + message.sessionDate() + ":" + message.session();
+                    PomodoroPatternClassifyMessage updatedMessage = PomodoroPatternClassifyMessage.builder()
+                            .userId(message.userId())
+                            .sessionMinutes(message.sessionMinutes())
+                            .pomodoroUsageLogId(message.pomodoroUsageLogId())
+                            .categorizedDataId(result.categoryPatternId().toHexString())
+                            .title(message.title())
+                            .url(message.url())
+                            .app(message.app())
+                            .sessionDate(message.sessionDate())
+                            .session(message.session())
+                            .duration(message.duration())
+                            .timestamp(message.timestamp())
+                            .isEnd(message.isEnd())
+                            .build();
+                    sessionGroups.computeIfAbsent(sessionKey, k -> new ArrayList<>()).add(updatedMessage);
 
                     if (message.isEnd()) {
                         eventPublisher.publishEvent(SessionEndedEvent.builder()
@@ -75,17 +92,21 @@ public class PomodoroPatternMatchStreamConsumer extends AbstractRedisStreamConsu
                                 .sessionMinutes(message.sessionMinutes())
                                 .build()
                         );
+                        
+                        List<PomodoroPatternClassifyMessage> sessionMessages = sessionGroups.get(sessionKey);
+                        List<LeaderBoardUsageMessage> leaderboardMessages = new ArrayList<>();
+                        for (PomodoroPatternClassifyMessage msg : sessionMessages) {
+                            leaderboardMessages.add(LeaderBoardUsageMessage.builder()
+                                    .userId(msg.userId())
+                                    .categoryId(new ObjectId(msg.categorizedDataId()))
+                                    .duration(msg.duration())
+                                    .timestamp(msg.timestamp())
+                                    .build());
+                        }
+                        
+                        redisStreamProducer.sendBatch(StreamConfig.LEADERBOARD.getStreamKey(), leaderboardMessages);
+                        sessionGroups.remove(sessionKey);
                     }
-
-                    redisStreamProducer.send(
-                            StreamConfig.LEADERBOARD.getStreamKey(),
-                            LeaderBoardUsageMessage.builder()
-                                    .userId(message.userId())
-                                    .categoryId(result.categoryPatternId())
-                                    .duration(message.duration())
-                                    .timestamp(message.timestamp())
-                                    .build()
-                    );
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);

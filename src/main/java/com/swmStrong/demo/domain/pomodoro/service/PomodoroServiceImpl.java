@@ -100,13 +100,12 @@ public class PomodoroServiceImpl implements PomodoroService {
         
         pomodoroUsageLogList = pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
 
+        List<PomodoroPatternClassifyMessage> messages = new ArrayList<>();
         for (int i=0; i<pomodoroUsageLogList.size(); i++) {
             PomodoroUsageLog pomodoroUsageLog = pomodoroUsageLogList.get(i);
             CategorizedData categorizedData = categorizedDataList.get(i);
             boolean isEnd = i == pomodoroUsageLogList.size() - 1;
-            redisStreamProducer.send(
-                    StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(),
-                    PomodoroPatternClassifyMessage.builder()
+            messages.add(PomodoroPatternClassifyMessage.builder()
                     .userId(userId)
                     .sessionMinutes(pomodoroUsageLogsDto.sessionMinutes())
                     .pomodoroUsageLogId(pomodoroUsageLog.getId().toHexString())
@@ -122,6 +121,8 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .build()
             );
         }
+        
+        redisStreamProducer.sendBatch(StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(), messages);
 
         applicationEventPublisher.publishEvent(UsageLogCreatedEvent.builder()
                 .userId(userId)

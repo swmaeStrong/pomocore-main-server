@@ -12,7 +12,6 @@ public class CategoryPatternJSONDto {
     @Getter
     public static class CategoryPatternEntry {
         private String category;
-        private Integer priority;
         private Set<String> appPatterns;
         private Set<String> domainPatterns;
     }

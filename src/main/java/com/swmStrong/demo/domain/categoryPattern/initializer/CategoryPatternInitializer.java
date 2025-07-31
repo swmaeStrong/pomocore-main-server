@@ -50,34 +50,12 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
             if (categoryPattern == null) {
                 categoryPattern = CategoryPattern.builder()
                         .category(entry.getCategory())
-                        .priority(entry.getPriority())
                         .appPatterns(new HashSet<>(entry.getAppPatterns()))
                         .domainPatterns(new HashSet<>(entry.getDomainPatterns()))
                         .build();
                 patternsToSave.add(categoryPattern);
             } else {
-                boolean needsUpdate = false;
-
-                if (categoryPattern.getPriority() == null || !categoryPattern.getPriority().equals(entry.getPriority())) {
-                    categoryPattern.updatePriority(entry.getPriority());
-                    needsUpdate = true;
-                }
-
-                Set<String> currentAppPatterns = categoryPattern.getAppPatterns() != null 
-                    ? categoryPattern.getAppPatterns() 
-                    : Collections.emptySet();
-                if (!currentAppPatterns.containsAll(entry.getAppPatterns())) {
-                    needsUpdate = true;
-                }
-
-                Set<String> currentDomainPatterns = categoryPattern.getDomainPatterns() != null 
-                    ? categoryPattern.getDomainPatterns() 
-                    : Collections.emptySet();
-                if (!currentDomainPatterns.containsAll(entry.getDomainPatterns())) {
-                    needsUpdate = true;
-                }
-                
-                if (needsUpdate) {
+                if (isNeedsUpdate(entry, categoryPattern)) {
                     Set<String> finalAppPatterns = new HashSet<>();
                     if (categoryPattern.getAppPatterns() != null) {
                         finalAppPatterns.addAll(categoryPattern.getAppPatterns());
@@ -106,5 +84,24 @@ public class CategoryPatternInitializer implements SmartInitializingSingleton {
         if (!patternsToSave.isEmpty()) {
             categoryPatternRepository.saveAll(patternsToSave);
         }
+    }
+
+    private static boolean isNeedsUpdate(CategoryPatternJSONDto.CategoryPatternEntry entry, CategoryPattern categoryPattern) {
+        boolean needsUpdate = false;
+
+        Set<String> currentAppPatterns = categoryPattern.getAppPatterns() != null
+            ? categoryPattern.getAppPatterns()
+            : Collections.emptySet();
+        if (!currentAppPatterns.containsAll(entry.getAppPatterns())) {
+            needsUpdate = true;
+        }
+
+        Set<String> currentDomainPatterns = categoryPattern.getDomainPatterns() != null
+            ? categoryPattern.getDomainPatterns()
+            : Collections.emptySet();
+        if (!currentDomainPatterns.containsAll(entry.getDomainPatterns())) {
+            needsUpdate = true;
+        }
+        return needsUpdate;
     }
 }

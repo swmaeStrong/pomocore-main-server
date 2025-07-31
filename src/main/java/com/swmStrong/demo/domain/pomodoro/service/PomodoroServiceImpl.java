@@ -27,6 +27,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,6 +45,12 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final SessionNumberProvider sessionNumberProvider;
     private final RedisStreamProducer redisStreamProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
+    
+    // 세션 번호 캐시 (키: userId:sessionDate, 값: SessionCacheEntry)
+    private final ConcurrentHashMap<String, SessionCacheEntry> sessionCache = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService cacheCleanupScheduler = Executors.newScheduledThreadPool(1);
+    private static final long TTL_MINUTES = 8;
+    private static final long TTL_MILLIS = TTL_MINUTES * 60 * 1000;
 
     public PomodoroServiceImpl(
             CategorizedDataRepository categorizedDataRepository,
@@ -58,6 +68,9 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.sessionNumberProvider = sessionNumberProvider;
         this.redisStreamProducer = redisStreamProducer;
         this.applicationEventPublisher = applicationEventPublisher;
+        
+        // 캐시 정리 스케줄러 시작 (매 4분마다 실행)
+        cacheCleanupScheduler.scheduleAtFixedRate(this::cleanupExpiredCacheEntries, 4, 4, TimeUnit.MINUTES);
     }
 
     @Override
@@ -68,8 +81,7 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         List<PomodoroUsageLog> pomodoroUsageLogList = new ArrayList<>();
         List<CategorizedData> categorizedDataList = new ArrayList<>();
-        int session = sessionNumberProvider.getNextSessionByUserIDAndSessionDate(userId, pomodoroUsageLogsDto.sessionDate());
-
+        int session = getOrCreateSessionNumber(userId, pomodoroUsageLogsDto.sessionDate());
         for (PomodoroUsageLogsDto.PomodoroDto pomodoroDto: pomodoroUsageLogsDto.usageLogs()) {
             CategorizedData categorizedData = CategorizedData.builder()
                     .url(pomodoroDto.url())
@@ -189,6 +201,65 @@ public class PomodoroServiceImpl implements PomodoroService {
         }
 
         return distractedDetailsDtoList;
-
     }
+
+    private int getOrCreateSessionNumber(String userId, LocalDate sessionDate) {
+        String cacheKey = userId + ":" + sessionDate;
+        long currentTime = System.currentTimeMillis();
+
+        SessionCacheEntry existingEntry = sessionCache.get(cacheKey);
+        if (existingEntry != null && !isExpired(existingEntry, currentTime)) {
+            log.debug("Cache hit for session: userId={}, sessionDate={}, session={}", 
+                    userId, sessionDate, existingEntry.sessionNumber());
+            int now = existingEntry.sessionNumber() + 1;
+            sessionCache.put(cacheKey, new SessionCacheEntry(now, currentTime));
+            return now;
+        }
+
+        int now = sessionNumberProvider.getSessionByUserIDAndSessionDate(userId, sessionDate) + 1;
+        SessionCacheEntry newEntry = new SessionCacheEntry(now, currentTime);
+
+        SessionCacheEntry actualEntry = sessionCache.putIfAbsent(cacheKey, newEntry);
+        if (actualEntry != null) {
+            log.debug("Cache race condition detected, using existing session: userId={}, sessionDate={}, session={}", 
+                    userId, sessionDate, actualEntry.sessionNumber());
+            return actualEntry.sessionNumber();
+        }
+        
+        log.debug("Cache miss, created new session: userId={}, sessionDate={}, session={}", 
+                userId, sessionDate, now);
+        return now;
+    }
+
+    private boolean isExpired(SessionCacheEntry entry, long currentTime) {
+        return currentTime - entry.createdAt() > TTL_MILLIS;
+    }
+
+    private void cleanupExpiredCacheEntries() {
+        long currentTime = System.currentTimeMillis();
+        int removedCount = 0;
+        
+        Iterator<Map.Entry<String, SessionCacheEntry>> iterator = sessionCache.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, SessionCacheEntry> entry = iterator.next();
+            if (isExpired(entry.getValue(), currentTime)) {
+                iterator.remove();
+                removedCount++;
+            }
+        }
+        
+        if (removedCount > 0) {
+            log.debug("Cleaned up {} expired session cache entries", removedCount);
+        }
+    }
+    
+    /**
+     * 세션 캐시 엔트리
+     * @param sessionNumber 세션 번호
+     * @param createdAt 생성 시간 (milliseconds)
+     */
+    private record SessionCacheEntry(
+            int sessionNumber,
+            long createdAt
+    ) {}
 }

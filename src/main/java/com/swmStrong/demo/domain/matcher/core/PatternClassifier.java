@@ -8,9 +8,11 @@ import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepos
 import com.swmStrong.demo.domain.common.util.DomainExtractor;
 import com.swmStrong.demo.domain.common.util.Trie;
 import com.swmStrong.demo.infra.LLM.LLMClassifier;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,13 +20,16 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public class PatternClassifier {
+public class PatternClassifier implements InitializingBean {
     private final CategoryPatternRepository categoryPatternRepository;
     private final Cache<String, ObjectId> classificationCache;
     private final LLMClassifier classifier;
 
     public Trie<ObjectId> appTrie;
     public Trie<ObjectId> domainTrie;
+    
+    // 초기화 완료 상태 추적
+    private volatile boolean initialized = false;
 
     public PatternClassifier(
             CategoryPatternRepository categoryPatternRepository,
@@ -34,10 +39,11 @@ public class PatternClassifier {
         this.categoryPatternRepository = categoryPatternRepository;
         this.classificationCache = classificationCache;
         this.classifier = classifier;
+        log.info("PatternClassifier constructor completed, initialization will follow");
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void afterPropertiesSet() {
         appTrie = new Trie<>();
         domainTrie = new Trie<>();
 
@@ -57,11 +63,28 @@ public class PatternClassifier {
                 }
             }
         }
-        log.info("app and domain tries initialized");
+        initialized = true; // 초기화 완료 플래그 설정
+        log.info("PatternClassifier initialized successfully - appTrie and domainTrie are ready");
+    }
+
+    @EventListener
+    public void onApplicationReady(ApplicationReadyEvent event) {
+        if (!initialized) {
+            log.error("CRITICAL: PatternClassifier not initialized after application startup!");
+            afterPropertiesSet();
+        } else {
+            log.info("PatternClassifier ready for service - Trie structures confirmed");
+        }
     }
 
     public ClassifiedResult classify(String app, String title, String url) {
         log.trace("start classify: {}, {}, {}", app, title, url);
+
+        if (!initialized || appTrie == null || domainTrie == null) {
+            log.warn("PatternClassifier not ready, ensuring initialization");
+            ensureInitialized();
+        }
+        
         String query = getQuery(app, title, url);
         ObjectId objectId;
 
@@ -88,7 +111,8 @@ public class PatternClassifier {
 
     private ObjectId classifyFromAppTrie(String app) {
         log.trace("trie layer: {}", app);
-        return appTrie.search(app, false);
+        ensureInitialized(); // 안전 장치: 지연 초기화 확인
+        return appTrie != null ? appTrie.search(app, false) : null;
     }
 
     private ObjectId classifyFromDomainTrie(String domain) {
@@ -99,7 +123,19 @@ public class PatternClassifier {
             return null;
         }
         log.trace("trie layer with domain: {} (extracted: {})", domain, cleanDomain);
-        return domainTrie.search(cleanDomain, true);
+        ensureInitialized(); // 안전 장치: 지연 초기화 확인
+        return domainTrie != null ? domainTrie.search(cleanDomain, true) : null;
+    }
+    
+    /**
+     * 초기화가 완료되지 않은 경우 동기적으로 초기화를 수행합니다.
+     * Race condition을 방지하기 위해 synchronized 블록을 사용합니다.
+     */
+    private synchronized void ensureInitialized() {
+        if (!initialized) {
+            log.warn("PatternClassifier not initialized, performing lazy initialization");
+            afterPropertiesSet();
+        }
     }
 
     private ObjectId classifyFromCache(String query) {

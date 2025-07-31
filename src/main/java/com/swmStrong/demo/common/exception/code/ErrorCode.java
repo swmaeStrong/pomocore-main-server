@@ -18,7 +18,10 @@ public enum ErrorCode implements BaseCode {
     INVALID_FILE("4007", "유효하지 않은 파일입니다.", HttpStatus.BAD_REQUEST),
     FILE_SIZE_EXCEEDED("4008", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE("4009", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
-    BAD_WORD_FILTER("400A", "닉네임에 금지단어가 포함되어 있습니다.", HttpStatus.BAD_REQUEST),
+    BAD_WORD_FILTER("400A", "금지단어가 포함되어 있습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_KEY("400B", "유효하지 않은 키값입니다.", HttpStatus.BAD_REQUEST),
+    GROUP_OWNER_CANT_QUIT("400C", "그룹장은 탈퇴할 수 없습니다.", HttpStatus.BAD_REQUEST),
+    GROUP_HAS_USER("400D", "삭제하려는 그룹에 유저가 남아있습니다.",  HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
@@ -28,6 +31,7 @@ public enum ErrorCode implements BaseCode {
 
     // --- 403 FORBIDDEN ---
     _FORBIDDEN("4030", "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    GROUP_OWNER_ONLY("4031", "그룹장만 접근할 수 있습니다.",  HttpStatus.FORBIDDEN),
 
     // --- 404 NOT FOUND ---
     _NOT_FOUND("4040", "요청한 리소스를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
@@ -40,6 +44,8 @@ public enum ErrorCode implements BaseCode {
     USER_SUBSCRIPTION_NOT_FOUND("4048", "구독 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     NICKNAME_NOT_FOUND("4049", "해당하는 닉네임을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     USAGE_LOG_NOT_FOUND("404A", "해당하는 사용 기록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    GROUP_NOT_FOUND("404B", "해당하는 그룹을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    GROUP_USER_NOT_FOUND("404C", "해당 그룹에서 유저를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // --- 409 CONFLICT ---
     _CONFLICT("4090", "이미 존재하는 리소스입니다.", HttpStatus.CONFLICT),
@@ -51,6 +57,8 @@ public enum ErrorCode implements BaseCode {
     DUPLICATE_USER_SUBSCRIPTION("4096", "이미 구독중인 플랜이 있습니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_EMAIL("4097", "이미 가입된 이메일입니다.", HttpStatus.CONFLICT),
     USER_ALREADY_REGISTERED_BY_SOCIAL_LOGIN("4098", "이미 가입된 소셜 로그인 계정이 존재합니다.", HttpStatus.CONFLICT),
+    GROUP_ALREADY_JOINED("4099", "이미 속해있는 그룹입니다.",  HttpStatus.CONFLICT),
+    GROUP_NAME_ALREADY_EXISTS("409A", "이미 존재하는 그룹 이름입니다.", HttpStatus.CONFLICT),
 
     // --- 429 TO MANY REQUESTS ---
     IP_RATE_LIMIT_EXCEEDED("4290", "지속적인 요청으로 인해 차단되었습니다. 악의적 접근으로 간주될 수 있습니다.", HttpStatus.TOO_MANY_REQUESTS),

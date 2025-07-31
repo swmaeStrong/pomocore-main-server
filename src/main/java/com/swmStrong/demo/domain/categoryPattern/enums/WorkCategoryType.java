@@ -10,7 +10,12 @@ public enum WorkCategoryType {
     DESIGN("Design"),
     VIDEO_EDITING("Video Editing"),
     EDUCATION("Education"),
-    PRODUCTIVITY("Productivity"),;
+    PRODUCTIVITY("Productivity"),
+    UNCATEGORIZED("Uncategorized"),
+    MEETINGS("Meetings"),
+    FILE_MANAGEMENT("File Management"),
+    FINANCE("Finance")
+    ;
 
     private final String category;
 

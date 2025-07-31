@@ -33,4 +33,14 @@ public class UserInfoProviderImpl implements UserInfoProvider {
         }
         return nicknames;
     }
+
+    @Override
+    public boolean existsUserById(String userId) {
+        return userRepository.existsById(userId);
+    }
+
+    @Override
+    public User loadByUserId(String userId) {
+        return userRepository.findById(userId).orElse(null);
+    }
 }

@@ -41,8 +41,14 @@ public class CategoryProviderImpl implements CategoryProvider {
     }
 
     @Override
-    public Map<ObjectId, String> getCategoryMap() {
+    public Map<ObjectId, String> getCategoryMapById() {
         return categoryPatternRepository.findAll().stream()
                 .collect(Collectors.toMap(CategoryPattern::getId, CategoryPattern::getCategory));
+    }
+
+    @Override
+    public Map<String, ObjectId> getCategoryMapByCategory() {
+        return categoryPatternRepository.findAll().stream()
+                .collect(Collectors.toMap(CategoryPattern::getCategory, CategoryPattern::getId));
     }
 }

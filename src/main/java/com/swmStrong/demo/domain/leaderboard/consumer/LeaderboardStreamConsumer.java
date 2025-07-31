@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,20 +39,21 @@ public class LeaderboardStreamConsumer extends AbstractRedisStreamConsumer {
                 List<MapRecord<String, Object, Object>> records =
                         stringRedisTemplate.opsForStream().read(
                                 Consumer.from(StreamConfig.LEADERBOARD.getGroup(), StreamConfig.LEADERBOARD.getConsumer()),
-                                StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
+                                StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(1000),
                                 StreamOffset.create(StreamConfig.LEADERBOARD.getStreamKey(),  ReadOffset.from(">"))
                         );
+                List<LeaderBoardUsageMessage> messages = new ArrayList<>();
                 for (MapRecord<String, Object, Object> record: records) {
                     Map<Object, Object> valueMap = record.getValue();
                     LeaderBoardUsageMessage message = objectMapper.convertValue(valueMap, LeaderBoardUsageMessage.class);
-
-                    leaderboardService.increaseScore(
-                            message.categoryId(),
-                            message.userId(),
-                            message.duration(),
-                            message.timestamp()
-                    );
-
+                    messages.add(message);
+                }
+                
+                if (!messages.isEmpty()) {
+                    leaderboardService.increaseScoreBatch(messages);
+                }
+                
+                for (MapRecord<String, Object, Object> record: records) {
                     stringRedisTemplate.opsForStream().acknowledge(StreamConfig.LEADERBOARD.getGroup(), record);
                 }
             } catch (Exception e) {

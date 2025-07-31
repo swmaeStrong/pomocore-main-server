@@ -8,13 +8,16 @@ import com.swmStrong.demo.domain.leaderboard.dto.CategoryDetailDto;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResponseDto;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardCache;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
+import com.swmStrong.demo.message.dto.LeaderBoardUsageMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.*;
 
@@ -50,6 +53,52 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         increaseScoreByCategoryAndUserId(category, userId, day, duration);
         if (workCategories.contains(category)) {
             increaseScoreByCategoryAndUserId("work", userId, day, duration);
+        }
+    }
+
+    @Override
+    public void increaseScoreBatch(List<LeaderBoardUsageMessage> messages) {
+        Map<String, Map<String, Double>> categoryUserScoreMap = new HashMap<>();
+        Map<String, Double> workUserScoreMap = new HashMap<>();
+        
+        for (LeaderBoardUsageMessage message : messages) {
+            LocalDate day = LocalDateTime.ofInstant(Instant.ofEpochSecond((long) message.timestamp()),
+                    ZoneId.systemDefault()).toLocalDate();
+            ObjectId categoryObjectId = new ObjectId(message.categoryId());
+            String category = categoryProvider.getCategoryById(categoryObjectId);
+            
+            String dailyKey = generateDailyKey(category, day);
+            String weeklyKey = generateWeeklyKey(category, day);
+            String monthlyKey = generateMonthlyKey(category, day);
+            
+            categoryUserScoreMap.computeIfAbsent(dailyKey, k -> new HashMap<>())
+                    .merge(message.userId(), message.duration(), Double::sum);
+            categoryUserScoreMap.computeIfAbsent(weeklyKey, k -> new HashMap<>())
+                    .merge(message.userId(), message.duration(), Double::sum);
+            categoryUserScoreMap.computeIfAbsent(monthlyKey, k -> new HashMap<>())
+                    .merge(message.userId(), message.duration(), Double::sum);
+            
+            if (workCategories.contains(category)) {
+                String workDailyKey = generateDailyKey("work", day);
+                String workWeeklyKey = generateWeeklyKey("work", day);
+                String workMonthlyKey = generateMonthlyKey("work", day);
+                
+                categoryUserScoreMap.computeIfAbsent(workDailyKey, k -> new HashMap<>())
+                        .merge(message.userId(), message.duration(), Double::sum);
+                categoryUserScoreMap.computeIfAbsent(workWeeklyKey, k -> new HashMap<>())
+                        .merge(message.userId(), message.duration(), Double::sum);
+                categoryUserScoreMap.computeIfAbsent(workMonthlyKey, k -> new HashMap<>())
+                        .merge(message.userId(), message.duration(), Double::sum);
+            }
+        }
+        
+        for (Map.Entry<String, Map<String, Double>> keyEntry : categoryUserScoreMap.entrySet()) {
+            String key = keyEntry.getKey();
+            Map<String, Double> userScoreMap = keyEntry.getValue();
+            log.info("key: {}, userScoreMap: {}", key, userScoreMap);
+            for (Map.Entry<String, Double> userEntry : userScoreMap.entrySet()) {
+                leaderboardCache.increaseScoreByUserId(key, userEntry.getKey(), userEntry.getValue());
+            }
         }
     }
 
@@ -118,7 +167,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         return response;
     }
 
-    private String generateKey(String category, LocalDate date, PeriodType periodType) {
+    public String generateKey(String category, LocalDate date, PeriodType periodType) {
         return switch (periodType) {
             case DAILY -> generateDailyKey(category, date);
             case WEEKLY -> generateWeeklyKey(category, date);

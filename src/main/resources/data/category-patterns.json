@@ -1,14 +1,85 @@
 {
   "categoryPatterns": [
     {
+      "category": "Marketing",
+      "appPatterns": [
+      ],
+      "domainPatterns": [
+        "analytics.google.com",
+        "ads.google.com",
+        "adwords.google.com",
+        "tagmanager.google.com",
+        "optimize.google.com",
+        "marketingplatform.google.com",
+        "ads.facebook.com",
+        "business.facebook.com",
+        "business.meta.com",
+        "ads.twitter.com",
+        "ads.tiktok.com",
+        "ads.linkedin.com",
+        "ads.youtube.com",
+        "adsmanager.facebook.com",
+        "creator.tiktok.com",
+        "studio.youtube.com",
+        "naver.worksmobile.com",
+        "searchad.naver.com",
+        "businesscentral.kakao.com",
+        "moment.kakao.com"
+      ]
+    },
+    {
+      "category": "Browsing",
+      "appPatterns": [
+      ],
+      "domainPatterns": [
+        "zum.com",
+        "search.daum.net",
+        "search.naver.com",
+        "google.com/search"
+      ]
+    },
+    {
+      "category": "E-commerce & Shopping",
+      "appPatterns": [
+      ],
+      "domainPatterns": [
+        "smartstore.naver.com",
+        "coupang.com",
+        "11st.co.kr",
+        "gmarket.co.kr",
+        "auction.co.kr",
+        "interpark.com",
+        "ssg.com",
+        "lotteon.com",
+        "wemakeprice.com",
+        "tmon.co.kr",
+        "ebay.com",
+        "aliexpress.com",
+        "shopping.naver.com",
+        "shop.kakao.com",
+        "oliveyoung.co.kr",
+        "29cm.co.kr",
+        "musinsa.com"
+      ]
+    },
+    {
+      "category": "AFK",
+      "appPatterns": [
+        "afk",
+        "loginwindow"
+      ],
+      "domainPatterns": [
+        "afk",
+        "loginwindow"
+      ]
+    },
+    {
       "category": "Uncategorized",
-      "priority": 100,
       "appPatterns": [],
       "domainPatterns": []
     },
     {
       "category": "Development",
-      "priority": 1,
       "appPatterns": [
         "vscode",
         "visual studio code",
@@ -84,7 +155,18 @@
         "dev-c++",
         "visual studio"
       ],
-      "domainPatterns": [
+      "domainPatterns":[
+        "cloud.mongodb.com",
+        "firebase.google.com",
+        "localhost",
+        "127.0.0.1",
+        "sentry.io",
+        "supabase.com",
+        "vercel.com",
+        "aws.amazon.com",
+        "ngrok.com",
+        "nestjs.com",
+        "v0.dev",
         "github.com",
         "gitlab.com",
         "bitbucket.org",
@@ -100,13 +182,11 @@
         "go.dev",
         "pkg.go.dev",
         "docker.com",
-        "hub.docker.com",
-        "gabia.com"
+        "hub.docker.com"
       ]
     },
     {
       "category": "LLM",
-      "priority": 2,
       "appPatterns": [
         "chatgpt",
         "claude",
@@ -143,7 +223,7 @@
     },
     {
       "category": "Documentation",
-      "priority": 3,
+
       "appPatterns": [
         "notion",
         "obsidian",
@@ -204,12 +284,13 @@
         "evernote.com",
         "hackmd.io",
         "todoist.com",
-        "culturedcode.com"
+        "culturedcode.com",
+        "blog.naver.com",
+        "tistory.com"
       ]
     },
     {
       "category": "Design",
-      "priority": 4,
       "appPatterns": [
         "figma",
         "figma desktop",
@@ -288,7 +369,6 @@
     },
     {
       "category": "Video Editing",
-      "priority": 5,
       "appPatterns": [
         "final cut pro",
         "fcpx",
@@ -347,14 +427,14 @@
         "cleanshot x"
       ],
       "domainPatterns": [
-        "zoom.us",
+        "downsub.com",
+        "capcut.com",
         "loom.com",
         "streamlabs.com"
       ]
     },
     {
-      "category": "Communication",
-      "priority": 6,
+      "category": "Meetings",
       "appPatterns": [
         "slack",
         "microsoft teams",
@@ -373,22 +453,14 @@
         "mmhmm",
         "facetime",
         "skype",
-        "line",
         "mattermost",
         "rocket chat",
-        "telegram",
-        "telegram desktop",
         "signal",
         "signal desktop",
-        "whatsapp",
-        "whatsapp desktop",
         "messages",
         "imessage",
         "viber",
         "wechat",
-        "kakao talk",
-        "kakaotalk",
-        "카카오톡",
         "hangouts",
         "google chat",
         "gmail",
@@ -422,29 +494,21 @@
     },
     {
       "category": "SNS",
-      "priority": 8,
       "appPatterns": [
-        "instagram",
-        "threads",
-        "facebook",
+        "카카오톡",
+        "kakaotalk",
+        "라인",
+        "line",
+        "telegram",
+        "telegram desktop",
+        "whatsapp",
+        "whatsapp desktop",
+        "discord",
         "twitter",
         "x",
-        "snapchat",
-        "tiktok",
-        "linkedin",
-        "reddit",
-        "pinterest",
-        "tumblr",
         "mastodon",
-        "clubhouse",
-        "twitch",
-        "youtube studio",
-        "creator studio",
-        "hootsuite",
-        "buffer",
-        "later",
-        "sprout social",
-        "social media manager"
+        "tweetbot",
+        "twitterrific"
       ],
       "domainPatterns": [
         "instagram.com",
@@ -455,94 +519,78 @@
         "snapchat.com",
         "tiktok.com",
         "linkedin.com",
-        "reddit.com",
         "pinterest.com",
         "tumblr.com",
         "twitch.tv",
-        "studio.youtube.com",
-        "business.facebook.com",
-        "ads.twitter.com",
-        "ads.tiktok.com"
+        "band.us",
+        "talk.kakao.com",
+        "story.kakao.com",
+        "web.telegram.org",
+        "web.whatsapp.com",
+        "cafe.naver.com"
       ]
     },
     {
       "category": "Entertainment",
-      "priority": 9,
       "appPatterns": [
         "netflix",
         "disney+",
-        "disney plus",
         "amazon prime video",
         "prime video",
-        "hulu",
-        "hbo max",
-        "hbo",
-        "apple tv+",
         "apple tv",
-        "paramount+",
-        "peacock",
-        "crunchyroll",
-        "funimation",
-        "vrv",
         "plex",
         "jellyfin",
         "emby",
         "kodi",
         "infuse",
+        "vlc",
+        "iina",
+        "gom player",
+        "곰플레이어",
         "spotify",
         "apple music",
-        "amazon music",
         "tidal",
-        "deezer",
-        "pandora",
-        "soundcloud",
-        "bandcamp",
-        "last.fm",
-        "shazam",
-        "audiomack",
-        "kindle",
         "kindle for mac",
         "books",
         "apple books",
-        "ibooks",
         "calibre",
-        "adobe digital editions",
-        "kobo",
         "audible",
-        "audiobooks",
         "libby",
-        "overdrive",
-        "scribd",
-        "blinkist",
+        "overcast",
         "podcasts",
         "apple podcasts",
-        "overcast",
         "castro",
         "pocket casts",
-        "spotify podcasts",
-        "stitcher",
-        "radio",
-        "tunein",
-        "iheartradio"
+        "tunein"
       ],
       "domainPatterns": [
+        "mlbpark.donga.com",
+        "tving.com",
+        "dcinside.com",
+        "statiz.spoki.com",
+        "sports.naver.com",
+        "sport.naver.com",
+        "game.naver.com",
         "netflix.com",
         "disneyplus.com",
         "primevideo.com",
-        "hulu.com",
-        "hbomax.com",
         "spotify.com",
         "music.apple.com",
         "soundcloud.com",
-        "bandcamp.com",
         "audible.com",
-        "scribd.com",
-        "blinkist.com"
+        "watcha.com",
+        "wavve.com",
+        "laftel.net",
+        "afreecatv.com",
+        "vibe.naver.com",
+        "music.bugs.co.kr",
+        "genie.co.kr",
+        "melon.com",
+        "podbbang.com"
       ]
     },
     {
       "category": "Productivity",
-      "priority": 10,
       "appPatterns": [
         "pawcus",
         "jira",
@@ -619,6 +667,7 @@
         "tomato one"
       ],
       "domainPatterns": [
+        "jira.com",
         "atlassian.com",
         "linear.app",
         "asana.com",
@@ -637,7 +686,6 @@
     },
     {
       "category": "File Management",
-      "priority": 12,
       "appPatterns": [
         "finder",
         "path finder",
@@ -690,7 +738,6 @@
     },
     {
       "category": "System & Utilities",
-      "priority": 13,
       "appPatterns": [
         "cleanmymac",
         "cleanmymac x",
@@ -756,11 +803,9 @@
     },
     {
       "category": "Game",
-      "priority": 14,
       "appPatterns": [
         "steam",
         "epic games launcher",
-        "epic games",
         "battle.net",
         "blizzard",
         "origin",
@@ -768,55 +813,22 @@
         "uplay",
         "ubisoft connect",
         "gog galaxy",
-        "itch.io",
+        "itch",
         "minecraft",
         "minecraft launcher",
-        "roblox",
-        "roblox studio",
         "league of legends",
         "world of warcraft",
         "counter-strike 2",
         "counter-strike",
-        "cs2",
         "dota 2",
         "valorant",
-        "fortnite",
-        "among us",
-        "fall guys",
-        "rocket league",
-        "apex legends",
-        "overwatch",
-        "overwatch 2",
-        "call of duty",
-        "destiny 2",
-        "pubg",
-        "chess.com",
-        "lichess",
-        "civilization vi",
-        "cities skylines",
-        "stardew valley",
-        "terraria",
-        "factorio",
-        "kerbal space program",
-        "the sims 4",
-        "the sims",
-        "age of empires",
-        "total war",
-        "crusader kings",
-        "europa universalis",
-        "stellaris",
-        "hearts of iron",
-        "rimworld",
-        "dwarf fortress",
+        "chess",
         "openemu",
         "dolphin",
-        "pcsx2",
-        "rpcs3",
-        "cemu",
-        "yuzu",
-        "ryujinx"
+        "pcsx2"
       ],
       "domainPatterns": [
+        "nexon.com",
         "store.steampowered.com",
         "epicgames.com",
         "battle.net",
@@ -825,12 +837,21 @@
         "gog.com",
         "itch.io",
         "chess.com",
-        "lichess.org"
+        "lichess.org",
+        "hangame.com",
+        "pmang.com",
+        "netmarble.com",
+        "ncsoft.com",
+        "plaync.com",
+        "lostark.game.onstove.com",
+        "maplestory.nexon.com",
+        "sa.nexon.com",
+        "kart.nexon.com",
+        "fifaonline4.nexon.com"
       ]
     },
     {
       "category": "Education",
-      "priority": 15,
       "appPatterns": [
         "khan academy",
         "coursera",
@@ -884,6 +905,9 @@
         "tinkercad"
       ],
       "domainPatterns": [
+        "solved.ac",
+        "fastcampus.com",
+        "fastcampus.co.kr",
         "acmicpc.net",
         "codeforces.com",
         "atcoder.jp",
@@ -903,63 +927,22 @@
         "wolframalpha.com",
         "desmos.com",
         "scratch.mit.edu",
-        "tinkercad.com"
+        "tinkercad.com",
+        "wikipedia.org"
       ]
     },
     {
       "category": "Finance",
-      "priority": 16,
       "appPatterns": [
-        "mint",
         "quicken",
         "ynab",
         "you need a budget",
-        "personal capital",
-        "empower",
-        "budgetbakers",
-        "spendee",
-        "pocketguard",
-        "goodbudget",
-        "everydollar",
-        "toshl",
-        "robinhood",
-        "webull",
-        "td ameritrade",
-        "thinkorswim",
-        "e*trade",
-        "etrade",
-        "fidelity",
-        "charles schwab",
-        "merrill edge",
-        "interactive brokers",
-        "tastyworks",
-        "ally invest",
-        "coinbase",
-        "coinbase pro",
-        "binance",
-        "kraken",
-        "gemini",
-        "crypto.com",
-        "blockfi",
         "exodus",
         "electrum",
-        "metamask",
-        "trust wallet",
-        "paypal",
-        "venmo",
-        "cash app",
-        "square cash",
-        "zelle",
-        "apple pay",
-        "google pay",
-        "samsung pay",
-        "stripe",
-        "wise",
-        "transferwise",
-        "remitly",
-        "western union"
+        "metamask"
       ],
       "domainPatterns": [
+        "board.ad",
         "mint.com",
         "youneedabudget.com",
         "personalcapital.com",
@@ -975,7 +958,24 @@
         "gemini.com",
         "crypto.com",
         "paypal.com",
-        "wise.com"
+        "wise.com",
+        "toss.im",
+        "kakaobank.com",
+        "kbstar.com",
+        "shinhan.com",
+        "hanabank.com",
+        "wooribank.com",
+        "nonghyup.com",
+        "banksalad.com",
+        "chai.finance",
+        "pay.naver.com",
+        "pay.kakao.com",
+        "payco.com",
+        "samsung.com/pay",
+        "upbit.com",
+        "bithumb.com",
+        "coinone.co.kr",
+        "korbit.co.kr"
       ]
     }
   ]

@@ -31,7 +31,7 @@ public class GroupServiceImpl implements GroupService{
     @Transactional
     @Override
     public void createGroup(String userId, CreateGroupDto createGroupDto) {
-        if (!validateGroupName(createGroupDto.groupName())) {
+        if (!validateGroupName(createGroupDto.name())) {
             throw new ApiException(ErrorCode.GROUP_NAME_ALREADY_EXISTS);
         }
 
@@ -39,7 +39,7 @@ public class GroupServiceImpl implements GroupService{
 
         Group group = Group.builder()
                 .owner(userInfoProvider.loadByUserId(userId))
-                .name(createGroupDto.groupName())
+                .name(createGroupDto.name())
                 .tags(createGroupDto.tags())
                 .groundRule(createGroupDto.groundRule())
                 .description(createGroupDto.description())
@@ -209,10 +209,10 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
-    public boolean validateGroupName(String groupName) {
-        if (BadWordsFilter.isBadWord(groupName)) {
+    public boolean validateGroupName(String name) {
+        if (BadWordsFilter.isBadWord(name)) {
             throw new ApiException(ErrorCode.BAD_WORD_FILTER);
         }
-        return !groupRepository.existsByName(groupName);
+        return !groupRepository.existsByName(name);
     }
 }

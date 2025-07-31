@@ -3,9 +3,7 @@ package com.swmStrong.demo.domain.group.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
-import com.swmStrong.demo.domain.group.dto.CreateGroupDto;
-import com.swmStrong.demo.domain.group.dto.GroupListResponseDto;
-import com.swmStrong.demo.domain.group.dto.UpdateGroupDto;
+import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.entity.Group;
 import com.swmStrong.demo.domain.group.repository.GroupRepository;
 import com.swmStrong.demo.domain.user.entity.User;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class GroupServiceImpl implements GroupService{
@@ -54,6 +53,35 @@ public class GroupServiceImpl implements GroupService{
         userGroupRepository.save(userGroup);
     }
 
+    //TODO: 추방
+
+    //TODO: 그룹장 위임
+
+    @Override
+    public GroupDetailsDto getGroupDetails(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        List<GroupMember> memberList = userGroupRepository.findByGroup(group).stream()
+                .map(userGroup -> GroupMember.builder()
+                            .userId(userGroup.getUser().getId())
+                            .nickname(userGroup.getUser().getNickname())
+                            .build())
+                .toList();
+
+        return GroupDetailsDto.of(group, memberList);
+    }
+
+    @Override
+    public List<GroupListResponseDto> getMyGroups(String userId) {
+        User user = userInfoProvider.loadByUserId(userId);
+
+        List<UserGroup> userGroupList = userGroupRepository.findByUser(user);
+        return userGroupList.stream()
+                .map(userGroup -> GroupListResponseDto.of(userGroup.getGroup()))
+                .toList();
+    }
+
     @Override
     public List<GroupListResponseDto> getGroups() {
         List<Group> groupList = groupRepository.findAll();
@@ -72,6 +100,8 @@ public class GroupServiceImpl implements GroupService{
         if (userGroupRepository.existsByUserAndGroup(user, group)) {
             throw new ApiException(ErrorCode.GROUP_ALREADY_JOINED);
         }
+
+        //TODO: private 입장 시 확인 절차
 
         UserGroup userGroup = new UserGroup(user, group);
         userGroupRepository.save(userGroup);

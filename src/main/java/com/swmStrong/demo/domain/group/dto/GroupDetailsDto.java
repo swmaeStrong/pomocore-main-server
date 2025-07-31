@@ -9,6 +9,7 @@ import java.util.List;
 @Builder
 public record GroupDetailsDto(
         GroupOwner owner,
+        List<GroupMember> members,
         String name,
         List<String> tags,
         String description,
@@ -17,9 +18,10 @@ public record GroupDetailsDto(
         LocalDate createdAt
 ) {
 
-    public static GroupDetailsDto of(Group group) {
+    public static GroupDetailsDto of(Group group, List<GroupMember> members) {
         return GroupDetailsDto.builder()
                 .owner(GroupOwner.of(group.getOwner()))
+                .members(members)
                 .name(group.getName())
                 .tags(group.getTags())
                 .description(group.getDescription())

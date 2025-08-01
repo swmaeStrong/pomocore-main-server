@@ -52,6 +52,7 @@ public class SessionScoreEventListener {
 
         sessionScore.updateDetails(
                 first.getTimestamp(),
+                result.afkDuration(),
                 last.getDuration()+last.getTimestamp()-first.getTimestamp(),
                 result.distractedCount(),
                 result.distractedDuration()

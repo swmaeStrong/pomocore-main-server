@@ -5,6 +5,10 @@
       "appPatterns": [
       ],
       "domainPatterns": [
+        "mixpanel.com",
+        "smaad.net",
+        "daro.so",
+        "biz.giftishow.com",
         "analytics.google.com",
         "ads.google.com",
         "adwords.google.com",
@@ -32,6 +36,7 @@
       "appPatterns": [
       ],
       "domainPatterns": [
+        "swmaestro.org",
         "zum.com",
         "search.daum.net",
         "search.naver.com",
@@ -75,12 +80,17 @@
     },
     {
       "category": "Uncategorized",
-      "appPatterns": [],
+      "appPatterns": [
+        "securityagent"
+      ],
       "domainPatterns": []
     },
     {
       "category": "Development",
       "appPatterns": [
+        "amplitude.com",
+        "dbeaver community",
+        "pawcus dev",
         "vscode",
         "visual studio code",
         "intellij idea",
@@ -156,6 +166,11 @@
         "visual studio"
       ],
       "domainPatterns":[
+        "developers.kakao.com",
+        "locust.cloud",
+        "developer.apple.com",
+        "shadcn.com",
+        "swagger-ui",
         "cloud.mongodb.com",
         "firebase.google.com",
         "localhost",
@@ -188,6 +203,7 @@
     {
       "category": "LLM",
       "appPatterns": [
+        "alex",
         "chatgpt",
         "claude",
         "claude desktop",
@@ -225,6 +241,8 @@
       "category": "Documentation",
 
       "appPatterns": [
+        "메모",
+        "텍스트 편집기",
         "notion",
         "obsidian",
         "logseq",
@@ -274,6 +292,7 @@
         "sticky notes"
       ],
       "domainPatterns": [
+        "notion.site",
         "notion.so",
         "docs.google.com",
         "sheets.google.com",
@@ -354,6 +373,7 @@
         "grasshopper"
       ],
       "domainPatterns": [
+        "excalidraw.com",
         "stitch.withgoogle.com",
         "figma.com",
         "adobe.com",
@@ -586,12 +606,17 @@
         "music.bugs.co.kr",
         "genie.co.kr",
         "melon.com",
-        "podbbang.com"
+        "podbbang.com",
+        "toptoon.com",
+        "comic.naver.com",
+        "series.naver.com"
       ]
     },
     {
       "category": "Productivity",
       "appPatterns": [
+        "maccy",
+        "rize",
         "pawcus",
         "jira",
         "linear",
@@ -667,6 +692,9 @@
         "tomato one"
       ],
       "domainPatterns": [
+
+        "buzzvil.com",
+        "atlassian.net/jira",
         "jira.com",
         "atlassian.com",
         "linear.app",
@@ -739,6 +767,11 @@
     {
       "category": "System & Utilities",
       "appPatterns": [
+        "universalaccessauthwarn",
+        "qemu-system-aarch64",
+        "설치 프로그램",
+        "서체 관리자",
+        "WindowManager",
         "cleanmymac",
         "cleanmymac x",
         "cleanmaster",
@@ -804,6 +837,8 @@
     {
       "category": "Game",
       "appPatterns": [
+        "리그 오브 레전드",
+        "riot client",
         "steam",
         "epic games launcher",
         "battle.net",
@@ -828,6 +863,8 @@
         "pcsx2"
       ],
       "domainPatterns": [
+        "lolchess.gg",
+        "op.gg",
         "nexon.com",
         "store.steampowered.com",
         "epicgames.com",
@@ -905,6 +942,7 @@
         "tinkercad"
       ],
       "domainPatterns": [
+        "programmers.co.kr",
         "solved.ac",
         "fastcampus.com",
         "fastcampus.co.kr",
@@ -942,6 +980,7 @@
         "metamask"
       ],
       "domainPatterns": [
+        "kebhana.com",
         "board.ad",
         "mint.com",
         "youneedabudget.com",

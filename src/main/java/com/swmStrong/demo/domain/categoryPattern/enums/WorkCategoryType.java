@@ -14,7 +14,10 @@ public enum WorkCategoryType {
     UNCATEGORIZED("Uncategorized"),
     MEETINGS("Meetings"),
     FILE_MANAGEMENT("File Management"),
-    FINANCE("Finance")
+    FINANCE("Finance"),
+    BROWSING("Browsing"),
+    MARKETING("Marketing"),
+    SYSTEM_UTILITIES("System & Utilities")
     ;
 
     private final String category;

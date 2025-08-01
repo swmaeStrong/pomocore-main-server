@@ -47,9 +47,10 @@ public class UserController {
     )
     @GetMapping("/nickname/check")
     public ResponseEntity<ApiResponse<Boolean>> isNicknameDuplicated(@Valid NicknameRequestDto nicknameRequestDto) {
+        userService.validateNickname(nicknameRequestDto.nickname());
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                userService.isNicknameDuplicated(nicknameRequestDto.nickname())
+                true
         );
     }
 

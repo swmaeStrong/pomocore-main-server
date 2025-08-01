@@ -48,18 +48,14 @@ public class SessionScoreEventListener {
         double sessionSeconds = event.sessionMinutes() * 60;
         double dropOutTime = Math.max((sessionSeconds - totalDuration - 10) * 2, 0);
         Result result = calculatePomodoroScore(pomodoroUsageLogList, dropOutTime);
+        SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(event.userId(), event.session(), event.sessionDate());
 
-        SessionScore sessionScore = SessionScore.builder()
-                .title("")
-                .session(event.session())
-                .sessionDate(event.sessionDate())
-                .user(userInfoProvider.loadByUserId(event.userId()))
-                .timestamp(first.getTimestamp())
-                .duration(last.getDuration()+last.getTimestamp()-first.getTimestamp())
-                .sessionMinutes(event.sessionMinutes())
-                .distractedCount(result.distractedCount())
-                .distractedDuration(result.distractedDuration())
-                .build();
+        sessionScore.updateDetails(
+                first.getTimestamp(),
+                last.getDuration()+last.getTimestamp()-first.getTimestamp(),
+                result.distractedCount(),
+                result.distractedDuration()
+        );
 
         sessionScoreRepository.save(sessionScore);
     }

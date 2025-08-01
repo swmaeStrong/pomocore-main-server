@@ -64,4 +64,11 @@ public class SessionScore {
         this.sessionMinutes = sessionMinutes;
         this.afkDuration = afkDuration;
     }
+
+    public void updateDetails(double timestamp, double duration, int distractedCount, int distractedDuration) {
+        this.timestamp = timestamp;
+        this.duration = duration;
+        this.distractedCount = distractedCount;
+        this.distractedDuration = distractedDuration;
+    }
 }

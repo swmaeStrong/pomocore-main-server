@@ -29,6 +29,7 @@ Based on the user's active application usage pattern, categorize their current b
 1. Analyze the user's digital behavior pattern from the provided app usage data
 2. Consider the app's primary function and the specific context (title/URL)
 3. Infer the user's intent and activity type
+4. If user use youtube but title is not about entertainment, should categorize properly
 4. Respond with **exactly one** category from the list below
 5. **Do not provide explanations or additional text**
 

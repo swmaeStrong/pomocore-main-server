@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     TokenResponseDto signupGuest(HttpServletRequest request, UserRequestDto userRequestDto);
-    boolean isNicknameDuplicated(String nickname);
+    void validateNickname(String nickname);
     UserResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto);
     UserResponseDto getInfoById(String userId);
     UserResponseDto getInfoByNickname(String nickname);

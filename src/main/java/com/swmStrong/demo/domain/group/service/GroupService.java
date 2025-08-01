@@ -16,4 +16,6 @@ public interface GroupService {
     void updateGroup(String userId, Long groupId, UpdateGroupDto updateGroupDto);
     void deleteGroup(String userId, Long groupId);
     boolean validateGroupName(String groupName);
+    void setGroupGoal(String userId, Long groupId, SaveGroupGoalDto saveGroupGoalDto);
+
 }

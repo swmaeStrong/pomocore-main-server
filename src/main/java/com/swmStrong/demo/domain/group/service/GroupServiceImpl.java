@@ -10,10 +10,13 @@ import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.domain.userGroup.entity.UserGroup;
 import com.swmStrong.demo.domain.userGroup.repository.UserGroupRepository;
+import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class GroupServiceImpl implements GroupService{
@@ -21,11 +24,20 @@ public class GroupServiceImpl implements GroupService{
     private final GroupRepository groupRepository;
     private final UserInfoProvider userInfoProvider;
     private final UserGroupRepository userGroupRepository;
+    private final RedisRepository redisRepository;
 
-    public GroupServiceImpl(GroupRepository groupRepository, UserInfoProvider userInfoProvider, UserGroupRepository userGroupRepository) {
+    private static final String GROUP_GOAL_PREFIX = "group_goal";
+
+    public GroupServiceImpl(
+            GroupRepository groupRepository,
+            UserInfoProvider userInfoProvider,
+            UserGroupRepository userGroupRepository,
+            RedisRepository redisRepository
+    ) {
         this.groupRepository = groupRepository;
         this.userInfoProvider = userInfoProvider;
         this.userGroupRepository = userGroupRepository;
+        this.redisRepository = redisRepository;
     }
 
     @Transactional
@@ -214,5 +226,46 @@ public class GroupServiceImpl implements GroupService{
             throw new ApiException(ErrorCode.BAD_WORD_FILTER);
         }
         return !groupRepository.existsByName(name);
+    }
+
+    @Override
+    public void setGroupGoal(String userId, Long groupId, SaveGroupGoalDto saveGroupGoalDto) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        User user =  userInfoProvider.loadByUserId(userId);
+
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        redisRepository.setData(
+                generateKey(
+                        groupId,
+                        saveGroupGoalDto.category(),
+                        saveGroupGoalDto.period()
+                ),
+                saveGroupGoalDto.goalSeconds()
+        );
+    }
+
+//    @Override
+//    public GroupGoalResponseDto getGroupGoal(Long groupId, LocalDate date) {
+//        Group group = groupRepository.findById(groupId)
+//                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
+//
+//        List<UserGroup> userGroupList = userGroupRepository.findByGroup(group);
+//
+//        for (UserGroup userGroup: userGroupList) {
+//            User user = userGroup.getUser();
+//
+//        }
+//
+//        Set<String> goals = redisRepository.findKeys(String.format("%s:%s:*", GROUP_GOAL_PREFIX, groupId));
+//
+//    }
+
+    private String generateKey(Long groupId, String category, String period) {
+        return String.format("%s:%s:%s:%s", GROUP_GOAL_PREFIX, groupId, category, period.toUpperCase());
     }
 }

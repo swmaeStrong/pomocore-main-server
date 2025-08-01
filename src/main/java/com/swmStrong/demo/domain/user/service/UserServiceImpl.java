@@ -69,8 +69,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean isNicknameDuplicated(String nickname) {
-        return userRepository.existsByNickname(nickname);
+    public void validateNickname(String nickname) {
+        if (BadWordsFilter.isBadWord(nickname)) {
+            throw new ApiException(ErrorCode.BAD_WORD_FILTER);
+        }
+        if (userRepository.existsByNickname(nickname)) {
+            throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
+        }
     }
 
     @Override
@@ -78,13 +83,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        if (isNicknameDuplicated(nicknameRequestDto.nickname())) {
-            throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
-        }
-
-        if (BadWordsFilter.isBadWord(nicknameRequestDto.nickname())) {
-            throw new ApiException(ErrorCode.BAD_WORD_FILTER);
-        }
+        validateNickname(user.getNickname());
 
         user.updateNickname(nicknameRequestDto.nickname());
         userRepository.save(user);

@@ -11,7 +11,8 @@ public record GroupListResponseDto(
         String name,
         GroupOwner groupOwner,
         List<String> tags,
-        String description
+        String description,
+        boolean isPublic
 ) {
     public static GroupListResponseDto of(Group group) {
         return GroupListResponseDto.builder()
@@ -23,6 +24,7 @@ public record GroupListResponseDto(
                                 .nickname(group.getOwner().getNickname())
                                 .build()
                 )
+                .isPublic(group.isPublic())
                 .tags(group.getTags())
                 .description(group.getDescription())
                 .build();

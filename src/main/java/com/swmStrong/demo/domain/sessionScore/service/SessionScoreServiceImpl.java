@@ -125,6 +125,8 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         score -= (int) afkDuration / 10 * 2;
         score -= distractedCount / 10;
 
+        score = Math.max(0, score);
+
         return score;
     }
 }

@@ -12,8 +12,11 @@ import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.repository.CategorizedDataRepository;
 import com.swmStrong.demo.domain.pomodoro.repository.PomodoroUsageLogRepository;
+import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.facade.SessionNumberProvider;
+import com.swmStrong.demo.domain.sessionScore.facade.SessionScoreProvider;
 import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
+import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
@@ -43,6 +46,7 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
     private final SessionNumberProvider sessionNumberProvider;
+    private final SessionScoreProvider sessionScoreProvider;
     private final RedisStreamProducer redisStreamProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
     
@@ -58,6 +62,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             UserInfoProvider userInfoProvider,
             CategoryProvider categoryProvider,
             SessionNumberProvider sessionNumberProvider,
+            SessionScoreProvider sessionScoreProvider,
             RedisStreamProducer redisStreamProducer,
             ApplicationEventPublisher applicationEventPublisher
     ) {
@@ -66,6 +71,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.userInfoProvider = userInfoProvider;
         this.categoryProvider = categoryProvider;
         this.sessionNumberProvider = sessionNumberProvider;
+        this.sessionScoreProvider = sessionScoreProvider;
         this.redisStreamProducer = redisStreamProducer;
         this.applicationEventPublisher = applicationEventPublisher;
         
@@ -75,13 +81,13 @@ public class PomodoroServiceImpl implements PomodoroService {
 
     @Override
     public void save(String userId, PomodoroUsageLogsDto pomodoroUsageLogsDto) {
-        if (!userInfoProvider.existsUserById(userId)) {
-            throw new ApiException(ErrorCode.USER_NOT_FOUND);
-        }
+        User user = userInfoProvider.loadByUserId(userId);
 
         List<PomodoroUsageLog> pomodoroUsageLogList = new ArrayList<>();
         List<CategorizedData> categorizedDataList = new ArrayList<>();
-        int session = getOrCreateSessionNumber(userId, pomodoroUsageLogsDto.sessionDate());
+
+        int session = sessionScoreProvider.createSession(user, pomodoroUsageLogsDto.sessionDate(), pomodoroUsageLogsDto.sessionMinutes());
+
         for (PomodoroUsageLogsDto.PomodoroDto pomodoroDto: pomodoroUsageLogsDto.usageLogs()) {
             CategorizedData categorizedData = CategorizedData.builder()
                     .url(pomodoroDto.url())
@@ -99,7 +105,6 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .timestamp(pomodoroDto.timestamp())
                     .build();
             pomodoroUsageLogList.add(pomodoroUsageLog);
-
         }
 
         categorizedDataList = categorizedDataRepository.saveAll(categorizedDataList);

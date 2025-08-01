@@ -21,6 +21,7 @@ public class StreakScheduler {
         List<Streak> streakList = streakRepository.findAll();
 
         for (Streak streak: streakList) {
+            if (streak.getLastActiveDate() == null) continue;
             if (streak.getLastActiveDate().isBefore(LocalDate.now())) {
                 streak.resetCurrentStreak();
             }

@@ -20,6 +20,7 @@ public class SessionScoreProvider {
         int session = sessionScoreRepository.findMaxSessionByUserIdAndSessionDateWithLock(user.getId(), sessionDate)
                 .orElse(0) + 1;
         return sessionScoreRepository.save(SessionScore.builder()
+                .title("")
                 .user(user)
                 .session(session)
                 .sessionDate(sessionDate)

@@ -88,10 +88,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto) {
+        validateNickname(userId, nicknameRequestDto.nickname());
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        validateNickname(userId, nicknameRequestDto.nickname());
         user.updateNickname(nicknameRequestDto.nickname());
 
         userRepository.save(user);

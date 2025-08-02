@@ -18,10 +18,11 @@ public enum ErrorCode implements BaseCode {
     INVALID_FILE("4007", "유효하지 않은 파일입니다.", HttpStatus.BAD_REQUEST),
     FILE_SIZE_EXCEEDED("4008", "파일 크기가 제한을 초과했습니다.", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE("4009", "지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
-    BAD_WORD_FILTER("400A", "금지단어가 포함되어 있습니다.", HttpStatus.BAD_REQUEST),
+    BAD_WORD_FILTER("bad_word", "금지단어가 포함되어 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_KEY("400B", "유효하지 않은 키값입니다.", HttpStatus.BAD_REQUEST),
     GROUP_OWNER_CANT_QUIT("400C", "그룹장은 탈퇴할 수 없습니다.", HttpStatus.BAD_REQUEST),
     GROUP_HAS_USER("400D", "삭제하려는 그룹에 유저가 남아있습니다.",  HttpStatus.BAD_REQUEST),
+    INVALID_NICKNAME("400E", "사용할 수 없는 닉네임입니다.", HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
@@ -49,7 +50,7 @@ public enum ErrorCode implements BaseCode {
 
     // --- 409 CONFLICT ---
     _CONFLICT("4090", "이미 존재하는 리소스입니다.", HttpStatus.CONFLICT),
-    DUPLICATE_NICKNAME("4091", "이미 존재하는 닉네임입니다.", HttpStatus.CONFLICT),
+    DUPLICATE_NICKNAME("dup_nickname", "이미 존재하는 닉네임입니다.", HttpStatus.CONFLICT),
     DUPLICATE_USER_ID("4092", "이미 등록된 유저 아이디입니다.", HttpStatus.CONFLICT),
     USER_ALREADY_REGISTERED("4093", "이미 가입된 회원입니다.", HttpStatus.CONFLICT),
     DUPLICATE_CATEGORY("4094", "이미 존재하는 카테고리입니다.", HttpStatus.CONFLICT),

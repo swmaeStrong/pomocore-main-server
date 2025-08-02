@@ -42,19 +42,22 @@ public class UserController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "닉네임의 중복 여부를 확인한다.",
+            summary = "닉네임임 유효성 검사",
             description =
-                    "<p> 중복일 경우 true, 중복이 아닐 경우 false를 반환한다. </p>"
+                    "<p> 닉네임을 사용할 수 있으면 200 OK </p>" +
+                    "<p> 닉네임을 사용할 수 없으면 </p>" +
+                    "<p> code: bad_word -> 금지단어 포함 </p>" +
+                    "<p> code: dup_nickname -> 금지 </p>" +
+                    "<p> code: 4001 -> 형식 오류 </p>"
     )
     @GetMapping("/nickname/check")
-    public ResponseEntity<ApiResponse<Boolean>> isNicknameDuplicated(
+    public ResponseEntity<ApiResponse<Void>> isNicknameDuplicated(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @Valid NicknameRequestDto nicknameRequestDto
     ) {
         userService.validateNickname(principal.userId(), nicknameRequestDto.nickname());
         return CustomResponseEntity.of(
-                SuccessCode._OK,
-                false
+                SuccessCode._OK
         );
     }
 

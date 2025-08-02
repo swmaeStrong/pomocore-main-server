@@ -83,9 +83,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        validateNickname(user.getNickname());
-
+        validateNickname(nicknameRequestDto.nickname());
         user.updateNickname(nicknameRequestDto.nickname());
+
         userRepository.save(user);
         return UserResponseDto.of(user);
     }

@@ -50,7 +50,7 @@ public class UserController {
         userService.validateNickname(nicknameRequestDto.nickname());
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                true
+                false
         );
     }
 

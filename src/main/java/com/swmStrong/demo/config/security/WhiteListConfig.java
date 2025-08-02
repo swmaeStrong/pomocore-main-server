@@ -9,7 +9,6 @@ public class WhiteListConfig {
             PREFIX+"/auth/refresh",
             PREFIX+"/user",
             PREFIX+"/user/get-token",
-            PREFIX+"/user/nickname/check",
             PREFIX+"/v3/api-docs/**",
             PREFIX+"/swagger-ui/**",
             PREFIX+"/swagger-ui.html",

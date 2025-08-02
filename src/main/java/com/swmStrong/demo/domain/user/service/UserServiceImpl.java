@@ -69,10 +69,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void validateNickname(String nickname) {
+    public void validateNickname(String userId, String nickname) {
         if (BadWordsFilter.isBadWord(nickname)) {
             throw new ApiException(ErrorCode.BAD_WORD_FILTER);
         }
+
+        User user = userRepository.findById(userId)
+                .orElse(null);
+
+        if (user != null && user.getNickname() != null && user.getNickname().equals(nickname)) {
+            return;
+        }
+
         if (userRepository.existsByNickname(nickname)) {
             throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
         }
@@ -83,9 +91,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        validateNickname(user.getNickname());
-
+        validateNickname(userId, nicknameRequestDto.nickname());
         user.updateNickname(nicknameRequestDto.nickname());
+
         userRepository.save(user);
         return UserResponseDto.of(user);
     }

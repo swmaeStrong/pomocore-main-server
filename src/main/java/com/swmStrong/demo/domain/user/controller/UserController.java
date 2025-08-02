@@ -41,16 +41,20 @@ public class UserController {
     }
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "닉네임의 중복 여부를 확인한다.",
             description =
                     "<p> 중복일 경우 true, 중복이 아닐 경우 false를 반환한다. </p>"
     )
     @GetMapping("/nickname/check")
-    public ResponseEntity<ApiResponse<Boolean>> isNicknameDuplicated(@Valid NicknameRequestDto nicknameRequestDto) {
-        userService.validateNickname(nicknameRequestDto.nickname());
+    public ResponseEntity<ApiResponse<Boolean>> isNicknameDuplicated(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @Valid NicknameRequestDto nicknameRequestDto
+    ) {
+        userService.validateNickname(principal.userId(), nicknameRequestDto.nickname());
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                true
+                false
         );
     }
 

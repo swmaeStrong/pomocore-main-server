@@ -262,7 +262,7 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
-    public List<GroupGoalResponseDto> getGroupGoal(Long groupId, LocalDate date) {
+    public List<GroupGoalResponseDto> getGroupGoals(Long groupId, LocalDate date) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
 
@@ -306,6 +306,18 @@ public class GroupServiceImpl implements GroupService{
         }
         
         return groupGoalResponseDtoList;
+    }
+
+    public void deleteGroupGoal(String userId, Long groupId, DeleteGroupGoalDto deleteGroupGoalDto) {
+        Group group = groupRepository.findById(groupId)
+                        .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
+        User user = userInfoProvider.loadByUserId(userId);
+
+        if (group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        redisRepository.deleteData(generateKey(groupId, deleteGroupGoalDto.category(), deleteGroupGoalDto.period()));
     }
 
     private String generateKey(Long groupId, String category, String period) {

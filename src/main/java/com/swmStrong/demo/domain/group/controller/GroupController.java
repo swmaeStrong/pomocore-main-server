@@ -269,9 +269,10 @@ public class GroupController {
     @DeleteMapping("/{groupId}/goal")
     public ResponseEntity<ApiResponse<Void>> deleteGroupGoal(
             @AuthenticationPrincipal SecurityPrincipal principal,
-            @PathVariable Long groupId
+            @PathVariable Long groupId,
+            @RequestBody DeleteGroupGoalDto deleteGroupGoalDto
     ) {
-        groupService.deleteGroup(principal.userId(), groupId);
+        groupService.deleteGroupGoal(principal.userId(), groupId, deleteGroupGoalDto);
         return CustomResponseEntity.of(
                 SuccessCode._OK
         );

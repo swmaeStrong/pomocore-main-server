@@ -308,6 +308,7 @@ public class GroupServiceImpl implements GroupService{
         return groupGoalResponseDtoList;
     }
 
+    @Override
     public void deleteGroupGoal(String userId, Long groupId, DeleteGroupGoalDto deleteGroupGoalDto) {
         Group group = groupRepository.findById(groupId)
                         .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));

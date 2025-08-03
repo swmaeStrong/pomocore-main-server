@@ -6,6 +6,7 @@ import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.goal.entity.GoalResult;
 import com.swmStrong.demo.domain.goal.repository.GoalResultRepository;
 import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
+import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import lombok.Builder;
@@ -69,9 +70,13 @@ public class GoalResultScheduler {
             ParsedKey parsedKey = parseKey(key);
             int goal = Integer.parseInt(redisRepository.getData(key));
             int achieved = (int) leaderboardProvider.getUserScore(parsedKey.userId(), parsedKey.category(), date, parsedKey.periodType());
-            //TODO: user 없으면 넘기기 (탈퇴 등)
+
+            User user = userInfoProvider.loadByUserId(parsedKey.userId());
+            if (user == null) continue;
+
             goalResultList.add(GoalResult.builder()
-                    .user(userInfoProvider.loadByUserId(parsedKey.userId()))
+                    .category(parsedKey.category())
+                    .user(user)
                     .goalSeconds(goal)
                     .achievedSeconds(achieved)
                     .date(date)

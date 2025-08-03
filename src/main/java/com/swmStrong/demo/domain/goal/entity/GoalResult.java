@@ -10,8 +10,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Table(name = "goal_result",
+        indexes = {
+                @Index(name = "idx_user_date", columnList = "user_id, date")
+        },
         uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "date", "period_type"})
+                @UniqueConstraint(columnNames = {"user_id", "date", "category", "period_type"})
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,6 +27,10 @@ public class GoalResult {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    //TODO: 연결해야함.
+    @Column(name = "category")
+    private String category;
 
     @Column(name = "date")
     private LocalDate date;
@@ -39,8 +46,9 @@ public class GoalResult {
     private int achievedSeconds;
 
     @Builder
-    public GoalResult(User user, LocalDate date, PeriodType periodType, int goalSeconds, int achievedSeconds) {
+    public GoalResult(User user, String category, LocalDate date, PeriodType periodType, int goalSeconds, int achievedSeconds) {
         this.user = user;
+        this.category = category;
         this.date = date;
         this.periodType = periodType;
         this.goalSeconds = goalSeconds;

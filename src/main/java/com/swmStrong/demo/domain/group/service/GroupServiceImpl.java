@@ -216,8 +216,8 @@ public class GroupServiceImpl implements GroupService{
             throw new ApiException(ErrorCode.GROUP_HAS_USER);
         }
 
-        groupRepository.delete(group);
         userGroupRepository.deleteByGroup(group);
+        groupRepository.delete(group);
     }
 
     @Override

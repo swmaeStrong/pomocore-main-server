@@ -22,7 +22,7 @@ public class StreakScheduler {
 
         for (Streak streak: streakList) {
             if (streak.getLastActiveDate() == null) continue;
-            if (streak.getLastActiveDate().isBefore(LocalDate.now())) {
+            if (streak.getLastActiveDate().isBefore(LocalDate.now().minusDays(1))) {
                 streak.resetCurrentStreak();
             }
         }

@@ -201,6 +201,7 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
+    @Transactional
     public void deleteGroup(String userId, Long groupId) {
         User user = userInfoProvider.loadByUserId(userId);
 

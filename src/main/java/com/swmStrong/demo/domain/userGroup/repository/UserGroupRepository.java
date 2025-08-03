@@ -4,6 +4,7 @@ import com.swmStrong.demo.domain.group.entity.Group;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.userGroup.entity.UserGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,11 +21,13 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
     
     Optional<UserGroup> findByUserAndGroup(User user, Group group);
     
+    @Modifying
     void deleteByUserAndGroup(User user, Group group);
 
     boolean existsByGroup(Group group);
 
     long countByGroup(Group group);
 
+    @Modifying
     void deleteByGroup(Group group);
 }

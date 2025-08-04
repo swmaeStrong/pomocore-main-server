@@ -28,7 +28,6 @@ public class GoalResult {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    //TODO: 연결해야함.
     @Column(name = "category")
     private String category;
 

@@ -317,7 +317,7 @@ public class GroupServiceImpl implements GroupService{
                         .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
         User user = userInfoProvider.loadByUserId(userId);
 
-        if (group.getOwner().equals(user)) {
+        if (!group.getOwner().equals(user)) {
             throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
         }
 

@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 public interface RedisRepository {
     String getData(String key);
     Map<String, String> multiGet(List<String> keys);
-    void setDataWithExpire(String key, String value, long duration);
+    <T> void setDataWithExpire(String key, T value, long duration);
     <T> void setData(String key, T value);
     void deleteData(String key);
     Long incrementWithExpireIfFirst(String key, long timeout, TimeUnit unit);

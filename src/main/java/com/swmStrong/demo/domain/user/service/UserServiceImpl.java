@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.user.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.s3.S3Properties;
@@ -20,6 +21,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -31,21 +35,27 @@ public class UserServiceImpl implements UserService {
     private final RedisRepository redisRepository;
     private final S3Client s3Client;
     private final S3Properties s3Properties;
+    private final ObjectMapper objectMapper;
 
     public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
+    public static final String USER_ONLINE_PREFIX = "userOnline";
+
+    private static final int USER_ONLINE_EXPIRES = 86400; // 1 day
 
     public UserServiceImpl(
             UserRepository userRepository,
             TokenManager tokenManager,
             RedisRepository redisRepository,
             S3Client s3Client,
-            S3Properties s3Properties
+            S3Properties s3Properties,
+            ObjectMapper objectMapper
     ) {
         this.userRepository = userRepository;
         this.tokenManager = tokenManager;
         this.redisRepository = redisRepository;
         this.s3Client = s3Client;
         this.s3Properties = s3Properties;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -59,7 +69,7 @@ public class UserServiceImpl implements UserService {
             requestIP = request.getRemoteAddr();
         }
 
-        Long count = redisRepository.incrementWithExpireIfFirst(getKey(requestIP), 1, TimeUnit.HOURS);
+        Long count = redisRepository.incrementWithExpireIfFirst(getRegisterCountKey(requestIP), 1, TimeUnit.HOURS);
         if (count > 5) {
             throw new ApiException(ErrorCode.IP_RATE_LIMIT_EXCEEDED);
         }
@@ -199,6 +209,43 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public void goOnline(String userId, OnlineRequestDto onlineRequestDto) {
+        String key = getUserOnlineKey(userId);
+        redisRepository.setDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
+    }
+
+    @Override
+    public Map<String, Double> getUserOnline(List<String> userIds) {
+        List<String> keys = userIds.stream()
+                .map(this::getUserOnlineKey)
+                .toList();
+        
+        Map<String, String> redisData = redisRepository.multiGet(keys);
+        Map<String, Double> userLastActivities = new HashMap<>();
+        
+        for (String userId : userIds) {
+            String key = getUserOnlineKey(userId);
+            String data = redisData.get(key);
+            
+            if (data != null) {
+                OnlineRequestDto onlineRequestDto = objectMapper.convertValue(data, OnlineRequestDto.class);
+                double lastActivityTime = onlineRequestDto.timestamp() + onlineRequestDto.sessionMinutes() * 60.0;
+                userLastActivities.put(userId, lastActivityTime);
+            } else {
+                userLastActivities.put(userId, 0.0); // 미접속 처리
+            }
+        }
+        
+        return userLastActivities;
+    }
+
+    @Override
+    public void dropOut(String userId) {
+        String key = getUserOnlineKey(userId);
+        redisRepository.deleteData(key);
+    }
+
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new ApiException(ErrorCode.INVALID_FILE);
@@ -245,7 +292,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
     }
 
-    private String getKey(String requestIP) {
+    private String getRegisterCountKey(String requestIP) {
         return REGISTER_IP_COUNT_PREFIX+requestIP;
+    }
+
+    private String getUserOnlineKey(String userId) {
+        return String.format("%s:%s", USER_ONLINE_PREFIX, userId);
     }
 }

@@ -46,9 +46,9 @@ public class RedisRepositoryImpl implements RedisRepository {
         return result;
     }
 
-    public void setDataWithExpire(String key, String value, long duration) {
+    public <T> void setDataWithExpire(String key, T value, long duration) {
         Duration expireDuration = Duration.ofSeconds(duration);
-        redisTemplate.opsForValue().set(key, value, expireDuration);
+        redisTemplate.opsForValue().set(key, value.toString(), expireDuration);
     }
 
     public <T> void setData(String key, T value) {

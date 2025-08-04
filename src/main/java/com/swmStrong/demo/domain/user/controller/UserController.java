@@ -176,4 +176,38 @@ public class UserController {
                 SuccessCode._NO_CONTENT
         );
     }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 온라인 상태로 전환",
+            description =
+                    "<p> 유저가 세션을 시작하는 경우에 요청을 보내면 유저를 온라인 상태로 전환한다. </p>" +
+                    "<p> 함께 보낸 세션 길이만큼 온라인 상태가 유지된다. </p>"
+    )
+    @PostMapping("/online")
+    public ResponseEntity<ApiResponse<Void>> goOnline(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestBody OnlineRequestDto onlineRequestDto
+    ) {
+        userService.goOnline(principal.userId(), onlineRequestDto);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 중도포기 시 오프라인 상태로 전환",
+            description =
+                    "<p> 유저가 세션을 고의로 종료하는 경우에 요청을 보내면 유저를 즉시 오프라인 상태로 전환한다. </p>"
+    )
+    @DeleteMapping("/online")
+    public ResponseEntity<ApiResponse<Void>> dropOut(
+            @AuthenticationPrincipal SecurityPrincipal principal
+    ) {
+        userService.dropOut(principal.userId());
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
 }

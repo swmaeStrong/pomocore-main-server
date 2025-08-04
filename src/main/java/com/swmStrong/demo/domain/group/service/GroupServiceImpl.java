@@ -8,6 +8,7 @@ import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
 import com.swmStrong.demo.domain.goal.dto.GoalResponseDto;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.entity.Group;
+import com.swmStrong.demo.domain.leaderboard.dto.CategoryDetailDto;
 import com.swmStrong.demo.domain.group.repository.GroupRepository;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
@@ -321,6 +322,27 @@ public class GroupServiceImpl implements GroupService{
         }
 
         redisRepository.deleteData(generateKey(groupId, deleteGroupGoalDto.category(), deleteGroupGoalDto.period()));
+    }
+
+    @Override
+    public GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, PeriodType periodType, LocalDate date) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        List<User> groupUsers = userGroupRepository.findByGroup(group).stream()
+                .map(UserGroup::getUser)
+                .toList();
+
+        List<GroupLeaderboardMember> members = leaderboardProvider.getGroupLeaderboardMembers(groupUsers, category, date, periodType);
+
+        return GroupLeaderboardDto.builder()
+                .groupId(groupId)
+                .groupName(group.getName())
+                .category(category)
+                .periodType(periodType)
+                .date(date)
+                .members(members)
+                .build();
     }
 
     private String generateKey(Long groupId, String category, String period) {

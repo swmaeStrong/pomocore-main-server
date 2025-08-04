@@ -164,7 +164,9 @@ public class GroupServiceImpl implements GroupService{
         userGroupRepository.save(userGroup);
     }
 
+
     @Override
+    @Transactional
     public void quitGroup(String userId, Long groupId) {
         User user = userInfoProvider.loadByUserId(userId);
         Group group = groupRepository.findById(groupId)

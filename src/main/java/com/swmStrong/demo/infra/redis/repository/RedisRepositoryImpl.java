@@ -4,7 +4,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -23,9 +26,29 @@ public class RedisRepositoryImpl implements RedisRepository {
         return redisTemplate.opsForValue().get(key);
     }
 
-    public void setDataWithExpire(String key, String value, long duration) {
+    @Override
+    public Map<String, String> multiGet(List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        List<String> values = redisTemplate.opsForValue().multiGet(keys);
+        Map<String, String> result = new HashMap<>();
+        
+        for (int i = 0; i < keys.size(); i++) {
+            String key = keys.get(i);
+            String value = values != null && i < values.size() ? values.get(i) : null;
+            if (value != null) {
+                result.put(key, value);
+            }
+        }
+        
+        return result;
+    }
+
+    public <T> void setDataWithExpire(String key, T value, long duration) {
         Duration expireDuration = Duration.ofSeconds(duration);
-        redisTemplate.opsForValue().set(key, value, expireDuration);
+        redisTemplate.opsForValue().set(key, value.toString(), expireDuration);
     }
 
     public <T> void setData(String key, T value) {

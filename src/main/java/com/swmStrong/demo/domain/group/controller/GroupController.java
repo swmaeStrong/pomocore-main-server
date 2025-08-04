@@ -4,16 +4,19 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
+import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name="그룹")
@@ -215,6 +218,77 @@ public class GroupController {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 groupService.validateGroupName(name)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 목표 설정",
+            description =
+                    "<p> 그룹의 목표를 설정한다. </p>" +
+                    "<p> 그룹장만 사용할 수 있다. </p>"
+    )
+    @PostMapping("/{groupId}/goal")
+    public ResponseEntity<ApiResponse<Void>> setGroupGoal(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId,
+            @RequestBody SaveGroupGoalDto saveGroupGoalDto
+    ) {
+        groupService.setGroupGoal(principal.userId(), groupId, saveGroupGoalDto);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 목표 조회",
+            description =
+                    "<p> 그룹의 목표를 조회한다. </p>" +
+                    "<p> 아직 어떻게 나오는지 잘 모르겠다. </p>"
+    )
+    @GetMapping("/{groupId}/goal")
+    public ResponseEntity<ApiResponse<List<GroupGoalResponseDto>>> getGroupGoals(
+            @PathVariable Long groupId,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getGroupGoals(groupId, date)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 목표 삭제",
+            description =
+                    "<p> 그룹의 목표를 삭제한다. </p>" +
+                    "<p> 그룹장만 삭제할 수 있다. </p>"
+    )
+    @DeleteMapping("/{groupId}/goal")
+    public ResponseEntity<ApiResponse<Void>> deleteGroupGoal(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId,
+            @RequestBody DeleteGroupGoalDto deleteGroupGoalDto
+    ) {
+        groupService.deleteGroupGoal(principal.userId(), groupId, deleteGroupGoalDto);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @GetMapping("/{groupId}/leaderboard")
+    public ResponseEntity<ApiResponse<GroupLeaderboardDto>> getGroupLeaderboard(
+            @PathVariable Long groupId,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getGroupLeaderboard(groupId, "work", PeriodType.DAILY ,date)
         );
     }
 }

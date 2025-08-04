@@ -2,21 +2,27 @@ package com.swmStrong.demo.domain.group.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
+import com.swmStrong.demo.domain.goal.dto.GoalResponseDto;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.entity.Group;
+import com.swmStrong.demo.domain.leaderboard.dto.CategoryDetailDto;
 import com.swmStrong.demo.domain.group.repository.GroupRepository;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.domain.userGroup.entity.UserGroup;
 import com.swmStrong.demo.domain.userGroup.repository.UserGroupRepository;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
+import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Service
 public class GroupServiceImpl implements GroupService{
@@ -25,6 +31,8 @@ public class GroupServiceImpl implements GroupService{
     private final UserInfoProvider userInfoProvider;
     private final UserGroupRepository userGroupRepository;
     private final RedisRepository redisRepository;
+    private final CategoryProvider categoryProvider;
+    private final LeaderboardProvider leaderboardProvider;
 
     private static final String GROUP_GOAL_PREFIX = "group_goal";
 
@@ -32,12 +40,16 @@ public class GroupServiceImpl implements GroupService{
             GroupRepository groupRepository,
             UserInfoProvider userInfoProvider,
             UserGroupRepository userGroupRepository,
-            RedisRepository redisRepository
+            RedisRepository redisRepository,
+            CategoryProvider categoryProvider,
+            LeaderboardProvider leaderboardProvider
     ) {
         this.groupRepository = groupRepository;
         this.userInfoProvider = userInfoProvider;
         this.userGroupRepository = userGroupRepository;
         this.redisRepository = redisRepository;
+        this.categoryProvider = categoryProvider;
+        this.leaderboardProvider = leaderboardProvider;
     }
 
     @Transactional
@@ -153,7 +165,9 @@ public class GroupServiceImpl implements GroupService{
         userGroupRepository.save(userGroup);
     }
 
+
     @Override
+    @Transactional
     public void quitGroup(String userId, Long groupId) {
         User user = userInfoProvider.loadByUserId(userId);
         Group group = groupRepository.findById(groupId)
@@ -234,7 +248,7 @@ public class GroupServiceImpl implements GroupService{
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
 
-        User user =  userInfoProvider.loadByUserId(userId);
+        User user = userInfoProvider.loadByUserId(userId);
 
         if (!group.getOwner().equals(user)) {
             throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
@@ -250,21 +264,86 @@ public class GroupServiceImpl implements GroupService{
         );
     }
 
-//    @Override
-//    public GroupGoalResponseDto getGroupGoal(Long groupId, LocalDate date) {
-//        Group group = groupRepository.findById(groupId)
-//                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
-//
-//        List<UserGroup> userGroupList = userGroupRepository.findByGroup(group);
-//
-//        for (UserGroup userGroup: userGroupList) {
-//            User user = userGroup.getUser();
-//
-//        }
-//
-//        Set<String> goals = redisRepository.findKeys(String.format("%s:%s:*", GROUP_GOAL_PREFIX, groupId));
-//
-//    }
+    @Override
+    public List<GroupGoalResponseDto> getGroupGoals(Long groupId, LocalDate date) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        List<User> groupUserList = userGroupRepository.findByGroup(group).stream()
+                .map(UserGroup::getUser)
+                .toList();
+
+        List<GroupGoalResponseDto> groupGoalResponseDtoList = new ArrayList<>();
+
+        List<String> groupGoalKeys = new ArrayList<>();
+        
+        for (String category: categoryProvider.getCategories()) {
+            for (PeriodType periodType: PeriodType.values()) {
+                String groupGoalKey = generateKey(groupId, category, periodType.toString());
+                groupGoalKeys.add(groupGoalKey);
+            }
+        }
+
+        Map<String, String> groupGoalData = redisRepository.multiGet(groupGoalKeys);
+        for (String category: categoryProvider.getCategories()) {
+            for (PeriodType periodType: PeriodType.values()) {
+                String groupGoalKey = generateKey(groupId, category, periodType.toString());
+                String goalValue = groupGoalData.get(groupGoalKey);
+                
+                if (goalValue != null) {
+                    List<GroupMemberGoalResult> members = new ArrayList<>();
+
+                    for (User user : groupUserList) {
+                        double currentSeconds = leaderboardProvider.getUserScore(user.getId(), category, date, periodType);
+                        members.add(new GroupMemberGoalResult(user.getId(), currentSeconds));
+                    }
+                    
+                    groupGoalResponseDtoList.add(GroupGoalResponseDto.builder()
+                            .category(category)
+                            .periodType(periodType)
+                            .members(members)
+                            .goalSeconds(Integer.parseInt(goalValue))
+                            .build());
+                }
+            }
+        }
+        
+        return groupGoalResponseDtoList;
+    }
+
+    @Override
+    public void deleteGroupGoal(String userId, Long groupId, DeleteGroupGoalDto deleteGroupGoalDto) {
+        Group group = groupRepository.findById(groupId)
+                        .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
+        User user = userInfoProvider.loadByUserId(userId);
+
+        if (group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        redisRepository.deleteData(generateKey(groupId, deleteGroupGoalDto.category(), deleteGroupGoalDto.period()));
+    }
+
+    @Override
+    public GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, PeriodType periodType, LocalDate date) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        List<User> groupUsers = userGroupRepository.findByGroup(group).stream()
+                .map(UserGroup::getUser)
+                .toList();
+
+        List<GroupLeaderboardMember> members = leaderboardProvider.getGroupLeaderboardMembers(groupUsers, category, date, periodType);
+
+        return GroupLeaderboardDto.builder()
+                .groupId(groupId)
+                .groupName(group.getName())
+                .category(category)
+                .periodType(periodType)
+                .date(date)
+                .members(members)
+                .build();
+    }
 
     private String generateKey(Long groupId, String category, String period) {
         return String.format("%s:%s:%s:%s", GROUP_GOAL_PREFIX, groupId, category, period.toUpperCase());

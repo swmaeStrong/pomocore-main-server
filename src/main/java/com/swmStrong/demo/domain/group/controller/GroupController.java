@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
+import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -275,6 +276,19 @@ public class GroupController {
         groupService.deleteGroupGoal(principal.userId(), groupId, deleteGroupGoalDto);
         return CustomResponseEntity.of(
                 SuccessCode._OK
+        );
+    }
+
+    @GetMapping("/{groupId}/leaderboard")
+    public ResponseEntity<ApiResponse<GroupLeaderboardDto>> getGroupLeaderboard(
+            @PathVariable Long groupId,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getGroupLeaderboard(groupId, "work", PeriodType.DAILY ,date)
         );
     }
 }

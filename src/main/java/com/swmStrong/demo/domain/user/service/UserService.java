@@ -19,6 +19,7 @@ public interface UserService {
     String uploadProfileImage(String userId, MultipartFile file);
     void deleteProfileImage(String userId);
     void goOnline(String userId, OnlineRequestDto onlineRequestDto);
+    Map<String, OnlineRequestDto> getUserOnlineDetails(List<String> userIds);
     Map<String, Double> getUserOnline(List<String> userIds);
     void dropOut(String userId);
 }

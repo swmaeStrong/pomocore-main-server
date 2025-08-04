@@ -216,13 +216,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Map<String, Double> getUserOnline(List<String> userIds) {
+    public Map<String, OnlineRequestDto> getUserOnlineDetails(List<String> userIds) {
         List<String> keys = userIds.stream()
                 .map(this::getUserOnlineKey)
                 .toList();
         
         Map<String, String> redisData = redisRepository.multiGet(keys);
-        Map<String, Double> userLastActivities = new HashMap<>();
+        Map<String, OnlineRequestDto> userOnlineDetails = new HashMap<>();
         
         for (String userId : userIds) {
             String key = getUserOnlineKey(userId);
@@ -230,6 +230,23 @@ public class UserServiceImpl implements UserService {
             
             if (data != null) {
                 OnlineRequestDto onlineRequestDto = objectMapper.convertValue(data, OnlineRequestDto.class);
+                userOnlineDetails.put(userId, onlineRequestDto);
+            } else {
+                userOnlineDetails.put(userId, null); // 미접속 처리
+            }
+        }
+        
+        return userOnlineDetails;
+    }
+
+    @Override
+    public Map<String, Double> getUserOnline(List<String> userIds) {
+        Map<String, OnlineRequestDto> userOnlineDetails = getUserOnlineDetails(userIds);
+        Map<String, Double> userLastActivities = new HashMap<>();
+        
+        for (String userId : userIds) {
+            OnlineRequestDto onlineRequestDto = userOnlineDetails.get(userId);
+            if (onlineRequestDto != null) {
                 double lastActivityTime = onlineRequestDto.timestamp() + onlineRequestDto.sessionMinutes() * 60.0;
                 userLastActivities.put(userId, lastActivityTime);
             } else {
@@ -243,7 +260,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void dropOut(String userId) {
         String key = getUserOnlineKey(userId);
-        redisRepository.deleteData(key);
+        OnlineRequestDto onlineRequestDto = new OnlineRequestDto((double) System.currentTimeMillis() /1000, 0 );
+        redisRepository.setDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
     }
 
     private void validateFile(MultipartFile file) {

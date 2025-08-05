@@ -23,6 +23,8 @@ public enum ErrorCode implements BaseCode {
     GROUP_OWNER_CANT_QUIT("400C", "그룹장은 탈퇴할 수 없습니다.", HttpStatus.BAD_REQUEST),
     GROUP_HAS_USER("400D", "삭제하려는 그룹에 유저가 남아있습니다.",  HttpStatus.BAD_REQUEST),
     INVALID_NICKNAME("400E", "사용할 수 없는 닉네임입니다.", HttpStatus.BAD_REQUEST),
+    PASSWORD_NEEDED("password_needed", "비밀번호 입력이 필요합니다.", HttpStatus.BAD_REQUEST),
+    INCORRECT_PASSWORD("incorrect_password", "비밀번호가 틀렸습니다.", HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),

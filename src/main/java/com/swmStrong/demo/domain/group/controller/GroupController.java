@@ -141,9 +141,10 @@ public class GroupController {
     @PostMapping("/{groupId}/join")
     public ResponseEntity<ApiResponse<Void>> joinGroup(
             @AuthenticationPrincipal SecurityPrincipal principal,
-            @PathVariable Long groupId
+            @PathVariable Long groupId,
+            @RequestBody(required = false) PasswordRequestDto passwordRequestdto
     ) {
-        groupService.joinGroup(principal.userId(), groupId);
+        groupService.joinGroup(principal.userId(), groupId, passwordRequestdto);
         return CustomResponseEntity.of(
                 SuccessCode._OK
         );

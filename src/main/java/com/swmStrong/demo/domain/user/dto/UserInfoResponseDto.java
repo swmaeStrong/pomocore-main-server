@@ -6,6 +6,7 @@ import lombok.Builder;
 public record UserInfoResponseDto(
         String userId,
         String nickname,
+        String profileImageUrl,
         int currentStreak,
         int maxStreak,
         int totalSession

@@ -77,6 +77,7 @@ public class UserServiceImpl implements UserService {
         return UserInfoResponseDto.builder()
                 .userId(userId)
                 .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImageUrl())
                 .currentStreak(currentStreak)
                 .maxStreak(maxStreak)
                 .totalSession(totalSession == null ? 0 : totalSession)

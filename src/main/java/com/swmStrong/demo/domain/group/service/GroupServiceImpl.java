@@ -8,6 +8,7 @@ import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.entity.Group;
 import com.swmStrong.demo.domain.group.repository.GroupRepository;
+import com.swmStrong.demo.domain.user.dto.OnlineRequestDto;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.domain.userGroup.entity.UserGroup;
@@ -139,14 +140,29 @@ public class GroupServiceImpl implements GroupService{
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 
-        List<GroupMember> memberList = userGroupRepository.findByGroup(group).stream()
-                .map(userGroup -> GroupMember.builder()
-                            .userId(userGroup.getUser().getId())
-                            .nickname(userGroup.getUser().getNickname())
-                            .build())
+        List<GroupMember> members = userGroupRepository.findByGroupWithUser(group);
+        
+        List<String> userIds = members.stream()
+                .map(GroupMember::userId)
                 .toList();
 
-        return GroupDetailsDto.of(group, memberList);
+        
+        Map<String, OnlineRequestDto> onlineDetails = userInfoProvider.getUserOnlineDetails(userIds);
+        
+        List<GroupMember> membersWithOnlineInfo = members.stream()
+                .map(member -> {
+                    OnlineRequestDto onlineInfo = onlineDetails.get(member.userId());
+                    return GroupMember.builder()
+                            .userId(member.userId())
+                            .nickname(member.nickname())
+                            .profileImageUrl(member.profileImageUrl())
+                            .lastActivityTimestamp(onlineInfo != null ? onlineInfo.timestamp() : null)
+                            .sessionMinutes(onlineInfo != null ? onlineInfo.sessionMinutes() : null)
+                            .build();
+                })
+                .toList();
+
+        return GroupDetailsDto.of(group, membersWithOnlineInfo);
     }
 
     @Override
@@ -360,15 +376,10 @@ public class GroupServiceImpl implements GroupService{
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 
-        List<User> groupUsers = userGroupRepository.findByGroup(group).stream()
-                .map(UserGroup::getUser)
-                .toList();
-
+        List<User> groupUsers = userGroupRepository.findUsersByGroup(group);
         List<GroupLeaderboardMember> members = leaderboardProvider.getGroupLeaderboardMembers(groupUsers, category, date, periodType);
 
         return GroupLeaderboardDto.builder()
-                .groupId(groupId)
-                .groupName(group.getName())
                 .category(category)
                 .periodType(periodType)
                 .date(date)

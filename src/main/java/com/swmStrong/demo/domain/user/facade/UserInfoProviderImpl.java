@@ -1,7 +1,9 @@
 package com.swmStrong.demo.domain.user.facade;
 
+import com.swmStrong.demo.domain.user.dto.OnlineRequestDto;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
+import com.swmStrong.demo.domain.user.service.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -12,9 +14,11 @@ import java.util.Map;
 public class UserInfoProviderImpl implements UserInfoProvider {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserInfoProviderImpl(UserRepository userRepository) {
+    public UserInfoProviderImpl(UserRepository userRepository,  UserService userService) {
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Override
@@ -42,5 +46,10 @@ public class UserInfoProviderImpl implements UserInfoProvider {
     @Override
     public User loadByUserId(String userId) {
         return userRepository.findById(userId).orElse(null);
+    }
+
+    @Override
+    public Map<String, OnlineRequestDto> getUserOnlineDetails(List<String> userIds) {
+        return userService.getUserOnlineDetails(userIds);
     }
 }

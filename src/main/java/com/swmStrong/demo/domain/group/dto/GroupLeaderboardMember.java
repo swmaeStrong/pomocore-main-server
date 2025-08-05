@@ -9,11 +9,9 @@ import java.util.List;
 public record GroupLeaderboardMember(
         String userId,
         String nickname,
-        String profileImageUrl,
         double score,
         long rank,
-        boolean isOnline,
-        double lastActivityTime,
+        String profileImageUrl,
         List<CategoryDetailDto> details
 ) {
 }

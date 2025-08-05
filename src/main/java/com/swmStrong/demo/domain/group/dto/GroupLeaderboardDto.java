@@ -8,8 +8,6 @@ import java.util.List;
 
 @Builder
 public record GroupLeaderboardDto(
-        Long groupId,
-        String groupName,
         String category,
         PeriodType periodType,
         LocalDate date,

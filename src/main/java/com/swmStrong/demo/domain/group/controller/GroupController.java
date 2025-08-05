@@ -50,6 +50,25 @@ public class GroupController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "비밀번호 재생성",
+            description =
+                    "<p> 그룹의 비밀번호를 재생성한다. </p>" +
+                    "<p> 그룹장만 사용할 수 있다. </p>"
+    )
+    @PatchMapping("/{groupId}/password")
+    public ResponseEntity<ApiResponse<Void>> updateNewPassword(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId
+    ) {
+        groupService.updateNewPassword(principal.userId(), groupId);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
             summary = "유저 강퇴",
             description =
                     "<p> 그룹에서 유저를 강퇴한다. </p>" +
@@ -280,6 +299,13 @@ public class GroupController {
         );
     }
 
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 리더보드 조회",
+            description =
+                    "<p> 그룹의 리더보드를 조회한다. </p>" +
+                    "<p> 그룹 상세로 그룹 유저 관련 기능을 거의 다 넘겼다. </p>"
+    )
     @GetMapping("/{groupId}/leaderboard")
     public ResponseEntity<ApiResponse<GroupLeaderboardDto>> getGroupLeaderboard(
             @PathVariable Long groupId,

@@ -140,6 +140,7 @@ public class GroupServiceImpl implements GroupService{
                 .toList();
     }
 
+    // TODO: 몇 명 속했는지, 언제 생성했는지
     @Override
     public List<GroupListResponseDto> getGroups() {
         List<Group> groupList = groupRepository.findAll();

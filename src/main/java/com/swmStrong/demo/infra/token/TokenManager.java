@@ -106,8 +106,10 @@ public class TokenManager {
 
             return parseToken(refreshToken) &&
                     tokenUserId.equals(userId) &&
-                    tokenUserAgent.startsWith("Pawcus") &&
-                    userAgent.startsWith("Pawcus");
+                    (tokenUserAgent.startsWith("Pawcus") ||
+                            tokenUserAgent.startsWith("Pomocore")) &&
+                    (userAgent.startsWith("Pawcus") ||
+                            userAgent.startsWith("Pomocore"));
 
         } catch (Exception e) {
             log.error(e.getMessage());

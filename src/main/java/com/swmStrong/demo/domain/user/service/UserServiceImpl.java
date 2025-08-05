@@ -238,7 +238,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void goOnline(String userId, OnlineRequestDto onlineRequestDto) {
         String key = getUserOnlineKey(userId);
-        redisRepository.setDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
+        redisRepository.setJsonDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
     }
 
     @Override
@@ -247,19 +247,13 @@ public class UserServiceImpl implements UserService {
                 .map(this::getUserOnlineKey)
                 .toList();
         
-        Map<String, String> redisData = redisRepository.multiGet(keys);
+        Map<String, OnlineRequestDto> keysToOnlineDetails = redisRepository.multiGetJson(keys, OnlineRequestDto.class);
         Map<String, OnlineRequestDto> userOnlineDetails = new HashMap<>();
         
         for (String userId : userIds) {
             String key = getUserOnlineKey(userId);
-            String data = redisData.get(key);
-            
-            if (data != null) {
-                OnlineRequestDto onlineRequestDto = objectMapper.convertValue(data, OnlineRequestDto.class);
-                userOnlineDetails.put(userId, onlineRequestDto);
-            } else {
-                userOnlineDetails.put(userId, null); // 미접속 처리
-            }
+            OnlineRequestDto onlineData = keysToOnlineDetails.get(key);
+            userOnlineDetails.put(userId, onlineData);
         }
         
         return userOnlineDetails;
@@ -287,7 +281,7 @@ public class UserServiceImpl implements UserService {
     public void dropOut(String userId) {
         String key = getUserOnlineKey(userId);
         OnlineRequestDto onlineRequestDto = new OnlineRequestDto((double) System.currentTimeMillis() /1000, 0 );
-        redisRepository.setDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
+        redisRepository.setJsonDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
     }
 
     private void validateFile(MultipartFile file) {

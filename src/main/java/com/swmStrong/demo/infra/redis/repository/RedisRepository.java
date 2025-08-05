@@ -13,4 +13,10 @@ public interface RedisRepository {
     void deleteData(String key);
     Long incrementWithExpireIfFirst(String key, long timeout, TimeUnit unit);
     Set<String> findKeys(String regex);
+    
+    // JSON specific methods
+    void setJsonData(String key, Object value);
+    void setJsonDataWithExpire(String key, Object value, long duration);
+    <T> T getJsonData(String key, Class<T> clazz);
+    <T> Map<String, T> multiGetJson(List<String> keys, Class<T> clazz);
 }

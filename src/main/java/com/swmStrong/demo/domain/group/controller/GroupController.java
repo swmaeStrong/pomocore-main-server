@@ -110,7 +110,7 @@ public class GroupController {
             summary = "그룹 상세 조회",
             description =
                     "<p> 선택한 그룹의 상세 정보를 조회한다. </p>" +
-                    "<p> TODO: 뷰 구현에 따라 여기는 가입된 유저만 볼 수 있도록 처리해야 한다. </p>"
+                    "<p> 유저 접속과 관련된 정보가 포함된다. </p>"
     )
     @GetMapping("/{groupId}")
     public ResponseEntity<ApiResponse<GroupDetailsDto>> getGroupDetails(@PathVariable Long groupId) {
@@ -137,9 +137,7 @@ public class GroupController {
     @Operation(
             summary = "그룹 조회",
             description =
-                    "<p> 그룹 전체를 조회한다. </p>" +
-                    "<p> 웹뷰/네이티브 구현 여부에 따라 검색 구현이 달라질 수 있어 전체 반환만 우선 작성 </p>"
-
+                    "<p> 그룹 전체를 조회한다. </p>"
     )
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<GroupListResponseDto>>> getGroup() {
@@ -231,7 +229,8 @@ public class GroupController {
             security = @SecurityRequirement(name = "bearerAuth"),
             summary = "그룹 이름 유효성 검사",
             description =
-                    "<p> 그룹 이름을 검사한다. </p>"
+                    "<p> 그룹 이름의 유효성을 검사한다. </p>" +
+                    "<p> 사용할 수 있으면 true를 반환한다. </p>"
     )
     @GetMapping("/name/check")
     public ResponseEntity<ApiResponse<Boolean>> checkGroupName(@RequestParam String name) {
@@ -246,6 +245,7 @@ public class GroupController {
             summary = "그룹 목표 설정",
             description =
                     "<p> 그룹의 목표를 설정한다. </p>" +
+                    "<p> period 에 가능한 값: daily, weekly, monthly </p>" +
                     "<p> 그룹장만 사용할 수 있다. </p>"
     )
     @PostMapping("/{groupId}/goal")

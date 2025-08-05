@@ -72,6 +72,7 @@ public class GroupServiceImpl implements GroupService{
                 .password(randomPassword)
                 .build();
 
+        group.increaseMemberCount();
         groupRepository.save(group);
 
         UserGroup userGroup = new UserGroup(user, group);
@@ -92,6 +93,7 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
+    @Transactional
     public void banMember(String userId, Long groupId, BanMemberDto banMemberDto) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
@@ -111,6 +113,8 @@ public class GroupServiceImpl implements GroupService{
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_USER_NOT_FOUND));
 
         userGroupRepository.delete(userGroup);
+        group.decreaseMemberCount();
+        groupRepository.save(group);
     }
 
     @Override
@@ -184,6 +188,9 @@ public class GroupServiceImpl implements GroupService{
             throw new ApiException(ErrorCode.GROUP_ALREADY_JOINED);
         }
 
+        group.increaseMemberCount();
+        groupRepository.save(group);
+
         UserGroup userGroup = new UserGroup(user, group);
         userGroupRepository.save(userGroup);
     }
@@ -200,6 +207,9 @@ public class GroupServiceImpl implements GroupService{
         }
 
         userGroupRepository.deleteByUserAndGroup(user, group);
+
+        group.decreaseMemberCount();
+        groupRepository.save(group);
     }
 
     @Override
@@ -248,8 +258,7 @@ public class GroupServiceImpl implements GroupService{
             throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
         }
 
-        long memberCount = userGroupRepository.countByGroup(group);
-        if (memberCount > 1) {
+        if (group.getMemberCount() > 1) {
             throw new ApiException(ErrorCode.GROUP_HAS_USER);
         }
 

@@ -43,6 +43,9 @@ public class Group extends BaseEntity {
     @Column(name = "ground_rule", length = 1024)
     private String groundRule;
 
+    @Column(name = "memberCount")
+    private int memberCount = 0;
+
     @Column(name = "is_public")
     private boolean isPublic = true;
 

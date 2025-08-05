@@ -5,11 +5,10 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
-import com.swmStrong.demo.domain.goal.dto.GoalResponseDto;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.entity.Group;
-import com.swmStrong.demo.domain.leaderboard.dto.CategoryDetailDto;
 import com.swmStrong.demo.domain.group.repository.GroupRepository;
+import com.swmStrong.demo.domain.user.dto.OnlineRequestDto;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.domain.userGroup.entity.UserGroup;
@@ -19,6 +18,7 @@ import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +59,8 @@ public class GroupServiceImpl implements GroupService{
             throw new ApiException(ErrorCode.GROUP_NAME_ALREADY_EXISTS);
         }
 
+        String randomPassword = getRandomPassword();
+
         User user = userInfoProvider.loadByUserId(userId);
 
         Group group = Group.builder()
@@ -68,8 +70,10 @@ public class GroupServiceImpl implements GroupService{
                 .groundRule(createGroupDto.groundRule())
                 .description(createGroupDto.description())
                 .isPublic(createGroupDto.isPublic())
+                .password(randomPassword)
                 .build();
 
+        group.increaseMemberCount();
         groupRepository.save(group);
 
         UserGroup userGroup = new UserGroup(user, group);
@@ -77,6 +81,20 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
+    public void updateNewPassword(String userId, Long groupId) {
+        User user = userInfoProvider.loadByUserId(userId);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+        group.updatePassword(getRandomPassword());
+        groupRepository.save(group);
+    }
+
+    @Override
+    @Transactional
     public void banMember(String userId, Long groupId, BanMemberDto banMemberDto) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
@@ -96,6 +114,8 @@ public class GroupServiceImpl implements GroupService{
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_USER_NOT_FOUND));
 
         userGroupRepository.delete(userGroup);
+        group.decreaseMemberCount();
+        groupRepository.save(group);
     }
 
     @Override
@@ -120,14 +140,29 @@ public class GroupServiceImpl implements GroupService{
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 
-        List<GroupMember> memberList = userGroupRepository.findByGroup(group).stream()
-                .map(userGroup -> GroupMember.builder()
-                            .userId(userGroup.getUser().getId())
-                            .nickname(userGroup.getUser().getNickname())
-                            .build())
+        List<GroupMember> members = userGroupRepository.findByGroupWithUser(group);
+        
+        List<String> userIds = members.stream()
+                .map(GroupMember::userId)
                 .toList();
 
-        return GroupDetailsDto.of(group, memberList);
+        
+        Map<String, OnlineRequestDto> onlineDetails = userInfoProvider.getUserOnlineDetails(userIds);
+        
+        List<GroupMember> membersWithOnlineInfo = members.stream()
+                .map(member -> {
+                    OnlineRequestDto onlineInfo = onlineDetails.get(member.userId());
+                    return GroupMember.builder()
+                            .userId(member.userId())
+                            .nickname(member.nickname())
+                            .profileImageUrl(member.profileImageUrl())
+                            .lastActivityTimestamp(onlineInfo != null ? onlineInfo.timestamp() : null)
+                            .sessionMinutes(onlineInfo != null ? onlineInfo.sessionMinutes() : null)
+                            .build();
+                })
+                .toList();
+
+        return GroupDetailsDto.of(group, membersWithOnlineInfo);
     }
 
     @Override
@@ -150,21 +185,31 @@ public class GroupServiceImpl implements GroupService{
 
     @Transactional
     @Override
-    public void joinGroup(String userId, Long groupId) {
+    public void joinGroup(String userId, Long groupId, PasswordRequestDto passwordRequestDto) {
         User user = userInfoProvider.loadByUserId(userId);
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        if (!group.isPublic()) {
+            if (passwordRequestDto == null) {
+                throw new ApiException(ErrorCode.PASSWORD_NEEDED);
+            }
+
+            if (!group.getPassword().equals(passwordRequestDto.password())) {
+                throw new ApiException(ErrorCode.INCORRECT_PASSWORD);
+            }
+        }
 
         if (userGroupRepository.existsByUserAndGroup(user, group)) {
             throw new ApiException(ErrorCode.GROUP_ALREADY_JOINED);
         }
 
-        //TODO: private 입장 시 확인 절차
+        group.increaseMemberCount();
+        groupRepository.save(group);
 
         UserGroup userGroup = new UserGroup(user, group);
         userGroupRepository.save(userGroup);
     }
-
 
     @Override
     @Transactional
@@ -178,6 +223,9 @@ public class GroupServiceImpl implements GroupService{
         }
 
         userGroupRepository.deleteByUserAndGroup(user, group);
+
+        group.decreaseMemberCount();
+        groupRepository.save(group);
     }
 
     @Override
@@ -226,8 +274,7 @@ public class GroupServiceImpl implements GroupService{
             throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
         }
 
-        long memberCount = userGroupRepository.countByGroup(group);
-        if (memberCount > 1) {
+        if (group.getMemberCount() > 1) {
             throw new ApiException(ErrorCode.GROUP_HAS_USER);
         }
 
@@ -276,7 +323,7 @@ public class GroupServiceImpl implements GroupService{
         List<GroupGoalResponseDto> groupGoalResponseDtoList = new ArrayList<>();
 
         List<String> groupGoalKeys = new ArrayList<>();
-        
+
         for (String category: categoryProvider.getCategories()) {
             for (PeriodType periodType: PeriodType.values()) {
                 String groupGoalKey = generateKey(groupId, category, periodType.toString());
@@ -289,7 +336,7 @@ public class GroupServiceImpl implements GroupService{
             for (PeriodType periodType: PeriodType.values()) {
                 String groupGoalKey = generateKey(groupId, category, periodType.toString());
                 String goalValue = groupGoalData.get(groupGoalKey);
-                
+
                 if (goalValue != null) {
                     List<GroupMemberGoalResult> members = new ArrayList<>();
 
@@ -297,7 +344,7 @@ public class GroupServiceImpl implements GroupService{
                         double currentSeconds = leaderboardProvider.getUserScore(user.getId(), category, date, periodType);
                         members.add(new GroupMemberGoalResult(user.getId(), currentSeconds));
                     }
-                    
+
                     groupGoalResponseDtoList.add(GroupGoalResponseDto.builder()
                             .category(category)
                             .periodType(periodType)
@@ -307,7 +354,7 @@ public class GroupServiceImpl implements GroupService{
                 }
             }
         }
-        
+
         return groupGoalResponseDtoList;
     }
 
@@ -329,15 +376,10 @@ public class GroupServiceImpl implements GroupService{
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 
-        List<User> groupUsers = userGroupRepository.findByGroup(group).stream()
-                .map(UserGroup::getUser)
-                .toList();
-
+        List<User> groupUsers = userGroupRepository.findUsersByGroup(group);
         List<GroupLeaderboardMember> members = leaderboardProvider.getGroupLeaderboardMembers(groupUsers, category, date, periodType);
 
         return GroupLeaderboardDto.builder()
-                .groupId(groupId)
-                .groupName(group.getName())
                 .category(category)
                 .periodType(periodType)
                 .date(date)
@@ -347,5 +389,13 @@ public class GroupServiceImpl implements GroupService{
 
     private String generateKey(Long groupId, String category, String period) {
         return String.format("%s:%s:%s:%s", GROUP_GOAL_PREFIX, groupId, category, period.toUpperCase());
+    }
+
+    private String getRandomPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        return new SecureRandom().ints(6, 0, chars.length())
+                .mapToObj(chars::charAt)
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                .toString();
     }
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface UserService {
+    UserInfoResponseDto getDetailsByUserId(String userId);
     TokenResponseDto signupGuest(HttpServletRequest request, UserRequestDto userRequestDto);
     void validateNickname(String userId, String nickname);
     UserResponseDto updateUserNickname(String userId, NicknameRequestDto nicknameRequestDto);

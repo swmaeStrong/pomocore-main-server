@@ -43,17 +43,24 @@ public class Group extends BaseEntity {
     @Column(name = "ground_rule", length = 1024)
     private String groundRule;
 
+    @Column(name = "memberCount")
+    private int memberCount = 0;
+
     @Column(name = "is_public")
     private boolean isPublic = true;
 
+    @Column(name = "password")
+    private String password;
+
     @Builder
-    public Group(User owner, String name, List<String> tags, String description, String groundRule, boolean isPublic) {
+    public Group(User owner, String name, List<String> tags, String description, String groundRule, boolean isPublic, String password) {
         this.owner = owner;
         this.name = name;
         this.tags = tags;
         this.description = description;
         this.groundRule = groundRule;
         this.isPublic = isPublic;
+        this.password = password;
     }
 
     public void updateDescription(String description) {
@@ -78,5 +85,17 @@ public class Group extends BaseEntity {
 
     public void updateOwner(User owner) {
         this.owner = owner;
+    }
+
+    public void increaseMemberCount() {
+        this.memberCount++;
+    }
+
+    public void decreaseMemberCount() {
+        this.memberCount--;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
     }
 }

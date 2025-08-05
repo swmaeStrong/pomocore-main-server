@@ -28,6 +28,23 @@ public class UserController {
     private final UserService userService;
 
     @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 조회",
+            description =
+                    "<p> 자신이 아닌 유저의 상세 정보를 조회한다. </p>" +
+                    "<p> 아직 점수 체계를 완전 정리한게 아니라, 이 부분은 리더보드, 목표와 함께 같이 수정해야 할 듯 </p>"
+    )
+    @GetMapping
+    public ResponseEntity<ApiResponse<UserInfoResponseDto>> getUserInfo(
+            @RequestParam String userId
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                userService.getDetailsByUserId(userId)
+        );
+    }
+
+    @Operation(
             summary = "유저 생성",
             description =
                     "<p> 새로운 유저를 생성한다.</p>"

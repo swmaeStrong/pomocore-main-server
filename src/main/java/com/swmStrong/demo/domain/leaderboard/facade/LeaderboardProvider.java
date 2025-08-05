@@ -52,9 +52,6 @@ public class LeaderboardProvider {
 
         Map<String, User> userMap = groupUsers.stream()
                 .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
-
-        List<String> groupUserIds = groupUsers.stream().map(User::getId).toList();
-        Map<String, OnlineRequestDto> onlineDetails = userService.getUserOnlineDetails(groupUserIds);
         
         List<GroupLeaderboardMember> members = new ArrayList<>();
         int groupRank = 1;
@@ -64,21 +61,6 @@ public class LeaderboardProvider {
             if (userMap.containsKey(userId)) {
                 User user = userMap.get(userId);
                 Double score = tuple.getScore();
-                OnlineRequestDto onlineRequestDto = onlineDetails.get(userId);
-
-                long currentTime = System.currentTimeMillis() / 1000;
-                boolean isOnline = false;
-                double lastActivityTime = 0.0;
-                
-                if (onlineRequestDto != null) {
-                    lastActivityTime = onlineRequestDto.timestamp() + onlineRequestDto.sessionMinutes() * 60.0;
-                    if (onlineRequestDto.sessionMinutes() == 0) {
-                        // 즉시 종료 (dropOut) - 오프라인 처리 (이미 false로 초기화됨)
-                    } else {
-                        // 일반적인 경우 - 5분 여유 시간
-                        isOnline = (currentTime - lastActivityTime) < 300;
-                    }
-                }
                 
                 members.add(GroupLeaderboardMember.builder()
                         .userId(userId)
@@ -86,13 +68,10 @@ public class LeaderboardProvider {
                         .profileImageUrl(user.getProfileImageUrl())
                         .score(score != null ? score : 0.0)
                         .rank(groupRank++)
-                        .isOnline(isOnline)
-                        .lastActivityTime(lastActivityTime)
                         .details(new ArrayList<>())
                         .build());
             }
         }
-        
         return members;
     }
 }

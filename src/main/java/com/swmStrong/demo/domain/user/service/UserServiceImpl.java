@@ -6,6 +6,8 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.s3.S3Properties;
 import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
+import com.swmStrong.demo.domain.streak.entity.Streak;
+import com.swmStrong.demo.domain.streak.facade.StreakProvider;
 import com.swmStrong.demo.domain.user.dto.*;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.UserRepository;
@@ -36,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final S3Client s3Client;
     private final S3Properties s3Properties;
     private final ObjectMapper objectMapper;
+    private final StreakProvider streakProvider;
 
     public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
     public static final String USER_ONLINE_PREFIX = "userOnline";
@@ -46,6 +49,7 @@ public class UserServiceImpl implements UserService {
             UserRepository userRepository,
             TokenManager tokenManager,
             RedisRepository redisRepository,
+            StreakProvider streakProvider,
             S3Client s3Client,
             S3Properties s3Properties,
             ObjectMapper objectMapper
@@ -53,9 +57,31 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
         this.tokenManager = tokenManager;
         this.redisRepository = redisRepository;
+        this.streakProvider = streakProvider;
         this.s3Client = s3Client;
         this.s3Properties = s3Properties;
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public UserInfoResponseDto getDetailsByUserId(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        Streak streak = streakProvider.loadStreakByUserId(userId);
+
+        int currentStreak = streak == null ? 0: streak.getCurrentStreak();
+        int maxStreak = streak == null ? 0: streak.getMaxStreak();
+        Integer totalSession = streakProvider.loadTotalSessionByUserId(userId);
+
+        return UserInfoResponseDto.builder()
+                .userId(userId)
+                .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImageUrl())
+                .currentStreak(currentStreak)
+                .maxStreak(maxStreak)
+                .totalSession(totalSession == null ? 0 : totalSession)
+                .build();
     }
 
     @Override
@@ -212,7 +238,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void goOnline(String userId, OnlineRequestDto onlineRequestDto) {
         String key = getUserOnlineKey(userId);
-        redisRepository.setDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
+        redisRepository.setJsonDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
     }
 
     @Override
@@ -221,19 +247,13 @@ public class UserServiceImpl implements UserService {
                 .map(this::getUserOnlineKey)
                 .toList();
         
-        Map<String, String> redisData = redisRepository.multiGet(keys);
+        Map<String, OnlineRequestDto> keysToOnlineDetails = redisRepository.multiGetJson(keys, OnlineRequestDto.class);
         Map<String, OnlineRequestDto> userOnlineDetails = new HashMap<>();
         
         for (String userId : userIds) {
             String key = getUserOnlineKey(userId);
-            String data = redisData.get(key);
-            
-            if (data != null) {
-                OnlineRequestDto onlineRequestDto = objectMapper.convertValue(data, OnlineRequestDto.class);
-                userOnlineDetails.put(userId, onlineRequestDto);
-            } else {
-                userOnlineDetails.put(userId, null); // 미접속 처리
-            }
+            OnlineRequestDto onlineData = keysToOnlineDetails.get(key);
+            userOnlineDetails.put(userId, onlineData);
         }
         
         return userOnlineDetails;
@@ -261,7 +281,7 @@ public class UserServiceImpl implements UserService {
     public void dropOut(String userId) {
         String key = getUserOnlineKey(userId);
         OnlineRequestDto onlineRequestDto = new OnlineRequestDto((double) System.currentTimeMillis() /1000, 0 );
-        redisRepository.setDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
+        redisRepository.setJsonDataWithExpire(key, onlineRequestDto, USER_ONLINE_EXPIRES);
     }
 
     private void validateFile(MultipartFile file) {

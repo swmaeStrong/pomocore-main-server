@@ -15,6 +15,7 @@ public record GroupDetailsDto(
         String description,
         String groundRule,
         boolean isPublic,
+        String password,
         LocalDate createdAt
 ) {
 
@@ -27,6 +28,7 @@ public record GroupDetailsDto(
                 .description(group.getDescription())
                 .groundRule(group.getGroundRule())
                 .isPublic(group.isPublic())
+                .password(group.getPassword())
                 .createdAt(group.getCreatedAt().toLocalDate())
                 .build();
     }

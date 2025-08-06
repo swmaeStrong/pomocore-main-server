@@ -1,5 +1,6 @@
 package com.swmStrong.demo.infra.LLM;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
+@Primary
 public class ChatGPTClassifier extends AbstractLLMClassifier {
     private final OpenAIConfig openAIConfig;
 

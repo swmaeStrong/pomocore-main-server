@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
-@Primary
+//@Primary
 public class MixedLLMClassifier implements LLMClassifier {
     private final GeminiClassifier geminiClassifier;
     private final ChatGPTClassifier chatGPTClassifier;

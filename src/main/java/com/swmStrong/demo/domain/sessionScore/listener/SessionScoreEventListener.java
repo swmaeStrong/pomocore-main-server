@@ -44,10 +44,7 @@ public class SessionScoreEventListener {
 
         PomodoroUsageLog first = pomodoroUsageLogList.get(0);
         PomodoroUsageLog last = pomodoroUsageLogList.get(pomodoroUsageLogList.size() - 1);
-        double totalDuration = last.getTimestamp() + last.getDuration() - first.getTimestamp();
-        double sessionSeconds = event.sessionMinutes() * 60;
-        double dropOutTime = Math.max((sessionSeconds - totalDuration - 10) * 2, 0);
-        Result result = calculatePomodoroScore(pomodoroUsageLogList, dropOutTime);
+        Result result = calculatePomodoroScore(pomodoroUsageLogList);
         SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(event.userId(), event.session(), event.sessionDate());
 
         sessionScore.updateDetails(
@@ -69,7 +66,7 @@ public class SessionScoreEventListener {
      * 4) 10초 이상의 경우 매 10초마다 2점을 추가로 감점한다. <br>
      * 5) 중간에 탈주한 drop out은 패널티 2배 적용 (대신 count 적용은 하지 않음)
      */
-    private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList, double dropOutTime) {
+    private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList) {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategoryType.getAllValues();
         double afkDuration = 0;
@@ -88,7 +85,7 @@ public class SessionScoreEventListener {
         }
 
         int distractedCount = 0;
-        int distractedDuration = (int) dropOutTime;
+        int distractedDuration = 0;
         IntervalEvent[] intervalEvents = new IntervalEvent[2*distractingUsageLog.size()];
         int idx = 0;
         for (PomodoroUsageLog log : distractingUsageLog) {

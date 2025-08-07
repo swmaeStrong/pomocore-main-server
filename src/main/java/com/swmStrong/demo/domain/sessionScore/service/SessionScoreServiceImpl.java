@@ -53,8 +53,8 @@ public class SessionScoreServiceImpl implements SessionScoreService {
 
                     List<SessionScoreResponseDto.SessionDetailDto> details = sessionLogs.stream()
                             .map(log -> new SessionScoreResponseDto.SessionDetailDto(
-                                    convertCategory(categoryMap.getOrDefault(log.getCategoryId(), "Unknown"), workCategories),
-                                    categoryMap.getOrDefault(log.getCategoryId(), "Unknown"),
+                                    convertCategory(categoryMap.getOrDefault(log.getCategoryId(), "Uncategorized"), workCategories),
+                                    categoryMap.getOrDefault(log.getCategoryId(), "Uncategorized"),
                                     log.getTimestamp(),
                                     log.getDuration()
                             )).toList();

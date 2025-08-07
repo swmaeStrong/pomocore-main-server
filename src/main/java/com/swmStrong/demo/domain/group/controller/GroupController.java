@@ -304,18 +304,21 @@ public class GroupController {
             summary = "그룹 리더보드 조회",
             description =
                     "<p> 그룹의 리더보드를 조회한다. </p>" +
-                    "<p> 그룹 상세로 그룹 유저 관련 기능을 거의 다 넘겼다. </p>"
+                    "<p> 그룹 상세로 그룹 유저 관련 기능을 거의 다 넘겼다. </p>" +
+                    "<p> period 에 가능한 값: daily, weekly, monthly </p>"
     )
     @GetMapping("/{groupId}/leaderboard")
     public ResponseEntity<ApiResponse<GroupLeaderboardDto>> getGroupLeaderboard(
             @PathVariable Long groupId,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date
+            LocalDate date,
+            @RequestParam
+            String period
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                groupService.getGroupLeaderboard(groupId, "work", PeriodType.DAILY ,date)
+                groupService.getGroupLeaderboard(groupId, "work", period ,date)
         );
     }
 }

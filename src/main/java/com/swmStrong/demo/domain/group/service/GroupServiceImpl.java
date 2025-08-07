@@ -372,7 +372,9 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
-    public GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, PeriodType periodType, LocalDate date) {
+    public GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, String period, LocalDate date) {
+        PeriodType periodType = PeriodType.valueOf(period.toUpperCase());
+
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 

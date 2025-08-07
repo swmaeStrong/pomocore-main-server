@@ -22,5 +22,5 @@ public interface GroupService {
     void setGroupGoal(String userId, Long groupId, SaveGroupGoalDto saveGroupGoalDto);
     List<GroupGoalResponseDto> getGroupGoals(Long groupId, LocalDate date);
     void deleteGroupGoal(String userId, Long groupId, DeleteGroupGoalDto deleteGroupGoalDto);
-    GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, PeriodType periodType, LocalDate date);
+    GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, String period, LocalDate date);
 }

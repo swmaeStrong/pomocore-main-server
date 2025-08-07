@@ -88,7 +88,7 @@
     {
       "category": "Development",
       "appPatterns": [
-        "amplitude.com",
+        "pomocore dev",
         "dbeaver community",
         "pawcus dev",
         "vscode",
@@ -166,6 +166,7 @@
         "visual studio"
       ],
       "domainPatterns":[
+        "amplitude.com",
         "developers.kakao.com",
         "locust.cloud",
         "developer.apple.com",
@@ -615,6 +616,7 @@
     {
       "category": "Productivity",
       "appPatterns": [
+        "pomocore",
         "maccy",
         "rize",
         "pawcus",

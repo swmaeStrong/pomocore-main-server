@@ -324,7 +324,6 @@ public class GroupServiceImpl implements GroupService{
 
         List<String> groupGoalKeys = new ArrayList<>();
         List<String> categoryList = new ArrayList<>(categoryProvider.getCategories());
-        categoryList.add("work");
 
         for (String category: categoryList) {
             for (PeriodType periodType: PeriodType.values()) {

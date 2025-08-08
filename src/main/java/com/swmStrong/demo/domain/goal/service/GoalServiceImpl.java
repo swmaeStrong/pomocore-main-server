@@ -42,8 +42,7 @@ public class GoalServiceImpl implements GoalService {
     public List<GoalResponseDto> getCurrentGoals(String userId) {
         List<GoalResponseDto> goalResponseDtoList = new ArrayList<>();
         LocalDate now = LocalDate.now();
-        List<String> categoryList = new ArrayList<>(categoryProvider.getCategories());
-        categoryList.add("work");
+        List<String> categoryList = categoryProvider.getCategories();
 
         for (String category: categoryList) {
             for (PeriodType periodType: PeriodType.values()) {
@@ -68,9 +67,5 @@ public class GoalServiceImpl implements GoalService {
 
     private String generateKey(String userId, String category, String period) {
         return String.format("%s:%s:%s:%s", GOAL_PREFIX, userId, category, period.toUpperCase());
-    }
-
-    private List<String> getCategoryList() {
-        return categoryProvider.getCategories();
     }
 }

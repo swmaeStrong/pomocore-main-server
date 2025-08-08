@@ -5,6 +5,7 @@ import com.swmStrong.demo.domain.categoryPattern.repository.CategoryPatternRepos
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,10 +21,11 @@ public class CategoryProviderImpl implements CategoryProvider {
 
     @Override
     public List<String> getCategories() {
-        return categoryPatternRepository.findAll().stream()
-                .sorted()
-                .map(CategoryPattern::getCategory)
-                .toList();
+        List<String> categoryList = new ArrayList<>(categoryPatternRepository.findAll().stream().map(CategoryPattern::getCategory).toList());
+        categoryList.add("work");
+        categoryList.add("sessionScore");
+        categoryList.add("sessionCount");
+        return categoryList;
     }
 
     @Override

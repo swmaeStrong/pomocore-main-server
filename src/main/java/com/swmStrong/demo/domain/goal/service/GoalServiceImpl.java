@@ -42,7 +42,10 @@ public class GoalServiceImpl implements GoalService {
     public List<GoalResponseDto> getCurrentGoals(String userId) {
         List<GoalResponseDto> goalResponseDtoList = new ArrayList<>();
         LocalDate now = LocalDate.now();
-        for (String category: getCategoryList()) {
+        List<String> categoryList = categoryProvider.getCategories();
+        categoryList.add("work");
+
+        for (String category: categoryList) {
             for (PeriodType periodType: PeriodType.values()) {
                 String key = generateKey(userId, category, periodType.toString());
                 if (redisRepository.getData(key) != null) {

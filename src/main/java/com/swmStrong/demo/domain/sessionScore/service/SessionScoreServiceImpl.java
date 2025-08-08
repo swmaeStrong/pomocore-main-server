@@ -2,6 +2,7 @@ package com.swmStrong.demo.domain.sessionScore.service;
 
 import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
+import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.facade.PomodoroSessionProvider;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
@@ -25,16 +26,18 @@ public class SessionScoreServiceImpl implements SessionScoreService {
     private final SessionScoreRepository sessionScoreRepository;
     private final PomodoroSessionProvider pomodoroSessionProvider;
     private final CategoryProvider categoryProvider;
-
+    private final LeaderboardProvider leaderboardProvider;
 
     public SessionScoreServiceImpl(
             SessionScoreRepository sessionScoreRepository,
             PomodoroSessionProvider pomodoroSessionProvider,
-            CategoryProvider categoryProvider
+            CategoryProvider categoryProvider,
+            LeaderboardProvider leaderboardProvider
     ) {
         this.sessionScoreRepository = sessionScoreRepository;
         this.pomodoroSessionProvider = pomodoroSessionProvider;
         this.categoryProvider = categoryProvider;
+        this.leaderboardProvider = leaderboardProvider;
     }
 
     @Override
@@ -151,7 +154,14 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                 result.distractedCount(),
                 result.distractedDuration()
         );
-        //TODO:여기
+
+        leaderboardProvider.increaseSessionScore(event.userId(), event.sessionDate(), getScore(
+                sessionScore.getAfkDuration(),
+                sessionScore.getDistractedDuration(),
+                sessionScore.getDistractedCount(),
+                (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
+        ));
+
         sessionScoreRepository.save(sessionScore);
     }
 

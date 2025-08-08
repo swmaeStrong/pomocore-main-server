@@ -49,6 +49,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         increaseScoreByCategoryAndUserId(category, userId, date, 1);
     }
 
+    @Override
+    public void increaseSessionScore(String userId, LocalDate date, int score) {
+        String category = "sessionScore";
+        increaseScoreByCategoryAndUserId(category, userId, date, score);
+    }
 
 
     @Override

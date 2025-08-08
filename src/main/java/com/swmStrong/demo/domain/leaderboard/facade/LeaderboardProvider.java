@@ -5,7 +5,6 @@ import com.swmStrong.demo.domain.group.dto.GroupLeaderboardMember;
 import com.swmStrong.demo.domain.leaderboard.dto.LeaderboardResult;
 import com.swmStrong.demo.domain.leaderboard.repository.LeaderboardCache;
 import com.swmStrong.demo.domain.leaderboard.service.LeaderboardService;
-import com.swmStrong.demo.domain.user.dto.OnlineRequestDto;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.service.UserService;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -22,12 +21,10 @@ public class LeaderboardProvider {
 
     private final LeaderboardCache leaderboardCache;
     private final LeaderboardService leaderboardService;
-    private final UserService userService;
 
     public LeaderboardProvider(LeaderboardCache leaderboardCache, LeaderboardService leaderboardService, UserService userService) {
         this.leaderboardCache = leaderboardCache;
         this.leaderboardService = leaderboardService;
-        this.userService = userService;
     }
 
     public double getUserScore(String userId, String category, LocalDate date, PeriodType periodType) {
@@ -77,5 +74,9 @@ public class LeaderboardProvider {
 
     public void increaseSessionCount(String userId, LocalDate date) {
         leaderboardService.increaseSessionCount(userId, date);
+    }
+
+    public void increaseSessionScore(String userId, LocalDate date, int score) {
+        leaderboardService.increaseSessionScore(userId, date, score);
     }
 }

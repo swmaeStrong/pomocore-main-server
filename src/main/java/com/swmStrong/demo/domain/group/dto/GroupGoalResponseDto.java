@@ -8,7 +8,7 @@ import java.util.List;
 @Builder
 public record GroupGoalResponseDto(
         String category,
-        int goalSeconds,
+        int goalValue,
         PeriodType periodType,
         List<GroupMemberGoalResult> members
 ) {

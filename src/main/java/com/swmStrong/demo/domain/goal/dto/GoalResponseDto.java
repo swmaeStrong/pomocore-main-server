@@ -7,7 +7,7 @@ import lombok.Builder;
 public record GoalResponseDto(
         String category,
         int currentSeconds,
-        int goalSeconds,
+        int goalValue,
         PeriodType periodType
 ) {
 

@@ -35,7 +35,7 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     public void saveUserGoal(String userId, SaveUserGoalDto saveUserGoalDto) {
-        redisRepository.setData(generateKey(userId, saveUserGoalDto.category(), saveUserGoalDto.period()), saveUserGoalDto.goalSeconds());
+        redisRepository.setData(generateKey(userId, saveUserGoalDto.category(), saveUserGoalDto.period()), saveUserGoalDto.goalValue());
     }
 
     @Override
@@ -51,7 +51,7 @@ public class GoalServiceImpl implements GoalService {
                     goalResponseDtoList.add(GoalResponseDto.builder()
                             .category(category)
                             .currentSeconds((int) leaderboardProvider.getUserScore(userId, category, now, periodType))
-                            .goalSeconds(Integer.parseInt(redisRepository.getData(key)))
+                            .goalValue(Integer.parseInt(redisRepository.getData(key)))
                             .periodType(periodType)
                             .build());
                 }

@@ -350,7 +350,7 @@ public class GroupServiceImpl implements GroupService{
                             .category(category)
                             .periodType(periodType)
                             .members(members)
-                            .goalSeconds(Integer.parseInt(goalValue))
+                            .goalValue(Integer.parseInt(goalValue))
                             .build());
                 }
             }

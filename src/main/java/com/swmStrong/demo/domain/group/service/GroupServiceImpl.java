@@ -334,7 +334,7 @@ public class GroupServiceImpl implements GroupService{
         }
 
         Map<String, String> groupGoalData = redisRepository.multiGet(groupGoalKeys);
-        for (String category: categoryProvider.getCategories()) {
+        for (String category: categoryList) {
             for (PeriodType periodType: PeriodType.values()) {
                 String groupGoalKey = generateKey(groupId, category, periodType.toString());
                 String goalValue = groupGoalData.get(groupGoalKey);

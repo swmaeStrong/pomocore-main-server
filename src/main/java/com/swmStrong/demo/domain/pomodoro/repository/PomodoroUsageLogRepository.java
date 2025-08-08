@@ -1,7 +1,7 @@
 package com.swmStrong.demo.domain.pomodoro.repository;
 
+import com.swmStrong.demo.domain.pomodoro.dto.CategoryUsageDto;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
-import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;

@@ -1,9 +1,8 @@
 package com.swmStrong.demo.domain.pomodoro.service;
 
 import com.swmStrong.demo.domain.pomodoro.dto.DistractedDetailsDto;
-import com.swmStrong.demo.domain.pomodoro.dto.PomodoroResponseDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
-import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
+import com.swmStrong.demo.domain.pomodoro.dto.CategoryUsageDto;
 
 import java.time.LocalDate;
 import java.util.List;

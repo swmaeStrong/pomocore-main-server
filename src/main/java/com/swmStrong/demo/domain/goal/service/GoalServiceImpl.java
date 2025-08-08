@@ -42,7 +42,7 @@ public class GoalServiceImpl implements GoalService {
     public List<GoalResponseDto> getCurrentGoals(String userId) {
         List<GoalResponseDto> goalResponseDtoList = new ArrayList<>();
         LocalDate now = LocalDate.now();
-        List<String> categoryList = categoryProvider.getCategories();
+        List<String> categoryList = new ArrayList<>(categoryProvider.getCategories());
         categoryList.add("work");
 
         for (String category: categoryList) {

@@ -323,8 +323,9 @@ public class GroupServiceImpl implements GroupService{
         List<GroupGoalResponseDto> groupGoalResponseDtoList = new ArrayList<>();
 
         List<String> groupGoalKeys = new ArrayList<>();
-        List<String> categoryList = categoryProvider.getCategories();
+        List<String> categoryList = new ArrayList<>(categoryProvider.getCategories());
         categoryList.add("work");
+
         for (String category: categoryList) {
             for (PeriodType periodType: PeriodType.values()) {
                 String groupGoalKey = generateKey(groupId, category, periodType.toString());

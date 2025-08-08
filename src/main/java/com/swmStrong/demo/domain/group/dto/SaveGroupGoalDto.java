@@ -2,7 +2,7 @@ package com.swmStrong.demo.domain.group.dto;
 
 public record SaveGroupGoalDto(
         String category,
-        int goalSeconds,
+        int goalValue,
         String period
 ) {
 }

@@ -307,7 +307,7 @@ public class GroupServiceImpl implements GroupService{
                         saveGroupGoalDto.category(),
                         saveGroupGoalDto.period()
                 ),
-                saveGroupGoalDto.goalSeconds()
+                saveGroupGoalDto.goalValue()
         );
     }
 
@@ -323,7 +323,7 @@ public class GroupServiceImpl implements GroupService{
         List<GroupGoalResponseDto> groupGoalResponseDtoList = new ArrayList<>();
 
         List<String> groupGoalKeys = new ArrayList<>();
-        List<String> categoryList = new ArrayList<>(categoryProvider.getCategories());
+        List<String> categoryList = categoryProvider.getCategories();
 
         for (String category: categoryList) {
             for (PeriodType periodType: PeriodType.values()) {

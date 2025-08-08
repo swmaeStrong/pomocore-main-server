@@ -1,6 +1,6 @@
 package com.swmStrong.demo.domain.sessionScore.listener;
 
-import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.facade.PomodoroSessionProvider;
@@ -68,7 +68,7 @@ public class SessionScoreEventListener {
      */
     private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList) {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
-        Set<String> workCategories = WorkCategoryType.getAllValues();
+        Set<String> workCategories = WorkCategory.categories;
         double afkDuration = 0;
 
         List<PomodoroUsageLog> distractingUsageLog = new ArrayList<>();

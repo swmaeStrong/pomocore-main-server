@@ -7,7 +7,7 @@ import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.pomodoro.dto.DistractedDetailsDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
 import com.swmStrong.demo.domain.pomodoro.service.PomodoroService;
-import com.swmStrong.demo.domain.usageLog.dto.CategoryUsageDto;
+import com.swmStrong.demo.domain.pomodoro.dto.CategoryUsageDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;

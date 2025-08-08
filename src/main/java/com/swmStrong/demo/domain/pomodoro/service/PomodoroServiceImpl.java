@@ -3,7 +3,7 @@ package com.swmStrong.demo.domain.pomodoro.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.enums.Browsers;
-import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.util.DomainExtractor;
 import com.swmStrong.demo.domain.pomodoro.dto.DistractedDetailsDto;
@@ -163,7 +163,7 @@ public class PomodoroServiceImpl implements PomodoroService {
     public List<DistractedDetailsDto> getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, int session) {
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
-        Set<String> workCategories = WorkCategoryType.getAllValues();
+        Set<String> workCategories = WorkCategory.categories;
 
         List<PomodoroUsageLog> distractedUsageLogList = pomodoroUsageLogList.stream()
                 .filter(pomodoroUsageLog -> !workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId())))

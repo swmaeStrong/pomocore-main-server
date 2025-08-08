@@ -1,6 +1,6 @@
 package com.swmStrong.demo.domain.sessionScore.service;
 
-import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.facade.PomodoroSessionProvider;
@@ -38,7 +38,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
     public List<SessionScoreResponseDto> getByUserIdAndSessionDate(String userId, LocalDate date) {
         List<SessionScore> sessionScoreList = sessionScoreRepository.findAllByUserIdAndSessionDate(userId, date);
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
-        Set<String> workCategories = WorkCategoryType.getAllValues();
+        Set<String> workCategories = WorkCategory.categories;
 
         Map<Integer, List<PomodoroUsageLog>> sessionLogsMap = sessionScoreList.stream()
                 .collect(Collectors.toMap(

@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.leaderboard.service;
 
-import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
+
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
@@ -28,7 +29,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     private final LeaderboardCache leaderboardCache;
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
-    private final Set<String> workCategories = WorkCategoryType.getAllValues();
+    private final Set<String> workCategories = WorkCategory.categories;
 
     public static final String LEADERBOARD_KEY_PREFIX = "leaderboard";
 

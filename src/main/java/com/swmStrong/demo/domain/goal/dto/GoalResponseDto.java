@@ -8,6 +8,7 @@ public record GoalResponseDto(
         String category,
         int currentSeconds,
         int goalValue,
+        int goalSeconds,
         PeriodType periodType
 ) {
 

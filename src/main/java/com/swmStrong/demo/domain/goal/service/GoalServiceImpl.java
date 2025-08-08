@@ -52,6 +52,7 @@ public class GoalServiceImpl implements GoalService {
                     goalResponseDtoList.add(GoalResponseDto.builder()
                             .category(category)
                             .currentSeconds((int) leaderboardProvider.getUserScore(userId, category, now, periodType))
+                            .goalSeconds(Integer.parseInt(redisRepository.getData(key)))
                             .goalValue(Integer.parseInt(redisRepository.getData(key)))
                             .periodType(periodType)
                             .build());

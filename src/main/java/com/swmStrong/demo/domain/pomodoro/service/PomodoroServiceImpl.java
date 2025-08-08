@@ -11,7 +11,6 @@ import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.repository.CategorizedDataRepository;
 import com.swmStrong.demo.domain.pomodoro.repository.PomodoroUsageLogRepository;
-import com.swmStrong.demo.domain.sessionScore.facade.SessionNumberProvider;
 import com.swmStrong.demo.domain.sessionScore.facade.SessionScoreProvider;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
@@ -28,9 +27,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,7 +38,6 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final PomodoroUsageLogRepository pomodoroUsageLogRepository;
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
-    private final SessionNumberProvider sessionNumberProvider;
     private final SessionScoreProvider sessionScoreProvider;
     private final RedisStreamProducer redisStreamProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -53,7 +48,6 @@ public class PomodoroServiceImpl implements PomodoroService {
             PomodoroUsageLogRepository pomodoroUsageLogRepository,
             UserInfoProvider userInfoProvider,
             CategoryProvider categoryProvider,
-            SessionNumberProvider sessionNumberProvider,
             SessionScoreProvider sessionScoreProvider,
             RedisStreamProducer redisStreamProducer,
             ApplicationEventPublisher applicationEventPublisher,
@@ -63,7 +57,6 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.pomodoroUsageLogRepository = pomodoroUsageLogRepository;
         this.userInfoProvider = userInfoProvider;
         this.categoryProvider = categoryProvider;
-        this.sessionNumberProvider = sessionNumberProvider;
         this.sessionScoreProvider = sessionScoreProvider;
         this.redisStreamProducer = redisStreamProducer;
         this.applicationEventPublisher = applicationEventPublisher;

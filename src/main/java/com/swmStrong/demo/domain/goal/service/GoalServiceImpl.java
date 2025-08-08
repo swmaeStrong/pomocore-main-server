@@ -48,12 +48,13 @@ public class GoalServiceImpl implements GoalService {
         for (String category: categoryList) {
             for (PeriodType periodType: PeriodType.values()) {
                 String key = generateKey(userId, category, periodType.toString());
-                if (redisRepository.getData(key) != null) {
+                String value = redisRepository.getData(key);
+                if (value != null) {
                     goalResponseDtoList.add(GoalResponseDto.builder()
                             .category(category)
                             .currentSeconds((int) leaderboardProvider.getUserScore(userId, category, now, periodType))
-                            .goalSeconds(Integer.parseInt(redisRepository.getData(key)))
-                            .goalValue(Integer.parseInt(redisRepository.getData(key)))
+                            .goalSeconds(Integer.parseInt(value))
+                            .goalValue(Integer.parseInt(value))
                             .periodType(periodType)
                             .build());
                 }

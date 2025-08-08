@@ -51,25 +51,34 @@ public class RedisRepositoryImpl implements RedisRepository {
         return result;
     }
 
+    @Override
     public <T> void setDataWithExpire(String key, T value, long duration) {
         Duration expireDuration = Duration.ofSeconds(duration);
         redisTemplate.opsForValue().set(key, value.toString(), expireDuration);
     }
 
+    @Override
     public <T> void setData(String key, T value) {
         redisTemplate.opsForValue().set(key, value.toString());
     }
 
+    @Override
     public void deleteData(String key) {
         redisTemplate.delete(key);
     }
 
+    @Override
     public Long incrementWithExpireIfFirst(String key, long timeout, TimeUnit unit) {
         Long count = redisTemplate.opsForValue().increment(key);
         if (count != null && count == 1L) {
             redisTemplate.expire(key, timeout, unit);
         }
         return count;
+    }
+
+    @Override
+    public Long increment(String key) {
+        return redisTemplate.opsForValue().increment(key);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.swmStrong.demo.domain.leaderboard.service;
 
-import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategoryType;
+import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
+
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.common.util.TimeZoneUtil;
@@ -28,7 +29,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     private final LeaderboardCache leaderboardCache;
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
-    private final Set<String> workCategories = WorkCategoryType.getAllValues();
+    private final Set<String> workCategories = WorkCategory.categories;
 
     public static final String LEADERBOARD_KEY_PREFIX = "leaderboard";
 
@@ -43,18 +44,17 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public void increaseScore(String categoryId, String userId, double duration, double timestamp) {
-        LocalDate day = LocalDateTime.ofInstant(java.time.Instant.ofEpochSecond((long) timestamp),
-                java.time.ZoneId.systemDefault()).toLocalDate();
-        ObjectId categoryObjectId = new ObjectId(categoryId);
-        String category = categoryProvider.getCategoryById(categoryObjectId);
-        log.trace("Increase score for user: {} category: {}, duration: {}", userId, category, duration);
-
-        increaseScoreByCategoryAndUserId(category, userId, day, duration);
-        if (workCategories.contains(category)) {
-            increaseScoreByCategoryAndUserId("work", userId, day, duration);
-        }
+    public void increaseSessionCount(String userId, LocalDate date) {
+        String category = "sessionCount";
+        increaseScoreByCategoryAndUserId(category, userId, date, 1);
     }
+
+    @Override
+    public void increaseSessionScore(String userId, LocalDate date, int score) {
+        String category = "sessionScore";
+        increaseScoreByCategoryAndUserId(category, userId, date, score);
+    }
+
 
     @Override
     public void increaseScoreBatch(List<LeaderBoardUsageMessage> messages) {

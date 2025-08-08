@@ -74,4 +74,8 @@ public class LeaderboardProvider {
         }
         return members;
     }
+
+    public void increaseSessionCount(String userId, LocalDate date) {
+        leaderboardService.increaseSessionCount(userId, date);
+    }
 }

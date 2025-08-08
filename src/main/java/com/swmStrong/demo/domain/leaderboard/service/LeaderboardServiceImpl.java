@@ -44,18 +44,12 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     }
 
     @Override
-    public void increaseScore(String categoryId, String userId, double duration, double timestamp) {
-        LocalDate day = LocalDateTime.ofInstant(java.time.Instant.ofEpochSecond((long) timestamp),
-                java.time.ZoneId.systemDefault()).toLocalDate();
-        ObjectId categoryObjectId = new ObjectId(categoryId);
-        String category = categoryProvider.getCategoryById(categoryObjectId);
-        log.trace("Increase score for user: {} category: {}, duration: {}", userId, category, duration);
-
-        increaseScoreByCategoryAndUserId(category, userId, day, duration);
-        if (workCategories.contains(category)) {
-            increaseScoreByCategoryAndUserId("work", userId, day, duration);
-        }
+    public void increaseSessionCount(String userId, LocalDate date) {
+        String category = "sessionCount";
+        increaseScoreByCategoryAndUserId(category, userId, date, 1);
     }
+
+
 
     @Override
     public void increaseScoreBatch(List<LeaderBoardUsageMessage> messages) {

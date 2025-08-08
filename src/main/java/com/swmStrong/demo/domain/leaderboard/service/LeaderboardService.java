@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface LeaderboardService {
-    void increaseScore(String categoryId, String userId, double duration, double timestamp);
+    void increaseSessionCount(String userId, LocalDate date);
     void increaseScoreBatch(List<LeaderBoardUsageMessage> messages);
     List<LeaderboardResponseDto> getLeaderboardPage(String category, int page, int size, LocalDate date, PeriodType periodType);
     LeaderboardResponseDto getUserScoreInfo(String category, String userId, LocalDate date, PeriodType periodType);

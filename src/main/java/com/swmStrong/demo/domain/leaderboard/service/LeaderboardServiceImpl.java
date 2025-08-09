@@ -22,6 +22,8 @@ import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.*;
 
+//TODO: redis 에 없으면 DB 에서 꺼내오는 로직 만들기
+
 @Slf4j
 @Service
 public class LeaderboardServiceImpl implements LeaderboardService {

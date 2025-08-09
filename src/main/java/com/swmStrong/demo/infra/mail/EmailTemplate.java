@@ -3,8 +3,9 @@ package com.swmStrong.demo.infra.mail;
 public enum EmailTemplate {
     WELCOME("Welcome to Pawcus!", "templates/welcome-template.html"),
     PASSWORD_RESET("Reset Your Password", "templates/password-reset-template.html"),
-    EMAIL_VERIFICATION("Verify Your Email", "templates/email-verification-template.html");
-
+    EMAIL_VERIFICATION("Verify Your Email", "templates/email-verification-template.html"),
+    INVITATION("Pomodoro: Group Invitation",  "templates/invitation-template.html"),
+    ;
     private final String subject;
     private final String templatePath;
 

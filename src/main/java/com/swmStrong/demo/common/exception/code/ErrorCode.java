@@ -25,6 +25,7 @@ public enum ErrorCode implements BaseCode {
     INVALID_NICKNAME("400E", "사용할 수 없는 닉네임입니다.", HttpStatus.BAD_REQUEST),
     PASSWORD_NEEDED("password_needed", "비밀번호 입력이 필요합니다.", HttpStatus.BAD_REQUEST),
     INCORRECT_PASSWORD("incorrect_password", "비밀번호가 틀렸습니다.", HttpStatus.BAD_REQUEST),
+    EXPIRED_INVITATION_CODE("expired_invitation_code", "초대 코드가 없거나 만료된 코드 입니다.", HttpStatus.BAD_REQUEST),
 
     // --- 401 UNAUTHORIZED ---
     _UNAUTHORIZED("4010", "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),

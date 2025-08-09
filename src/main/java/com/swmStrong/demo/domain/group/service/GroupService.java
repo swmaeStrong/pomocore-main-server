@@ -1,6 +1,5 @@
 package com.swmStrong.demo.domain.group.service;
 
-import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.group.dto.*;
 
 import java.time.LocalDate;
@@ -23,4 +22,6 @@ public interface GroupService {
     List<GroupGoalResponseDto> getGroupGoals(Long groupId, LocalDate date);
     void deleteGroupGoal(String userId, Long groupId, DeleteGroupGoalDto deleteGroupGoalDto);
     GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, String period, LocalDate date);
+    LinkResponseDto createInvitationLink(String userId, Long groupId, EmailsRequestDto emailsRequestDto);
+    void joinInvitationLink(String userId, String code);
 }

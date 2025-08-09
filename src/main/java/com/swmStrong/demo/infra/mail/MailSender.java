@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -53,6 +54,30 @@ public class MailSender {
         } catch (Exception e) {
             log.error("Failed to send welcome email to: {} - {}", email, e.getMessage());
             throw new ApiException(ErrorCode.EMAIL_SEND_FAILED);
+        }
+    }
+
+    public void sendInvitationEmail(List<String> emails, String groupName, String link) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("link", link);
+        variables.put("groupName", groupName);
+        try {
+            String content = emailTemplateLoader.loadTemplate(EmailTemplate.INVITATION, variables);
+            for (String email : emails) {
+                try {
+                    SendMailDto sendMailDto = SendMailDto.builder()
+                            .to(email)
+                            .subject(EmailTemplate.INVITATION.getSubject())
+                            .content(content)
+                            .build();
+                    send(sendMailDto);
+                } catch (Exception e) {
+                    log.error("Failed to send invitation email to: {} - {}", email, e.getMessage());
+                    throw new ApiException(ErrorCode.EMAIL_SEND_FAILED);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to load Template: invitation");
         }
     }
 

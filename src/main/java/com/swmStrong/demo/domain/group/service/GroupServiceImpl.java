@@ -13,8 +13,10 @@ import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.domain.userGroup.entity.UserGroup;
 import com.swmStrong.demo.domain.userGroup.repository.UserGroupRepository;
+import com.swmStrong.demo.infra.mail.MailSender;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
+import lombok.Builder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +25,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
+//TODO: 그룹 초대 시 유니버셜 링크 고려해보기 초대 링크
+//TODO: 그룹 숨기기
+//TODO: 갯수 제한
+//TODO: 신고 기능
 @Service
 public class GroupServiceImpl implements GroupService{
 
@@ -33,8 +39,11 @@ public class GroupServiceImpl implements GroupService{
     private final RedisRepository redisRepository;
     private final CategoryProvider categoryProvider;
     private final LeaderboardProvider leaderboardProvider;
+    private final MailSender mailSender;
 
     private static final String GROUP_GOAL_PREFIX = "group_goal";
+    private static final String GROUP_INVITE_PREFIX = "group_invite";
+    private static final int GROUP_INVITE_EXPIRES = 86400;
 
     public GroupServiceImpl(
             GroupRepository groupRepository,
@@ -42,7 +51,8 @@ public class GroupServiceImpl implements GroupService{
             UserGroupRepository userGroupRepository,
             RedisRepository redisRepository,
             CategoryProvider categoryProvider,
-            LeaderboardProvider leaderboardProvider
+            LeaderboardProvider leaderboardProvider,
+            MailSender mailSender
     ) {
         this.groupRepository = groupRepository;
         this.userInfoProvider = userInfoProvider;
@@ -50,6 +60,7 @@ public class GroupServiceImpl implements GroupService{
         this.redisRepository = redisRepository;
         this.categoryProvider = categoryProvider;
         this.leaderboardProvider = leaderboardProvider;
+        this.mailSender = mailSender;
     }
 
     @Transactional
@@ -59,7 +70,7 @@ public class GroupServiceImpl implements GroupService{
             throw new ApiException(ErrorCode.GROUP_NAME_ALREADY_EXISTS);
         }
 
-        String randomPassword = getRandomPassword();
+        String randomPassword = getRandomPassword(6);
 
         User user = userInfoProvider.loadByUserId(userId);
 
@@ -89,7 +100,7 @@ public class GroupServiceImpl implements GroupService{
         if (!group.getOwner().equals(user)) {
             throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
         }
-        group.updatePassword(getRandomPassword());
+        group.updatePassword(getRandomPassword(6));
         groupRepository.save(group);
     }
 
@@ -134,7 +145,7 @@ public class GroupServiceImpl implements GroupService{
 
         groupRepository.save(group);
     }
-
+    //TODO: 비밀번호를 내주기 때문에 그룹원만 조회할 수 있도록 수정
     @Override
     public GroupDetailsDto getGroupDetails(Long groupId) {
         Group group = groupRepository.findById(groupId)
@@ -390,15 +401,78 @@ public class GroupServiceImpl implements GroupService{
                 .build();
     }
 
+    @Override
+    public LinkResponseDto createInvitationLink(String userId, Long groupId, EmailsRequestDto emailsRequestDto) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        User user = userInfoProvider.loadByUserId(userId);
+        if (!group.getOwner().equals(user)) {
+            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+        }
+
+        Set<String> existingKeys = redisRepository.findKeys(String.format("%s:%s:*", GROUP_INVITE_PREFIX, groupId));
+        String code;
+        
+        if (!existingKeys.isEmpty()) {
+            String existingKey = existingKeys.iterator().next();
+            String[] parts = existingKey.split(":");
+            code = parts[parts.length - 1];
+        } else {
+            code = getRandomPassword(12);
+            String key = String.format("%s:%s:%s", GROUP_INVITE_PREFIX, groupId, code);
+            
+            redisRepository.setJsonDataWithExpire(
+                key,
+                InviteMessage.builder()
+                        .groupId(group.getId())
+                        .password(group.getPassword())
+                        .build(),
+                GROUP_INVITE_EXPIRES
+            );
+        }
+
+        String link = "https://www.pomodoro.com/invite?code=" + code;
+        if (emailsRequestDto != null) {
+            mailSender.sendInvitationEmail(emailsRequestDto.emails(), group.getName(), link);
+        }
+
+        return new LinkResponseDto(link);
+    }
+
+    @Transactional
+    public void joinInvitationLink(String userId, String code) {
+        Set<String> matchingKeys = redisRepository.findKeys(String.format("%s:*:%s", GROUP_INVITE_PREFIX, code));
+        
+        if (matchingKeys.isEmpty()) {
+            throw new ApiException(ErrorCode.EXPIRED_INVITATION_CODE);
+        }
+        
+        String key = matchingKeys.iterator().next();
+        InviteMessage msg = redisRepository.getJsonData(key, InviteMessage.class);
+        
+        if (msg == null) {
+            throw new ApiException(ErrorCode.EXPIRED_INVITATION_CODE);
+        }
+
+        joinGroup(userId, msg.groupId(), PasswordRequestDto.builder().password(msg.password()).build());
+    }
+
     private String generateKey(Long groupId, String category, String period) {
         return String.format("%s:%s:%s:%s", GROUP_GOAL_PREFIX, groupId, category, period.toUpperCase());
     }
 
-    private String getRandomPassword() {
+    private String getRandomPassword(int size) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        return new SecureRandom().ints(6, 0, chars.length())
+        return new SecureRandom().ints(size, 0, chars.length())
                 .mapToObj(chars::charAt)
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                 .toString();
     }
+
+    @Builder
+    private record InviteMessage(
+            Long groupId,
+            String password
+    ) {}
 }

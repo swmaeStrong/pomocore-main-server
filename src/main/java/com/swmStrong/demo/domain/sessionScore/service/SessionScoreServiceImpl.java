@@ -39,7 +39,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         this.categoryProvider = categoryProvider;
         this.leaderboardProvider = leaderboardProvider;
     }
-
+    //TODO: 세션 데이터가 다 처리되었는가? 를 처리. 또는 롱 폴링으로 처리
     @Override
     public List<SessionScoreResponseDto> getByUserIdAndSessionDate(String userId, LocalDate date) {
         List<SessionScore> sessionScoreList = sessionScoreRepository.findAllByUserIdAndSessionDate(userId, date);

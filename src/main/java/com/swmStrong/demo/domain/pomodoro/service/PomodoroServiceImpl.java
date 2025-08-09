@@ -144,27 +144,37 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         return pomodoroUsageLogRepository.findByUserIdAndTimestampBetween(userId, startTimestamp, endTimestamp);
     }
-
+    //TODO: 타입 바꾸기 workDetails / DistractedDetails
     @Override
     public List<DistractedDetailsDto> getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, int session) {
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategory.categories;
 
-        List<PomodoroUsageLog> distractedUsageLogList = pomodoroUsageLogList.stream()
-                .filter(pomodoroUsageLog -> !workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId())))
-                .toList();
+        List<PomodoroUsageLog> distractedUsageLogList = new ArrayList<>();
+        List<PomodoroUsageLog> workUsageLogList = new ArrayList<>();
+        
+        for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
+            if (workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId()))) {
+                workUsageLogList.add(pomodoroUsageLog);
+            } else {
+                distractedUsageLogList.add(pomodoroUsageLog);
+            }
+        }
+        
+        Set<ObjectId> allCategorizedDataIds = new HashSet<>();
+        for (PomodoroUsageLog log : pomodoroUsageLogList) {
+            allCategorizedDataIds.add(log.getCategorizedDataId());
+        }
 
-        Set<ObjectId> categorizedDataIds = distractedUsageLogList.stream()
-                .map(PomodoroUsageLog::getCategorizedDataId)
-                .collect(Collectors.toSet());
-
-        Map<ObjectId, CategorizedData> categorizedDataMap = categorizedDataRepository.findAllById(categorizedDataIds)
+        Map<ObjectId, CategorizedData> categorizedDataMap = categorizedDataRepository.findAllById(allCategorizedDataIds)
                 .stream()
                 .collect(Collectors.toMap(CategorizedData::getId, Function.identity(), (existing, replacement) -> existing));
 
         Map<String, Integer> distractedCountMap = new HashMap<>();
         Map<String, Double> distractedDurationMap = new HashMap<>();
+        Map<String, Integer> workCountMap = new HashMap<>();
+        Map<String, Double> workDurationMap = new HashMap<>();
 
         for (PomodoroUsageLog log : distractedUsageLogList) {
             CategorizedData categorizedData = categorizedDataMap.get(log.getCategorizedDataId());
@@ -180,6 +190,22 @@ public class PomodoroServiceImpl implements PomodoroService {
                 distractedDurationMap.merge(app, log.getDuration(), Double::sum);
             }
         }
+        
+        for (PomodoroUsageLog log : workUsageLogList) {
+            CategorizedData categorizedData = categorizedDataMap.get(log.getCategorizedDataId());
+            if (categorizedData != null) {
+                String app = categorizedData.getApp();
+                if (Browsers.patterns.contains(app.toLowerCase())) {
+                    String domainUrl = DomainExtractor.extractDomain(categorizedData.getUrl());
+                    if (domainUrl != null && !domainUrl.isEmpty()) {
+                        app = DomainExtractor.extractDomain(categorizedData.getUrl());
+                    }
+                }
+                workCountMap.merge(app, 1, Integer::sum);
+                workDurationMap.merge(app, log.getDuration(), Double::sum);
+            }
+        }
+        
         List<DistractedDetailsDto> distractedDetailsDtoList = new ArrayList<>();
         for (String app: distractedCountMap.keySet()) {
             distractedDetailsDtoList.add(

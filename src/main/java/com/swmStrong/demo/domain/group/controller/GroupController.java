@@ -4,7 +4,6 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.common.enums.PeriodType;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -319,6 +318,43 @@ public class GroupController {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 groupService.getGroupLeaderboard(groupId, "work", period ,date)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "그룹 초대 링크 생성",
+            description =
+                    "<p> 그룹의 초대 링크를 생성한다. </p>" +
+                    "<p> emails 를 입력하는 경우 해당하는 이메일에 초대 이메일을 보낼 수 있다. </p>"
+    )
+    @PostMapping("/{groupId}/invite")
+    public ResponseEntity<ApiResponse<LinkResponseDto>> createGroupInvitationLink(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @PathVariable Long groupId,
+            @RequestBody(required = false)
+            EmailsRequestDto emailsRequestDto
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.createInvitationLink(principal.userId(), groupId, emailsRequestDto)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "초대 링크로 그룹 참여",
+            description =
+                    "<p> 초대 링크로 그룹에 참여한다. </p>"
+    )
+    @PostMapping("/invite")
+    public ResponseEntity<ApiResponse<Void>> joinGroupInvitationLink(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestParam String code
+    ) {
+        groupService.joinInvitationLink(principal.userId(), code);
+        return CustomResponseEntity.of(
+                SuccessCode._OK
         );
     }
 }

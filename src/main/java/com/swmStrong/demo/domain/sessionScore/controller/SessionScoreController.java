@@ -6,10 +6,12 @@ import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
+import com.swmStrong.demo.domain.sessionScore.service.SessionLongPollingService;
 import com.swmStrong.demo.domain.sessionScore.service.SessionScoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,18 +19,26 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Tag(name = "세션 점수")
 @RequestMapping("/session")
 @RestController
 public class SessionScoreController {
 
     private final SessionScoreService sessionScoreService;
-    public SessionScoreController(SessionScoreService sessionScoreService) {
+    private final SessionLongPollingService sessionLongPollingService;
+    
+    public SessionScoreController(
+            SessionScoreService sessionScoreService,
+            SessionLongPollingService sessionLongPollingService
+    ) {
         this.sessionScoreService = sessionScoreService;
+        this.sessionLongPollingService = sessionLongPollingService;
     }
 
     @Operation(
@@ -72,4 +82,30 @@ public class SessionScoreController {
                 sessionScoreService.getScoreByUserIdAndSessionDate(principal.userId(), date)
         );
     }
+    
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 세션 정보 확인 (롱 폴링)",
+            description =
+                    "<p> 해당 날짜의 모든 세션 처리가 완료될 때까지 대기하는 롱 폴링 엔드포인트 </p>" +
+                    "<p> 모든 세션 데이터가 처리되면 (handleSessionEnded 완료 시) 즉시 응답 </p>" +
+                    "<p> 최대 30초 동안 대기하며, 타임아웃 시 null 반환 </p>" +
+                    "<p> 이미 모든 세션이 처리 완료된 경우 즉시 데이터 반환 </p>" +
+                    "<p> 데이터가 없는 경우 즉시 null 반환 </p>"
+    )
+    @GetMapping("/long-poll")
+    public DeferredResult<ResponseEntity<ApiResponse<List<SessionScoreResponseDto>>>> getByUserIdAndSessionDateLongPoll(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDate date
+    ) {
+        var customDeferredResult = sessionLongPollingService.getSessionScoreWithLongPolling(
+                principal.userId(), date);
+
+        return customDeferredResult.map(data -> 
+            CustomResponseEntity.of(SuccessCode._OK, data)
+        );
+    }
+    
 }

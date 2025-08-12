@@ -92,6 +92,10 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
+                // 비동기 처리 지원 활성화
+                .securityContext(securityContext -> securityContext
+                        .requireExplicitSave(false)
+                )
                 .addFilterBefore(tokenAuthorizationFilter, LogoutFilter.class)
                 .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(tokenAuthorizationFilter, BasicAuthenticationFilter.class)

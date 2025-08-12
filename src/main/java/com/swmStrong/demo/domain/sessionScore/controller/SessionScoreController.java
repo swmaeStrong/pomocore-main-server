@@ -50,7 +50,7 @@ public class SessionScoreController {
                     "<p> title의 경우 현재 무조건 빈값으로 나가나, 이후 llm으로 생성할 수 있다. </p>" +
                     "<p> 지금 당장은 점수 계산이 문제 있을 수 있으니 피드백 ㄱㄱ </p>"
     )
-    @GetMapping
+    @GetMapping("/deprecated")
     public ResponseEntity<ApiResponse<List<SessionScoreResponseDto>>> getByUserIdAndSessionDate(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @RequestParam
@@ -93,7 +93,7 @@ public class SessionScoreController {
                     "<p> 이미 모든 세션이 처리 완료된 경우 즉시 데이터 반환 </p>" +
                     "<p> 데이터가 없는 경우 즉시 null 반환 </p>"
     )
-    @GetMapping("/long-poll")
+    @GetMapping
     public DeferredResult<ResponseEntity<ApiResponse<List<SessionScoreResponseDto>>>> getByUserIdAndSessionDateLongPoll(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @RequestParam

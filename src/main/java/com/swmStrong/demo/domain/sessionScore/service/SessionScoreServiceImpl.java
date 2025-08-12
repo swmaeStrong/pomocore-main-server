@@ -10,8 +10,10 @@ import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
 import com.swmStrong.demo.message.event.SessionEndedEvent;
+import com.swmStrong.demo.message.event.SessionProcessedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -27,17 +29,26 @@ public class SessionScoreServiceImpl implements SessionScoreService {
     private final PomodoroSessionProvider pomodoroSessionProvider;
     private final CategoryProvider categoryProvider;
     private final LeaderboardProvider leaderboardProvider;
+    private final SessionStateManager sessionStateManager;
+    private final SessionPollingManager sessionPollingManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     public SessionScoreServiceImpl(
             SessionScoreRepository sessionScoreRepository,
             PomodoroSessionProvider pomodoroSessionProvider,
             CategoryProvider categoryProvider,
-            LeaderboardProvider leaderboardProvider
+            LeaderboardProvider leaderboardProvider,
+            SessionStateManager sessionStateManager,
+            SessionPollingManager sessionPollingManager,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.sessionScoreRepository = sessionScoreRepository;
         this.pomodoroSessionProvider = pomodoroSessionProvider;
         this.categoryProvider = categoryProvider;
         this.leaderboardProvider = leaderboardProvider;
+        this.sessionStateManager = sessionStateManager;
+        this.sessionPollingManager = sessionPollingManager;
+        this.eventPublisher = eventPublisher;
     }
     //TODO: 세션 데이터가 다 처리되었는가? 를 처리. 또는 롱 폴링으로 처리
     @Override
@@ -85,6 +96,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                 }).toList();
     }
 
+    
     @Override
     public List<SessionDashboardDto> getScoreByUserIdAndSessionDate(String userId, LocalDate date) {
         List<SessionScore> sessionScoreList = sessionScoreRepository.findAllByUserIdAndSessionDate(userId, date);
@@ -163,6 +175,32 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         ));
 
         sessionScoreRepository.save(sessionScore);
+        
+        // Redis에 세션 처리 완료 상태 저장
+        sessionStateManager.markSessionAsProcessed(event.userId(), event.sessionDate(), event.session());
+        
+        // 대기 중인 롱 폴링 요청에 응답
+        List<SessionScoreResponseDto> sessionScores = getByUserIdAndSessionDate(event.userId(), event.sessionDate());
+        
+        // 모든 세션이 처리되었는지 확인
+        boolean allSessionsProcessed = sessionScores.stream()
+                .allMatch(sessionData -> sessionStateManager.isSessionProcessed(event.userId(), event.sessionDate(), sessionData.session()));
+        
+        // 개별 세션에 대한 롱 폴링 알림 (기존 호환성)
+        sessionPollingManager.notifySessionProcessed(event.userId(), event.sessionDate(), event.session(), sessionScores);
+        
+        // 모든 세션이 처리되었을 때만 날짜 기반 롱 폴링에 알림
+        if (allSessionsProcessed) {
+            sessionPollingManager.notifyAllSessionsProcessed(event.userId(), event.sessionDate(), sessionScores);
+        }
+        
+        // 처리 완료 이벤트 발행 (필요한 경우 다른 컴포넌트에서 사용)
+        eventPublisher.publishEvent(SessionProcessedEvent.builder()
+                .userId(event.userId())
+                .session(event.session())
+                .sessionDate(event.sessionDate())
+                .sessionScores(sessionScores)
+                .build());
     }
 
     /**

@@ -13,6 +13,7 @@ import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.repository.CategorizedDataRepository;
 import com.swmStrong.demo.domain.pomodoro.repository.PomodoroUsageLogRepository;
 import com.swmStrong.demo.domain.sessionScore.facade.SessionScoreProvider;
+import com.swmStrong.demo.domain.sessionScore.service.SessionStateManager;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
@@ -39,6 +40,7 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
     private final SessionScoreProvider sessionScoreProvider;
+    private final SessionStateManager sessionStateManager;
     private final RedisStreamProducer redisStreamProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LeaderboardProvider leaderboardProvider;
@@ -49,6 +51,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             UserInfoProvider userInfoProvider,
             CategoryProvider categoryProvider,
             SessionScoreProvider sessionScoreProvider,
+            SessionStateManager sessionStateManager,
             RedisStreamProducer redisStreamProducer,
             ApplicationEventPublisher applicationEventPublisher,
             LeaderboardProvider leaderboardProvider
@@ -58,6 +61,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.userInfoProvider = userInfoProvider;
         this.categoryProvider = categoryProvider;
         this.sessionScoreProvider = sessionScoreProvider;
+        this.sessionStateManager = sessionStateManager;
         this.redisStreamProducer = redisStreamProducer;
         this.applicationEventPublisher = applicationEventPublisher;
         this.leaderboardProvider = leaderboardProvider;
@@ -71,6 +75,9 @@ public class PomodoroServiceImpl implements PomodoroService {
         List<CategorizedData> categorizedDataList = new ArrayList<>();
 
         int session = sessionScoreProvider.createSession(user, pomodoroUsageLogsDto.sessionDate(), pomodoroUsageLogsDto.sessionMinutes());
+        
+        // Redis에 세션 처리 상태를 false로 초기화 (처리 중)
+        sessionStateManager.initializeSessionProcessing(userId, pomodoroUsageLogsDto.sessionDate(), session);
 
         leaderboardProvider.increaseSessionCount(userId, pomodoroUsageLogsDto.sessionDate());
 

@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.sessionScore.service;
 
+import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -11,32 +12,39 @@ import java.time.LocalDate;
 @Service
 public class SessionStateManager {
     
+    private RedisRepository redisRepository;
+
+    public  SessionStateManager(RedisRepository redisRepository) {
+        this.redisRepository = redisRepository;
+    }
+
     private static final String SESSION_PROCESSED_KEY_PREFIX = "session:processed:";
-    private static final Duration TTL = Duration.ofHours(24); // 24시간 후 자동 삭제
+    private static final long TTL = 60 * 10;
     
-    private final StringRedisTemplate redisTemplate;
-    
-    public SessionStateManager(StringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public void initializeSessionProcessing(String userId, LocalDate date, int session) {
+        String key = generateKey(userId, date, session);
+        redisRepository.setDataWithExpire(key, false, TTL);
+        log.debug("Initialized session processing: {}", key);
     }
     
     public void markSessionAsProcessed(String userId, LocalDate date, int session) {
         String key = generateKey(userId, date, session);
-        redisTemplate.opsForValue().set(key, "true", TTL);
+        redisRepository.setDataWithExpire(key, true, TTL);
         log.debug("Marked session as processed: {}", key);
     }
     
     public boolean isSessionProcessed(String userId, LocalDate date, int session) {
         String key = generateKey(userId, date, session);
-        String value = redisTemplate.opsForValue().get(key);
-        boolean processed = "true".equals(value);
-        log.debug("Session processed check for {}: {}", key, processed);
+        String value = redisRepository.getData(key);
+        // null이거나 true면 처리 완료로 간주
+        boolean processed = value == null || "true".equals(value);
+        log.debug("Session processed check for {}: value={}, processed={}", key, value, processed);
         return processed;
     }
     
     public void removeSessionProcessedFlag(String userId, LocalDate date, int session) {
         String key = generateKey(userId, date, session);
-        redisTemplate.delete(key);
+        redisRepository.deleteData(key);
         log.debug("Removed processed flag for: {}", key);
     }
     

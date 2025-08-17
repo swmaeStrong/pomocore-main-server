@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface LeaderboardRepository extends JpaRepository<Leaderboard, String> {
-    List<Leaderboard> findByCategoryIdAndPeriodTypeAndPeriodKeyAndUserIdInOrderByRankingAsc(
+    List<Leaderboard> findByCategoryIdAndPeriodTypeAndPeriodKeyAndUserIdInOrderByScoreDesc(
             String categoryId, PeriodType periodType, String periodKey, List<String> userIds
     );
 }

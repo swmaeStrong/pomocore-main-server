@@ -65,7 +65,7 @@ public class LeaderboardProvider {
                 .toList();
         
         List<Leaderboard> leaderboards = leaderboardRepository
-                .findByCategoryIdAndPeriodTypeAndPeriodKeyAndUserIdInOrderByRankingAsc(
+                .findByCategoryIdAndPeriodTypeAndPeriodKeyAndUserIdInOrderByScoreDesc(
                         category, periodType, periodKey, userIds);
         
         if (leaderboards.isEmpty()) {

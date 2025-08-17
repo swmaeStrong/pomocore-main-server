@@ -376,6 +376,7 @@
       "domainPatterns": [
         "excalidraw.com",
         "stitch.withgoogle.com",
+        "pinterest.com",
         "figma.com",
         "adobe.com",
         "canva.com",
@@ -540,7 +541,6 @@
         "snapchat.com",
         "tiktok.com",
         "linkedin.com",
-        "pinterest.com",
         "tumblr.com",
         "twitch.tv",
         "band.us",

@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.loginCredential.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.loginCredential.dto.SocialLoginRequestDto;
+import com.swmStrong.demo.domain.loginCredential.dto.SocialLoginResult;
 import com.swmStrong.demo.domain.loginCredential.dto.UpgradeRequestDto;
 import com.swmStrong.demo.domain.loginCredential.entity.LoginCredential;
 import com.swmStrong.demo.domain.loginCredential.repository.LoginCredentialRepository;
@@ -79,7 +80,7 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
     }
 
     @Override
-    public TokenResponseDto socialLogin(HttpServletRequest request, SocialLoginRequestDto socialLoginRequestDto) {
+    public SocialLoginResult socialLogin(HttpServletRequest request, SocialLoginRequestDto socialLoginRequestDto) {
 
         String supabaseToken = socialLoginRequestDto.accessToken();
 
@@ -91,14 +92,28 @@ public class LoginCredentialServiceImpl implements LoginCredentialService {
         String email = subjectResponseDto.email();
         String supabaseId = subjectResponseDto.supabaseId();
 
-        LoginCredential loginCredential = loginCredentialRepository.findBySocialId(supabaseId)
-                .orElseGet(() -> loginCredentialRepository.findByEmail(email)
-                        .map(existing -> existing.connectSocialAccount(supabaseId))
-                        .orElseGet(() -> createSocialLoginCredential(email, supabaseId)));
+        LoginCredential loginCredential;
+        boolean isNew = false;
+
+        var existingBySocialId = loginCredentialRepository.findBySocialId(supabaseId);
+        if (existingBySocialId.isPresent()) {
+            loginCredential = existingBySocialId.get();
+        } else {
+            var existingByEmail = loginCredentialRepository.findByEmail(email);
+            if (existingByEmail.isPresent()) {
+                loginCredential = existingByEmail.get().connectSocialAccount(supabaseId);
+            } else {
+                loginCredential = createSocialLoginCredential(email, supabaseId);
+                isNew = true;
+            }
+        }
 
         loginCredentialRepository.save(loginCredential);
 
-        return tokenManager.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole());
+        return new SocialLoginResult(
+                isNew,
+                tokenManager.getToken(loginCredential.getId(), request.getHeader("User-Agent"), loginCredential.getRole())
+        );
     }
 
     @Transactional

@@ -6,6 +6,7 @@ import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.loginCredential.dto.LoginRequestDto;
 import com.swmStrong.demo.domain.loginCredential.dto.SocialLoginRequestDto;
+import com.swmStrong.demo.domain.loginCredential.dto.SocialLoginResult;
 import com.swmStrong.demo.domain.loginCredential.dto.UpgradeRequestDto;
 import com.swmStrong.demo.domain.loginCredential.service.LoginCredentialService;
 import com.swmStrong.demo.infra.token.dto.RefreshTokenRequestDto;
@@ -101,11 +102,22 @@ public class LoginCredentialController {
                 "<p> 3. 신규유저의 경우 새로 아이디를 만들어 준다. //TODO: 이 경우 일반 로그인은 불가능하게 처리한다. </p>"
     )
     @PostMapping("/social-login")
-    public ResponseEntity<ApiResponse<TokenResponseDto>> socialLogin(HttpServletRequest request, @RequestBody SocialLoginRequestDto socialLoginRequestDto) {
-        return CustomResponseEntity.of(
-                SuccessCode._OK,
-                loginCredentialService.socialLogin(request, socialLoginRequestDto)
-        );
+    public ResponseEntity<ApiResponse<TokenResponseDto>> socialLogin(
+            HttpServletRequest request,
+            @RequestBody SocialLoginRequestDto socialLoginRequestDto
+    ) {
+        SocialLoginResult res = loginCredentialService.socialLogin(request, socialLoginRequestDto);
+        if (res.isNewUser()) {
+            return CustomResponseEntity.of(
+                    SuccessCode._CREATED,
+                    res.tokenResponseDto()
+            );
+        } else {
+            return CustomResponseEntity.of(
+                    SuccessCode._OK,
+                    res.tokenResponseDto()
+            );
+        }
     }
 
     @Operation(

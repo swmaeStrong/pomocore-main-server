@@ -9,4 +9,5 @@ import java.util.List;
 public interface SessionScoreService {
     List<SessionScoreResponseDto> getByUserIdAndSessionDate(String userId, LocalDate date);
     List<SessionDashboardDto> getScoreByUserIdAndSessionDate(String userId, LocalDate date);
+    void processSessionEnded(String userId, int session, LocalDate sessionDate);
 }

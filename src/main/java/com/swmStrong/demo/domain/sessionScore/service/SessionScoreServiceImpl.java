@@ -9,12 +9,10 @@ import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
-import com.swmStrong.demo.message.event.SessionEndedEvent;
 import com.swmStrong.demo.message.event.SessionProcessedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -148,16 +146,17 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         return score;
     }
 
-    @EventListener
-    public void handleSessionEnded(SessionEndedEvent event) {
-        log.info("Session ended event received: userId={}, session={}, sessionDate={}",
-                event.userId(), event.session(), event.sessionDate());
-        List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroSessionProvider.loadByUserIdAndSessionAndSessionDate(event.userId(), event.session(), event.sessionDate());
+    @Override
+    public void processSessionEnded(String userId, int session, LocalDate sessionDate) {
+        log.info("Processing session ended: userId={}, session={}, sessionDate={}",
+                userId, session, sessionDate);
+        
+        List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroSessionProvider.loadByUserIdAndSessionAndSessionDate(userId, session, sessionDate);
 
         PomodoroUsageLog first = pomodoroUsageLogList.get(0);
         PomodoroUsageLog last = pomodoroUsageLogList.get(pomodoroUsageLogList.size() - 1);
         Result result = calculatePomodoroScore(pomodoroUsageLogList);
-        SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(event.userId(), event.session(), event.sessionDate());
+        SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(userId, session, sessionDate);
 
         sessionScore.updateDetails(
                 first.getTimestamp(),
@@ -167,7 +166,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                 result.distractedDuration()
         );
 
-        leaderboardProvider.increaseSessionScore(event.userId(), event.sessionDate(), getScore(
+        leaderboardProvider.increaseSessionScore(userId, sessionDate, getScore(
                 sessionScore.getAfkDuration(),
                 sessionScore.getDistractedDuration(),
                 sessionScore.getDistractedCount(),
@@ -177,28 +176,28 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         sessionScoreRepository.save(sessionScore);
         
         // Redis에 세션 처리 완료 상태 저장
-        sessionStateManager.markSessionAsProcessed(event.userId(), event.sessionDate(), event.session());
+        sessionStateManager.markSessionAsProcessed(userId, sessionDate, session);
         
         // 대기 중인 롱 폴링 요청에 응답
-        List<SessionScoreResponseDto> sessionScores = getByUserIdAndSessionDate(event.userId(), event.sessionDate());
+        List<SessionScoreResponseDto> sessionScores = getByUserIdAndSessionDate(userId, sessionDate);
         
         // 모든 세션이 처리되었는지 확인
         boolean allSessionsProcessed = sessionScores.stream()
-                .allMatch(sessionData -> sessionStateManager.isSessionProcessed(event.userId(), event.sessionDate(), sessionData.session()));
+                .allMatch(sessionData -> sessionStateManager.isSessionProcessed(userId, sessionDate, sessionData.session()));
         
         // 개별 세션에 대한 롱 폴링 알림 (기존 호환성)
-        sessionPollingManager.notifySessionProcessed(event.userId(), event.sessionDate(), event.session(), sessionScores);
+        sessionPollingManager.notifySessionProcessed(userId, sessionDate, session, sessionScores);
         
         // 모든 세션이 처리되었을 때만 날짜 기반 롱 폴링에 알림
         if (allSessionsProcessed) {
-            sessionPollingManager.notifyAllSessionsProcessed(event.userId(), event.sessionDate(), sessionScores);
+            sessionPollingManager.notifyAllSessionsProcessed(userId, sessionDate, sessionScores);
         }
         
         // 처리 완료 이벤트 발행 (필요한 경우 다른 컴포넌트에서 사용)
         eventPublisher.publishEvent(SessionProcessedEvent.builder()
-                .userId(event.userId())
-                .session(event.session())
-                .sessionDate(event.sessionDate())
+                .userId(userId)
+                .session(session)
+                .sessionDate(sessionDate)
                 .sessionScores(sessionScores)
                 .build());
     }

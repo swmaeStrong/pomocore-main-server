@@ -44,6 +44,7 @@ public class UserServiceImpl implements UserService {
     public static final String USER_ONLINE_PREFIX = "userOnline";
     public static final String USER_INFO_FORMAT = "userInfo:%s";
 
+    private static final int USER_INFO_EXPIRES = 3600; // 1 hour
     private static final int USER_ONLINE_EXPIRES = 86400; // 1 day
 
     public UserServiceImpl(
@@ -66,8 +67,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponseDto getDetailsByUserId(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        String nickname, profileImageUrl;
+
+        String key = String.format(USER_INFO_FORMAT, userId);
+        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
+        if (userResponseDto != null) {
+            nickname = userResponseDto.nickname();
+            profileImageUrl = userResponseDto.profileImageUrl();
+        } else {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+            nickname = user.getNickname();
+            profileImageUrl = user.getProfileImageUrl();
+        }
 
         Streak streak = streakProvider.loadStreakByUserId(userId);
 
@@ -77,8 +90,8 @@ public class UserServiceImpl implements UserService {
 
         return UserInfoResponseDto.builder()
                 .userId(userId)
-                .nickname(user.getNickname())
-                .profileImageUrl(user.getProfileImageUrl())
+                .nickname(nickname)
+                .profileImageUrl(profileImageUrl)
                 .currentStreak(currentStreak)
                 .maxStreak(maxStreak)
                 .totalSession(totalSession == null ? 0 : totalSession)
@@ -132,8 +145,13 @@ public class UserServiceImpl implements UserService {
 
         user.updateNickname(nicknameRequestDto.nickname());
 
-        userRepository.save(user);
-        return UserResponseDto.of(user);
+        user = userRepository.save(user);
+
+        String key = getUserInfoKey(userId);
+        UserResponseDto userResponseDto = UserResponseDto.of(user);
+        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
+
+        return userResponseDto;
     }
 
     @Override
@@ -153,16 +171,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto getInfoById(String userId) {
         String key = getUserInfoKey(userId);
-        UserResponseDto cachedData = redisRepository.getJsonData(key, UserResponseDto.class);
+        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
 
-        if (cachedData != null) {
+        if (userResponseDto != null) {
             log.trace("Return user info by cache");
-            return cachedData;
+            return userResponseDto;
         }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-        return UserResponseDto.of(user);
+
+        userResponseDto = UserResponseDto.of(user);
+        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
+        return userResponseDto;
     }
 
     @Override

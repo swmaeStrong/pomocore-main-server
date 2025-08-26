@@ -42,6 +42,7 @@ public class UserServiceImpl implements UserService {
 
     public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
     public static final String USER_ONLINE_PREFIX = "userOnline";
+    public static final String USER_INFO_FORMAT = "userInfo:%s";
 
     private static final int USER_ONLINE_EXPIRES = 86400; // 1 day
 
@@ -151,6 +152,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getInfoById(String userId) {
+        String key = getUserInfoKey(userId);
+        UserResponseDto cachedData = redisRepository.getJsonData(key, UserResponseDto.class);
+
+        if (cachedData != null) {
+            log.trace("Return user info by cache");
+            return cachedData;
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
         return UserResponseDto.of(user);
@@ -336,5 +345,9 @@ public class UserServiceImpl implements UserService {
 
     private String getUserOnlineKey(String userId) {
         return String.format("%s:%s", USER_ONLINE_PREFIX, userId);
+    }
+
+    private String getUserInfoKey(String userId) {
+        return String.format(USER_INFO_FORMAT, userId);
     }
 }

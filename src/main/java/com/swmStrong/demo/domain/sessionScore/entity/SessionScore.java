@@ -1,5 +1,6 @@
 package com.swmStrong.demo.domain.sessionScore.entity;
 
+import com.swmStrong.demo.domain.common.entity.BaseEntity;
 import com.swmStrong.demo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -15,7 +16,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class SessionScore {
+public class SessionScore extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

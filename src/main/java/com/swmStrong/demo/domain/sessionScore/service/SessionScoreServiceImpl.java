@@ -187,8 +187,6 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         // Redis에 세션 처리 완료 상태 저장
         sessionStateManager.markSessionAsProcessed(userId, sessionDate, session);
 
-        String summary = llmSummaryProvider.getResult("1");
-
         // 대기 중인 롱 폴링 요청에 응답
         List<SessionScoreResponseDto> sessionScores = getByUserIdAndSessionDate(userId, sessionDate);
         

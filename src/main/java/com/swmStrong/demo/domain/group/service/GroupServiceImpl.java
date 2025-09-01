@@ -440,23 +440,39 @@ public class GroupServiceImpl implements GroupService{
         return new LinkResponseDto(link);
     }
 
+    @Override
     @Transactional
     public void joinInvitationLink(String userId, String code) {
+        InviteMessage msg = getMessageByCode(code);
+        joinGroup(userId, msg.groupId(), PasswordRequestDto.builder().password(msg.password()).build());
+    }
+
+
+    @Override
+    public GroupResponseDto getGroupByInvitationCode(String code) {
+        InviteMessage msg = getMessageByCode(code);
+        Group group = groupRepository.findById(msg.groupId())
+                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
+
+        return GroupResponseDto.of(group);
+    }
+
+    private InviteMessage getMessageByCode(String code) {
         Set<String> matchingKeys = redisRepository.findKeys(String.format("%s:*:%s", GROUP_INVITE_PREFIX, code));
-        
+
         if (matchingKeys.isEmpty()) {
             throw new ApiException(ErrorCode.EXPIRED_INVITATION_CODE);
         }
-        
+
         String key = matchingKeys.iterator().next();
         InviteMessage msg = redisRepository.getJsonData(key, InviteMessage.class);
-        
+
         if (msg == null) {
             throw new ApiException(ErrorCode.EXPIRED_INVITATION_CODE);
         }
-
-        joinGroup(userId, msg.groupId(), PasswordRequestDto.builder().password(msg.password()).build());
+        return msg;
     }
+
 
     private String generateKey(Long groupId, String category, String period) {
         return String.format("%s:%s:%s:%s", GROUP_GOAL_PREFIX, groupId, category, period.toUpperCase());

@@ -24,4 +24,5 @@ public interface GroupService {
     GroupLeaderboardDto getGroupLeaderboard(Long groupId, String category, String period, LocalDate date);
     LinkResponseDto createInvitationLink(String userId, Long groupId, EmailsRequestDto emailsRequestDto);
     void joinInvitationLink(String userId, String code);
+    GroupResponseDto getGroupByInvitationCode(String code);
 }

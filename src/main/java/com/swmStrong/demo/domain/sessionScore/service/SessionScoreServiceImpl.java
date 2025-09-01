@@ -16,6 +16,8 @@ import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -152,8 +154,11 @@ public class SessionScoreServiceImpl implements SessionScoreService {
 
     @Override
     public void processSessionEnded(String userId, int session, LocalDate sessionDate) {
-        log.info("Processing session ended: userId={}, session={}, sessionDate={}",
-                userId, session, sessionDate);
+        log.info("Processing session ended",
+                kv("service", "pomocore-backend"),
+                kv("userId", userId),
+                kv("session", session),
+                kv("sessionDate", sessionDate.toString()));
         
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroSessionProvider.loadByUserIdAndSessionAndSessionDate(userId, session, sessionDate);
 

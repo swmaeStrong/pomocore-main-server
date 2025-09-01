@@ -74,4 +74,28 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
     public String getBehaviorClassificationPromptV2(String query) {
         return BEHAVIOR_CLASSIFICATION_PROMPT_V2.formatted(query);
     }
+
+    private static final String SUMMARIZE_PROMPT_TEMPLATE = """
+사용자가 사용한 앱들의 정보를 바탕으로, 해당 세션 동안 사용자가 무엇을 했는지 50자 이내로 요약해주세요.
+
+**분석할 데이터:**
+- App: 사용한 애플리케이션 이름
+- Title: 창 제목이나 콘텐츠 설명
+- URL: 웹 주소 (해당하는 경우)
+- Duration: 사용 시간 (초)
+
+**요약 지침:**
+1. 가장 많이 사용한 앱과 활동을 중심으로 요약
+2. 구체적인 작업 내용이나 주제가 있다면 포함
+3. 한국어로 자연스러운 한 문장으로 작성
+4. "사용자가" 같은 불필요한 주어는 생략하고 핵심 위주로 간결하게 작성
+5. 명사형으로 문장을 마무리 (예시: "Java 프로젝트 코드 작성". "pomocore 팀 관리")
+
+**데이터:**
+%s
+""";
+
+    public String getSummarizeTemplate(String query) {
+        return SUMMARIZE_PROMPT_TEMPLATE.formatted(query);
+    }
 }

@@ -9,6 +9,7 @@ import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
+import com.swmStrong.demo.infra.LLM.LLMSummaryProvider;
 import com.swmStrong.demo.message.event.SessionProcessedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -30,6 +31,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
     private final SessionStateManager sessionStateManager;
     private final SessionPollingManager sessionPollingManager;
     private final ApplicationEventPublisher eventPublisher;
+    private final LLMSummaryProvider llmSummaryProvider;
 
     public SessionScoreServiceImpl(
             SessionScoreRepository sessionScoreRepository,
@@ -38,7 +40,8 @@ public class SessionScoreServiceImpl implements SessionScoreService {
             LeaderboardProvider leaderboardProvider,
             SessionStateManager sessionStateManager,
             SessionPollingManager sessionPollingManager,
-            ApplicationEventPublisher eventPublisher
+            ApplicationEventPublisher eventPublisher,
+            LLMSummaryProvider llmSummaryProvider
     ) {
         this.sessionScoreRepository = sessionScoreRepository;
         this.pomodoroSessionProvider = pomodoroSessionProvider;
@@ -47,6 +50,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         this.sessionStateManager = sessionStateManager;
         this.sessionPollingManager = sessionPollingManager;
         this.eventPublisher = eventPublisher;
+        this.llmSummaryProvider = llmSummaryProvider;
     }
     //TODO: 세션 데이터가 다 처리되었는가? 를 처리. 또는 롱 폴링으로 처리
     @Override
@@ -177,7 +181,9 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         
         // Redis에 세션 처리 완료 상태 저장
         sessionStateManager.markSessionAsProcessed(userId, sessionDate, session);
-        
+
+        String summary = llmSummaryProvider.getResult("1");
+
         // 대기 중인 롱 폴링 요청에 응답
         List<SessionScoreResponseDto> sessionScores = getByUserIdAndSessionDate(userId, sessionDate);
         

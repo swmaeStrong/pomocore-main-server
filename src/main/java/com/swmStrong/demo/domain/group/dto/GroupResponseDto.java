@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record GroupListResponseDto(
+public record GroupResponseDto(
         Long groupId,
         String name,
         GroupOwner groupOwner,
@@ -17,8 +17,8 @@ public record GroupListResponseDto(
         boolean isPublic,
         LocalDateTime createdAt
 ) {
-    public static GroupListResponseDto of(Group group) {
-        return GroupListResponseDto.builder()
+    public static GroupResponseDto of(Group group) {
+        return GroupResponseDto.builder()
                 .groupId(group.getId())
                 .name(group.getName())
                 .groupOwner(

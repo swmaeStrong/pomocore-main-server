@@ -126,7 +126,7 @@ public class GroupController {
                     "<p> 내가 속한 그룹을 조회한다. </p>"
     )
     @GetMapping("/my")
-    public ResponseEntity<ApiResponse<List<GroupListResponseDto>>> getMyGroups(@AuthenticationPrincipal SecurityPrincipal principal) {
+    public ResponseEntity<ApiResponse<List<GroupResponseDto>>> getMyGroups(@AuthenticationPrincipal SecurityPrincipal principal) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 groupService.getMyGroups(principal.userId())
@@ -139,7 +139,7 @@ public class GroupController {
                     "<p> 그룹 전체를 조회한다. </p>"
     )
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<GroupListResponseDto>>> getGroup() {
+    public ResponseEntity<ApiResponse<List<GroupResponseDto>>> getGroup() {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 groupService.getGroups()
@@ -343,9 +343,9 @@ public class GroupController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "초대 링크로 그룹 참여",
+            summary = "초대 코드로 그룹 참여",
             description =
-                    "<p> 초대 링크로 그룹에 참여한다. </p>"
+                    "<p> 초대 코드로 그룹에 참여한다. </p>"
     )
     @PostMapping("/invite")
     public ResponseEntity<ApiResponse<Void>> joinGroupInvitationLink(
@@ -355,6 +355,22 @@ public class GroupController {
         groupService.joinInvitationLink(principal.userId(), code);
         return CustomResponseEntity.of(
                 SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "초대 코드로 그룹 조회",
+            description =
+                    "<p> 초대 코드로 그룹을 조회한다. </p>"
+    )
+    @GetMapping("/invite")
+    public ResponseEntity<ApiResponse<GroupResponseDto>> getGroupInfoByInvitationCode(
+            @RequestParam String code
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                groupService.getGroupByInvitationCode(code)
         );
     }
 }

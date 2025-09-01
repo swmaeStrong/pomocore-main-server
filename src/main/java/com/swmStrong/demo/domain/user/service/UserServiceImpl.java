@@ -225,7 +225,7 @@ public class UserServiceImpl implements UserService {
             
             updateUserProfileImage(userId, imageUrl, s3Key);
             
-            log.info("Profile image uploaded successfully for user: {}, key: {}", userId, s3Key);
+            log.debug("Profile image uploaded successfully for user: {}, key: {}", userId, s3Key);
             return imageUrl;
 
         } catch (IOException e) {
@@ -257,7 +257,7 @@ public class UserServiceImpl implements UserService {
             
             updateUserProfileImage(userId, null, null);
             
-            log.info("Profile image deleted successfully for user: {}", userId);
+            log.debug("Profile image deleted successfully for user: {}", userId);
 
         } catch (S3Exception e) {
             log.error("S3 error while deleting profile image for user: {}", userId, e);

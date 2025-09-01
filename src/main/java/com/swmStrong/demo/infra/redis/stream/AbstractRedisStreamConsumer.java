@@ -25,7 +25,7 @@ public abstract class AbstractRedisStreamConsumer implements SmartLifecycle {
             running = true;
             executorService = Executors.newSingleThreadExecutor();
             executorService.submit(() -> {
-                log.info("레디스 컨슈머 시작: {}", this.getClass().getSimpleName());
+                log.debug("레디스 컨슈머 시작: {}", this.getClass().getSimpleName());
                 consume();
             });
         }
@@ -34,7 +34,7 @@ public abstract class AbstractRedisStreamConsumer implements SmartLifecycle {
     @Override
     public void stop() {
         if (running) {
-            log.info("레디스 컨슈머 중지 시작: {}", this.getClass().getSimpleName());
+            log.debug("레디스 컨슈머 중지 시작: {}", this.getClass().getSimpleName());
             running = false;
             
             if (executorService != null) {
@@ -56,7 +56,7 @@ public abstract class AbstractRedisStreamConsumer implements SmartLifecycle {
                 }
             }
             
-            log.info("레디스 컨슈머 중지 완료: {}", this.getClass().getSimpleName());
+            log.debug("레디스 컨슈머 중지 완료: {}", this.getClass().getSimpleName());
         }
     }
 

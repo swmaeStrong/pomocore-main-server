@@ -96,13 +96,13 @@ public class RedisConfig {
 
     @PreDestroy
     public void cleanup() {
-        log.info("Redis graceful shutdown 시작");
+        log.debug("Redis graceful shutdown 시작");
         
         try {
             if (connectionFactory != null) {
-                log.info("Redis connection factory 종료 중...");
+                log.debug("Redis connection factory 종료 중...");
                 connectionFactory.destroy();
-                log.info("Redis connection factory 종료 완료");
+                log.debug("Redis connection factory 종료 완료");
             }
         } catch (Exception e) {
             log.warn("Redis connection factory 종료 중 예외 발생: {}", e.getMessage());
@@ -110,14 +110,13 @@ public class RedisConfig {
 
         try {
             if (clientResources != null && !clientResources.shutdown().isDone()) {
-                log.info("Redis client resources 종료 중...");
+                log.debug("Redis client resources 종료 중...");
                 clientResources.shutdown(3, 5, java.util.concurrent.TimeUnit.SECONDS);
-                log.info("Redis client resources 종료 완료");
+                log.debug("Redis client resources 종료 완료");
             }
         } catch (Exception e) {
             log.warn("Redis client resources 종료 중 예외 발생: {}", e.getMessage());
         }
-        
-        log.info("Redis graceful shutdown 완료");
+        log.debug("Redis graceful shutdown 완료");
     }
 }

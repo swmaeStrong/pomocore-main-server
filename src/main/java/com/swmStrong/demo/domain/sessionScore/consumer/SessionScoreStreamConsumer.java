@@ -47,7 +47,7 @@ public class SessionScoreStreamConsumer extends AbstractRedisStreamConsumer {
                         Map<Object, Object> valueMap = record.getValue();
                         SessionScoreMessage message = objectMapper.convertValue(valueMap, SessionScoreMessage.class);
 
-                        log.info("Session score message received: userId={}, session={}, sessionDate={}",
+                        log.debug("Session score message received: userId={}, session={}, sessionDate={}",
                                 message.userId(), message.session(), message.sessionDate());
 
                         // Call the session score processing method (previously handleSessionEnded)
@@ -55,9 +55,6 @@ public class SessionScoreStreamConsumer extends AbstractRedisStreamConsumer {
 
                         // Acknowledge the message
                         stringRedisTemplate.opsForStream().acknowledge(StreamConfig.SESSION_SCORE_SAVE.getGroup(), record);
-
-                        log.info("Session score message processed successfully: userId={}, session={}, sessionDate={}",
-                                message.userId(), message.session(), message.sessionDate());
 
                     } catch (Exception e) {
                         log.error("Error processing session score message: {}", record.getValue(), e);

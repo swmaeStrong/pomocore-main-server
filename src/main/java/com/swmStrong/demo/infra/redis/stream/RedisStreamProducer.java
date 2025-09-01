@@ -84,7 +84,7 @@ public class RedisStreamProducer {
             }
         }
         
-        log.info("Queued {} messages for retry, total queue size: {}", dtos.size(), backupQueue.size());
+        log.warn("Queued {} messages for retry, total queue size: {}", dtos.size(), backupQueue.size());
     }
     
     /**
@@ -95,7 +95,7 @@ public class RedisStreamProducer {
             return;
         }
         
-        log.info("Attempting to retry {} queued messages", backupQueue.size());
+        log.warn("Attempting to retry {} queued messages", backupQueue.size());
         
         List<QueuedMessage> processedMessages = new ArrayList<>();
         int retryCount = 0;
@@ -131,7 +131,7 @@ public class RedisStreamProducer {
         }
         
         if (retryCount > 0) {
-            log.info("Retry completed: attempted={}, succeeded={}, failed={}, remaining={}", 
+            log.warn("Retry completed: attempted={}, succeeded={}, failed={}, remaining={}",
                     retryCount, successCount, processedMessages.size(), backupQueue.size());
         }
     }

@@ -70,6 +70,9 @@ dependencies {
 
 	//Aho-corasick
 	implementation 'com.hankcs:aho-corasick-double-array-trie:1.2.2'
+
+	// JSON structured logging
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 }
 
 tasks.named('test') {

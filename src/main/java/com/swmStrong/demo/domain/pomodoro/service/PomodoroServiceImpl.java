@@ -12,8 +12,11 @@ import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.repository.CategorizedDataRepository;
 import com.swmStrong.demo.domain.pomodoro.repository.PomodoroUsageLogRepository;
+import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.facade.SessionScoreProvider;
+import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
 import com.swmStrong.demo.domain.sessionScore.service.SessionStateManager;
+import com.swmStrong.demo.infra.LLM.LLMSummaryProvider;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
@@ -40,10 +43,12 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final UserInfoProvider userInfoProvider;
     private final CategoryProvider categoryProvider;
     private final SessionScoreProvider sessionScoreProvider;
+    private final SessionScoreRepository sessionScoreRepository;
     private final SessionStateManager sessionStateManager;
     private final RedisStreamProducer redisStreamProducer;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LeaderboardProvider leaderboardProvider;
+    private final LLMSummaryProvider llmSummaryProvider;
 
     public PomodoroServiceImpl(
             CategorizedDataRepository categorizedDataRepository,
@@ -51,20 +56,24 @@ public class PomodoroServiceImpl implements PomodoroService {
             UserInfoProvider userInfoProvider,
             CategoryProvider categoryProvider,
             SessionScoreProvider sessionScoreProvider,
+            SessionScoreRepository sessionScoreRepository,
             SessionStateManager sessionStateManager,
             RedisStreamProducer redisStreamProducer,
             ApplicationEventPublisher applicationEventPublisher,
-            LeaderboardProvider leaderboardProvider
+            LeaderboardProvider leaderboardProvider,
+            LLMSummaryProvider llmSummaryProvider
     ) {
         this.categorizedDataRepository = categorizedDataRepository;
         this.pomodoroUsageLogRepository = pomodoroUsageLogRepository;
         this.userInfoProvider = userInfoProvider;
         this.categoryProvider = categoryProvider;
         this.sessionScoreProvider = sessionScoreProvider;
+        this.sessionScoreRepository = sessionScoreRepository;
         this.sessionStateManager = sessionStateManager;
         this.redisStreamProducer = redisStreamProducer;
         this.applicationEventPublisher = applicationEventPublisher;
         this.leaderboardProvider = leaderboardProvider;
+        this.llmSummaryProvider = llmSummaryProvider;
     }
 
     @Override
@@ -75,8 +84,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         List<CategorizedData> categorizedDataList = new ArrayList<>();
 
         int session = sessionScoreProvider.createSession(user, pomodoroUsageLogsDto.sessionDate(), pomodoroUsageLogsDto.sessionMinutes());
-        
-        // Redis에 세션 처리 상태를 false로 초기화 (처리 중)
+
         sessionStateManager.initializeSessionProcessing(userId, pomodoroUsageLogsDto.sessionDate(), session);
 
         leaderboardProvider.increaseSessionCount(userId, pomodoroUsageLogsDto.sessionDate());
@@ -134,12 +142,24 @@ public class PomodoroServiceImpl implements PomodoroService {
         
         redisStreamProducer.sendBatch(StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(), messages);
 
+        String sessionData = getString(categorizedDataList, pomodoroUsageLogList);
+
+        String summary = llmSummaryProvider.getResult(sessionData);
+
+        SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(
+                userId, session, pomodoroUsageLogsDto.sessionDate());
+        if (sessionScore != null) {
+            sessionScore.updateTitle(summary);
+            sessionScoreRepository.save(sessionScore);
+        }
+
         applicationEventPublisher.publishEvent(UsageLogCreatedEvent.builder()
                 .userId(userId)
                 .activityDate(pomodoroUsageLogsDto.sessionDate())
                 .build()
         );
     }
+
 
     @Override
     public List<CategoryUsageDto> getUsageLogByUserIdAndDateBetween(String userId, LocalDate date) {
@@ -160,7 +180,7 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         List<PomodoroUsageLog> distractedUsageLogList = new ArrayList<>();
         List<PomodoroUsageLog> workUsageLogList = new ArrayList<>();
-        
+
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
             if (workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId()))) {
                 workUsageLogList.add(pomodoroUsageLog);
@@ -168,7 +188,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                 distractedUsageLogList.add(pomodoroUsageLog);
             }
         }
-        
+
         Set<ObjectId> allCategorizedDataIds = new HashSet<>();
         for (PomodoroUsageLog log : pomodoroUsageLogList) {
             allCategorizedDataIds.add(log.getCategorizedDataId());
@@ -197,7 +217,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                 distractedDurationMap.merge(app, log.getDuration(), Double::sum);
             }
         }
-        
+
         for (PomodoroUsageLog log : workUsageLogList) {
             CategorizedData categorizedData = categorizedDataMap.get(log.getCategorizedDataId());
             if (categorizedData != null) {
@@ -212,7 +232,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                 workDurationMap.merge(app, log.getDuration(), Double::sum);
             }
         }
-        
+
         List<DistractedDetailsDto> distractedDetailsDtoList = new ArrayList<>();
         for (String app: distractedCountMap.keySet()) {
             distractedDetailsDtoList.add(
@@ -225,5 +245,24 @@ public class PomodoroServiceImpl implements PomodoroService {
         }
 
         return distractedDetailsDtoList;
+    }
+
+    private static String getString(List<CategorizedData> categorizedDataList, List<PomodoroUsageLog> pomodoroUsageLogList) {
+        StringBuilder sessionDataBuilder = new StringBuilder();
+        for (int i = 0; i < categorizedDataList.size(); i++) {
+            CategorizedData data = categorizedDataList.get(i);
+            PomodoroUsageLog log = pomodoroUsageLogList.get(i);
+            sessionDataBuilder.append(String.format(
+                "App: %s, Title: %s, URL: %s, Duration: %d초",
+                data.getApp() != null ? data.getApp() : "Unknown",
+                data.getTitle() != null ? data.getTitle() : "No title",
+                data.getUrl() != null ? data.getUrl() : "No URL",
+                (int) log.getDuration()
+            ));
+            if (i < categorizedDataList.size() - 1) {
+                sessionDataBuilder.append("\n");
+            }
+        }
+        return sessionDataBuilder.toString();
     }
 }

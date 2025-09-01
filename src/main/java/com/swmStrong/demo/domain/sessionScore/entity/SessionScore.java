@@ -73,4 +73,8 @@ public class SessionScore extends BaseEntity {
         this.distractedCount = distractedCount;
         this.distractedDuration = distractedDuration;
     }
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
 }

@@ -5,7 +5,6 @@ import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.CategoryResponseDto;
 import com.swmStrong.demo.domain.categoryPattern.dto.UpdateCategoryRequestDto;
-import com.swmStrong.demo.domain.matcher.core.PatternClassifier;
 import com.swmStrong.demo.domain.categoryPattern.dto.PatternRequestDto;
 import com.swmStrong.demo.domain.categoryPattern.entity.CategoryPattern;
 import com.swmStrong.demo.domain.categoryPattern.enums.PatternType;
@@ -18,14 +17,11 @@ import java.util.List;
 public class CategoryPatternServiceImpl implements CategoryPatternService {
 
     private final CategoryPatternRepository categoryPatternRepository;
-    private final PatternClassifier patternClassifier;
 
     public CategoryPatternServiceImpl(
-            CategoryPatternRepository categoryPatternRepository,
-            PatternClassifier patternClassifier
+            CategoryPatternRepository categoryPatternRepository
     ) {
         this.categoryPatternRepository = categoryPatternRepository;
-        this.patternClassifier = patternClassifier;
     }
 
     @Override
@@ -48,9 +44,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
                         .orElseThrow(() -> new ApiException(ErrorCode.CATEGORY_NOT_FOUND));
 
         categoryPatternRepository.addPattern(category, patternType, patternRequestDto.pattern());
-        
-        // Rebuild the pattern classifier to include new pattern
-        rebuildPatternClassifier();
     }
 
     @Override
@@ -67,8 +60,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
         }
 
         categoryPatternRepository.removePattern(category, patternType, patternRequestDto.pattern());
-
-        rebuildPatternClassifier();
     }
 
     @Override
@@ -77,8 +68,6 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
             throw new ApiException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         categoryPatternRepository.deletePatternCategoryByCategory(category);
-
-        rebuildPatternClassifier();
     }
 
     @Override
@@ -116,14 +105,5 @@ public class CategoryPatternServiceImpl implements CategoryPatternService {
             categoryPattern.updateCategory(updateCategoryRequestDto.category());
         }
         categoryPatternRepository.save(categoryPattern);
-    }
-
-    @Override
-    public boolean existsByCategory(String category) {
-        return categoryPatternRepository.existsByCategory(category);
-    }
-
-    private void rebuildPatternClassifier() {
-        patternClassifier.afterPropertiesSet();
     }
 }

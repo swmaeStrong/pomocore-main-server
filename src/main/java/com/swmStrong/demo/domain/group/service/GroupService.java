@@ -10,9 +10,9 @@ public interface GroupService {
     void updateNewPassword(String userId, Long groupId);
     void banMember(String userId, Long groupId, BanMemberDto banMemberDto);
     void authorizeOwner(String userId, Long groupId, AuthorizeMemberDto authorizeMemberDto);
-    List<GroupListResponseDto> getGroups();
+    List<GroupResponseDto> getGroups();
     GroupDetailsDto getGroupDetails(Long groupId);
-    List<GroupListResponseDto> getMyGroups(String userId);
+    List<GroupResponseDto> getMyGroups(String userId);
     void joinGroup(String userId, Long groupId, PasswordRequestDto passwordRequestDto);
     void quitGroup(String userId, Long groupId);
     void updateGroup(String userId, Long groupId, UpdateGroupDto updateGroupDto);

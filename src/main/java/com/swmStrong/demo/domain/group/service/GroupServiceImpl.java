@@ -177,20 +177,20 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
-    public List<GroupListResponseDto> getMyGroups(String userId) {
+    public List<GroupResponseDto> getMyGroups(String userId) {
         User user = userInfoProvider.loadByUserId(userId);
 
         List<UserGroup> userGroupList = userGroupRepository.findByUser(user);
         return userGroupList.stream()
-                .map(userGroup -> GroupListResponseDto.of(userGroup.getGroup()))
+                .map(userGroup -> GroupResponseDto.of(userGroup.getGroup()))
                 .toList();
     }
 
     @Override
-    public List<GroupListResponseDto> getGroups() {
+    public List<GroupResponseDto> getGroups() {
         List<Group> groupList = groupRepository.findAll();
         return groupList.stream()
-                .map(GroupListResponseDto::of)
+                .map(GroupResponseDto::of)
                 .toList();
     }
 

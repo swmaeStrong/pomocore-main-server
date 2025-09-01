@@ -39,7 +39,7 @@ public class SessionScoreStreamConsumer extends AbstractRedisStreamConsumer {
                         stringRedisTemplate.opsForStream().read(
                                 Consumer.from(StreamConfig.SESSION_SCORE_SAVE.getGroup(), StreamConfig.SESSION_SCORE_SAVE.getConsumer()),
                                 StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
-                                StreamOffset.create(StreamConfig.SESSION_SCORE_SAVE.getStreamKey(), ReadOffset.from(">"))
+                                StreamOffset.create(StreamConfig.SESSION_SCORE_SAVE.getStreamKey(), ReadOffset.from("0"))
                         );
 
                 for (MapRecord<String, Object, Object> record : records) {

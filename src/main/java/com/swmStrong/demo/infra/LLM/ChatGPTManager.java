@@ -1,11 +1,11 @@
 package com.swmStrong.demo.infra.LLM;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,24 +14,22 @@ import java.util.Map;
 
 @Slf4j
 @Component
-@Primary
-public class ChatGPTClassifier extends AbstractLLMClassifier {
+public abstract class ChatGPTManager extends AbstractLLMManager {
     private final OpenAIConfig openAIConfig;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public ChatGPTClassifier(OpenAIConfig openAIConfig, PromptTemplate promptTemplate) {
-        super(promptTemplate);
+    public ChatGPTManager(OpenAIConfig openAIConfig) {
         this.openAIConfig = openAIConfig;
     }
 
-    @Override
-    protected String callApi(String query, String apiKey, int keyIndex) throws Exception {
+    protected String callApi(String query, String apiKey) {
         Map<String, Object> requestBody = buildRequestBody(query);
-        
+
         HttpHeaders headers = createHeaders();
         headers.setBearerAuth(apiKey);
-        
+
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-        
+
         ResponseEntity<Map> response = restTemplate.postForEntity(
                 openAIConfig.url(),
                 requestEntity,
@@ -40,26 +38,25 @@ public class ChatGPTClassifier extends AbstractLLMClassifier {
 
         Map<?, ?> body = response.getBody();
         if (body == null) {
-            log.warn("Empty response from OpenAI API with key index {}", keyIndex);
+            log.warn("Empty response from OpenAI API");
             return null;
         }
-        
+
         List<?> choices = (List<?>) body.get("choices");
         if (choices != null && !choices.isEmpty()) {
             Map<?, ?> firstChoice = (Map<?, ?>) choices.get(0);
             Map<?, ?> messageResp = (Map<?, ?>) firstChoice.get("message");
             if (messageResp != null) {
                 String result = ((String) messageResp.get("content")).trim();
-                log.trace("Successfully classified using ChatGPT API key index {}. result: {}", keyIndex, result);
+                log.trace("Successfully classified using ChatGPT. result: {}", result);
                 return result;
             }
         }
-        
         return null;
     }
 
     private Map<String, Object> buildRequestBody(String query) {
-        String prompt = promptTemplate.getClassificationPrompt(query);
+        String prompt = getPrompt(query);
 
         // OpenAI API 요청용 body 구성
         Map<String, Object> message = new HashMap<>();
@@ -73,23 +70,14 @@ public class ChatGPTClassifier extends AbstractLLMClassifier {
         requestBody.put("model", openAIConfig.model());
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0);
-        requestBody.put("max_tokens", 50);
+        requestBody.put("max_tokens", 150);
         return requestBody;
     }
+    protected abstract String getPrompt(String query);
 
     @Override
-    protected List<String> getApiKeys() {
-        return openAIConfig.keys();
-    }
-
-    @Override
-    protected Map<String, Integer> getKeyWeights() {
-        return openAIConfig.keyWeights();
-    }
-
-    @Override
-    protected String getKeyPrefix() {
-        return "OPENAI_API_KEY";
+    protected String getApiKey() {
+        return openAIConfig.key();
     }
 
     @Override

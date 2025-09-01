@@ -8,13 +8,6 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "llm.openai.api")
 public record OpenAIConfig(
     String url,
-    List<String> keys,
-    String model,
-    Map<String, Integer> keyWeights
-) {
-    public OpenAIConfig {
-        if (keyWeights == null) {
-            keyWeights = Map.of();
-        }
-    }
-}
+    String key,
+    String model
+) {}

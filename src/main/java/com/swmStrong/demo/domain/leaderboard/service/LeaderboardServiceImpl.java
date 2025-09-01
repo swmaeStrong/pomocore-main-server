@@ -97,7 +97,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         for (Map.Entry<String, Map<String, Double>> keyEntry : categoryUserScoreMap.entrySet()) {
             String key = keyEntry.getKey();
             Map<String, Double> userScoreMap = keyEntry.getValue();
-            log.info("key: {}, userScoreMap: {}", key, userScoreMap);
+            log.debug("key: {}, userScoreMap: {}", key, userScoreMap);
             for (Map.Entry<String, Double> userEntry : userScoreMap.entrySet()) {
                 leaderboardCache.increaseScoreByUserId(key, userEntry.getKey(), userEntry.getValue());
             }

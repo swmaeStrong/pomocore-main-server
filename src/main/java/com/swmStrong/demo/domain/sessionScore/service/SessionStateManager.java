@@ -11,8 +11,7 @@ import java.time.LocalDate;
 @Slf4j
 @Service
 public class SessionStateManager {
-    
-    private RedisRepository redisRepository;
+    private final RedisRepository redisRepository;
 
     public  SessionStateManager(RedisRepository redisRepository) {
         this.redisRepository = redisRepository;

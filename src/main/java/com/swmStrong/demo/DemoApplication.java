@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import com.swmStrong.demo.infra.LLM.GeminiConfig;
 import com.swmStrong.demo.infra.LLM.OpenAIConfig;
 
 import java.util.TimeZone;
@@ -13,7 +12,7 @@ import java.util.TimeZone;
 @EnableAsync
 @EnableScheduling
 @SpringBootApplication(exclude = {io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration.class})
-@EnableConfigurationProperties({GeminiConfig.class, OpenAIConfig.class})
+@EnableConfigurationProperties({OpenAIConfig.class})
 public class DemoApplication {
 
 	public static void main(String[] args) {

@@ -25,7 +25,7 @@ public class RedisStreamInitializer {
                 stringRedisTemplate.opsForStream()
                         .createGroup(
                                 streamConfig.getStreamKey(),
-                                ReadOffset.latest(),
+                                ReadOffset.from("0"),
                                 streamConfig.getGroup()
                         );
                 log.debug("그룹 생성 성공: {}", streamConfig.getGroup());

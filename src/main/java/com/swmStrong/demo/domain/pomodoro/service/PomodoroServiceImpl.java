@@ -23,6 +23,7 @@ import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PomodoroPatternClassifyMessage;
 import com.swmStrong.demo.message.event.UsageLogCreatedEvent;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
@@ -76,6 +77,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.llmSummaryProvider = llmSummaryProvider;
     }
 
+    @Transactional
     @Override
     public void save(String userId, PomodoroUsageLogsDto pomodoroUsageLogsDto) {
         User user = userInfoProvider.loadByUserId(userId);
@@ -107,6 +109,17 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .build();
             pomodoroUsageLogList.add(pomodoroUsageLog);
         }
+        //TODO: 이후 낙관적 락을 통한 동시성 제어 필요.
+        String sessionData = getString(categorizedDataList, pomodoroUsageLogList);
+
+        String summary = llmSummaryProvider.getResult(sessionData);
+
+        SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(
+                userId, session, pomodoroUsageLogsDto.sessionDate());
+        if (sessionScore != null) {
+            sessionScore.updateTitle(summary);
+            sessionScoreRepository.save(sessionScore);
+        }
 
         categorizedDataList = categorizedDataRepository.saveAll(categorizedDataList);
 
@@ -115,7 +128,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             CategorizedData categorizedData = categorizedDataList.get(i);
             pomodoroUsageLog.updateCategorizedDataId(categorizedData.getId());
         }
-        
+
         pomodoroUsageLogList = pomodoroUsageLogRepository.saveAll(pomodoroUsageLogList);
 
         List<PomodoroPatternClassifyMessage> messages = new ArrayList<>();
@@ -139,19 +152,8 @@ public class PomodoroServiceImpl implements PomodoroService {
                     .build()
             );
         }
-        
+
         redisStreamProducer.sendBatch(StreamConfig.POMODORO_PATTERN_MATCH.getStreamKey(), messages);
-
-        String sessionData = getString(categorizedDataList, pomodoroUsageLogList);
-
-        String summary = llmSummaryProvider.getResult(sessionData);
-
-        SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(
-                userId, session, pomodoroUsageLogsDto.sessionDate());
-        if (sessionScore != null) {
-            sessionScore.updateTitle(summary);
-            sessionScoreRepository.save(sessionScore);
-        }
 
         applicationEventPublisher.publishEvent(UsageLogCreatedEvent.builder()
                 .userId(userId)

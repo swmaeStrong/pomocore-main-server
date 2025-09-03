@@ -16,6 +16,7 @@ public interface WorkCategory {
             "File Management",
             "Browsing",
             "Marketing",
-            "System & Utilities"
+            "System & Utilities",
+            "Meetings"
     );
 }

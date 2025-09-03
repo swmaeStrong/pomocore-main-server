@@ -174,7 +174,7 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         return pomodoroUsageLogRepository.findByUserIdAndTimestampBetween(userId, startTimestamp, endTimestamp);
     }
-    //TODO: 타입 바꾸기 workDetails / DistractedDetails
+
     @Override
     public AppUsageDto getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, int session) {
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
@@ -253,7 +253,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                     AppUsageResult.builder()
                             .app(app)
                             .count(workCountMap.get(app))
-                            .duration(workCountMap.get(app))
+                            .duration(workDurationMap.get(app))
                             .build()
             );
         }

@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- Console Appender with JSON format -->
+    <!-- Console Appender with readable format for dev/local -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%5level) %magenta(---) [%15.15thread] %cyan(%-40.40logger{39}) : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- JSON Console Appender for production -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
                 <timestamp>
@@ -67,13 +74,13 @@
         </rollingPolicy>
     </appender>
 
-    <!-- Development profile: JSON to console, regular format to file -->
+    <!-- Development profile: Readable format to console, JSON to file -->
     <springProfile name="dev,local">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </root>
-        <logger name="com.swmStrong" level="TRACE"/>
+        <logger name="com.swmStrong" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>
         <logger name="org.hibernate.SQL" level="ERROR"/>
     </springProfile>
@@ -81,7 +88,7 @@
     <!-- Production profile: JSON format -->
     <springProfile name="prod">
         <root level="WARN">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="JSON_CONSOLE"/>
             <appender-ref ref="FILE"/>
         </root>
         <logger name="com.swmStrong" level="INFO"/>

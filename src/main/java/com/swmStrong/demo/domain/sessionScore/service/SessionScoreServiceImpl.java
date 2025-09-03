@@ -138,8 +138,8 @@ public class SessionScoreServiceImpl implements SessionScoreService {
 
     private int getScore(double afkDuration, double distractedDuration, int distractedCount, double dropOutDuration) {
         int score = 100;
-        score -= (int) Math.pow(2, (double) distractedCount / 4) - 1;
-        score -= (int) distractedDuration / 10 * 2;
+        score -= distractedCount / 5 * 2;
+        score -= (int) distractedDuration / 10;
         score = Math.max(30, score);
 
         dropOutDuration = Math.max(0, dropOutDuration - 10);

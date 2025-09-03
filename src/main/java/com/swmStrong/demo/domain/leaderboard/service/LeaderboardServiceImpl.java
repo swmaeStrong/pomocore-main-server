@@ -59,52 +59,6 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
 
     @Override
-    public void increaseScoreBatch(List<LeaderBoardUsageMessage> messages) {
-        Map<String, Map<String, Double>> categoryUserScoreMap = new HashMap<>();
-        Map<String, Double> workUserScoreMap = new HashMap<>();
-        
-        for (LeaderBoardUsageMessage message : messages) {
-            LocalDate day = LocalDateTime.ofInstant(Instant.ofEpochSecond((long) message.timestamp()),
-                    ZoneId.systemDefault()).toLocalDate();
-            ObjectId categoryObjectId = new ObjectId(message.categoryId());
-            String category = categoryProvider.getCategoryById(categoryObjectId);
-            
-            String dailyKey = generateDailyKey(category, day);
-            String weeklyKey = generateWeeklyKey(category, day);
-            String monthlyKey = generateMonthlyKey(category, day);
-            
-            categoryUserScoreMap.computeIfAbsent(dailyKey, k -> new HashMap<>())
-                    .merge(message.userId(), message.duration(), Double::sum);
-            categoryUserScoreMap.computeIfAbsent(weeklyKey, k -> new HashMap<>())
-                    .merge(message.userId(), message.duration(), Double::sum);
-            categoryUserScoreMap.computeIfAbsent(monthlyKey, k -> new HashMap<>())
-                    .merge(message.userId(), message.duration(), Double::sum);
-            
-            if (workCategories.contains(category)) {
-                String workDailyKey = generateDailyKey("work", day);
-                String workWeeklyKey = generateWeeklyKey("work", day);
-                String workMonthlyKey = generateMonthlyKey("work", day);
-                
-                categoryUserScoreMap.computeIfAbsent(workDailyKey, k -> new HashMap<>())
-                        .merge(message.userId(), message.duration(), Double::sum);
-                categoryUserScoreMap.computeIfAbsent(workWeeklyKey, k -> new HashMap<>())
-                        .merge(message.userId(), message.duration(), Double::sum);
-                categoryUserScoreMap.computeIfAbsent(workMonthlyKey, k -> new HashMap<>())
-                        .merge(message.userId(), message.duration(), Double::sum);
-            }
-        }
-        
-        for (Map.Entry<String, Map<String, Double>> keyEntry : categoryUserScoreMap.entrySet()) {
-            String key = keyEntry.getKey();
-            Map<String, Double> userScoreMap = keyEntry.getValue();
-            log.debug("key: {}, userScoreMap: {}", key, userScoreMap);
-            for (Map.Entry<String, Double> userEntry : userScoreMap.entrySet()) {
-                leaderboardCache.increaseScoreByUserId(key, userEntry.getKey(), userEntry.getValue());
-            }
-        }
-    }
-
-    @Override
     public List<LeaderboardResponseDto> getLeaderboardPage(
             String category,
             int page,

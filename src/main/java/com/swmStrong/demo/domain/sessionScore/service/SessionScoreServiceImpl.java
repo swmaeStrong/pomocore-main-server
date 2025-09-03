@@ -138,7 +138,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
 
     private int getScore(double afkDuration, double distractedDuration, int distractedCount, double dropOutDuration) {
         int score = 100;
-        score -= (int) Math.pow(2, (double) distractedCount / 2) - 1;
+        score -= (int) Math.pow(2, (double) distractedCount / 4) - 1;
         score -= (int) distractedDuration / 10 * 2;
         score = Math.max(30, score);
 
@@ -213,73 +213,33 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                 .build());
     }
 
-    /**
-     * <h3> 점수 체계에 대한 설명 </h3>
-     * 1) 최대 점수는 100점이다. <br>
-     * 2) 점수의 감소는 방해로 정의한 사용 로그와 afk 로그에 의해 발생한다. <br>
-     * 3) afk와 방해의 횟수와 시간을 합산해 적용한다. <br>
-     * 4) 10초 이상의 경우 매 10초마다 2점을 추가로 감점한다. <br>
-     * 5) 중간에 탈주한 drop out은 패널티 2배 적용 (대신 count 적용은 하지 않음)
-     */
     private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList) {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategory.categories;
         double afkDuration = 0;
 
-        List<PomodoroUsageLog> distractingUsageLog = new ArrayList<>();
+        List<PomodoroUsageLog> distractingUsageLogList = new ArrayList<>();
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
-            if (categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Unknown").equals("afk")) {
+            if (categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized").equals("afk")) {
                 afkDuration += pomodoroUsageLog.getDuration();
-            } else if (!workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Unknown"))) {
-                distractingUsageLog.add(pomodoroUsageLog);
+            } else if (!workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
+                distractingUsageLogList.add(pomodoroUsageLog);
             }
         }
 
-        if (distractingUsageLog.isEmpty()) {
+        if (distractingUsageLogList.isEmpty()) {
             return new Result(0, 0, afkDuration);
         }
-
         int distractedCount = 0;
         int distractedDuration = 0;
-        IntervalEvent[] intervalEvents = new IntervalEvent[2*distractingUsageLog.size()];
-        int idx = 0;
-        for (PomodoroUsageLog log : distractingUsageLog) {
-            intervalEvents[idx++] = new IntervalEvent(log.getTimestamp(), false);
-            intervalEvents[idx++] = new IntervalEvent(log.getTimestamp()+log.getDuration() + 5, true);
-        }
-
-        Arrays.sort(intervalEvents, Comparator.comparing(IntervalEvent::timestamp)
-                .thenComparing(IntervalEvent::isEnd));
-
-        int activeIntervals = 0;
-        double lastTimestamp = 0;
-        boolean inDisturbInterval = false;
-
-        for (IntervalEvent time : intervalEvents) {
-            if (inDisturbInterval) {
-                distractedDuration += (int) Math.ceil(time.timestamp - lastTimestamp);
-            }
-
-            if (time.isEnd) {
-                activeIntervals--;
-            } else {
-                if (activeIntervals == 0) {
-                    distractedCount++;
-                }
-                activeIntervals++;
-            }
-
-            inDisturbInterval = activeIntervals > 0;
-            lastTimestamp = time.timestamp;
+        for (PomodoroUsageLog usageLog: distractingUsageLogList) {
+            distractedCount ++;
+            distractedDuration += (int) usageLog.getDuration();
         }
 
         return new Result(distractedCount, distractedDuration, afkDuration);
     }
 
-    record IntervalEvent(
-            double timestamp,
-            boolean isEnd
-    ) {}
 
     record Result(
             int distractedCount,

@@ -407,8 +407,9 @@ public class GroupServiceImpl implements GroupService{
                 .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 
         User user = userInfoProvider.loadByUserId(userId);
-        if (!group.getOwner().equals(user)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
+
+        if (!userGroupRepository.existsByUserAndGroup(user, group)) {
+            throw new ApiException(ErrorCode.GROUP_USER_NOT_FOUND);
         }
 
         Set<String> existingKeys = redisRepository.findKeys(String.format("%s:%s:*", GROUP_INVITE_PREFIX, groupId));
@@ -432,7 +433,7 @@ public class GroupServiceImpl implements GroupService{
             );
         }
 
-        String link = "https://www.pomodoro.com/invite?code=" + code;
+        String link = "https://www.pomocore.com/invite?code=" + code;
         if (emailsRequestDto != null) {
             mailSender.sendInvitationEmail(emailsRequestDto.emails(), group.getName(), link);
         }

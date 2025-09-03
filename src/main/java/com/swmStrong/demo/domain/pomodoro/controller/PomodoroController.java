@@ -4,7 +4,7 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
-import com.swmStrong.demo.domain.pomodoro.dto.DistractedDetailsDto;
+import com.swmStrong.demo.domain.pomodoro.dto.AppUsageDto;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
 import com.swmStrong.demo.domain.pomodoro.service.PomodoroService;
 import com.swmStrong.demo.domain.pomodoro.dto.CategoryUsageDto;
@@ -72,7 +72,7 @@ public class PomodoroController {
                     "<p> 해당 가정에 의해 여기서는 방해한 앱에 접근한 횟수와 시간만을 반환한다. </p>"
     )
     @GetMapping("/details")
-    public ResponseEntity<ApiResponse<List<DistractedDetailsDto>>> getDistractedApps(
+    public ResponseEntity<ApiResponse<AppUsageDto>> getDistractedApps(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @RequestParam int session,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

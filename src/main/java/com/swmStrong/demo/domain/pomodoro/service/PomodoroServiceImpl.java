@@ -5,8 +5,9 @@ import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.util.DomainExtractor;
 import com.swmStrong.demo.domain.leaderboard.facade.LeaderboardProvider;
+import com.swmStrong.demo.domain.pomodoro.dto.AppUsageDto;
 import com.swmStrong.demo.domain.pomodoro.dto.CategoryUsageDto;
-import com.swmStrong.demo.domain.pomodoro.dto.DistractedDetailsDto;
+import com.swmStrong.demo.domain.pomodoro.dto.AppUsageResult;
 import com.swmStrong.demo.domain.pomodoro.dto.PomodoroUsageLogsDto;
 import com.swmStrong.demo.domain.pomodoro.entity.CategorizedData;
 import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
@@ -175,7 +176,7 @@ public class PomodoroServiceImpl implements PomodoroService {
     }
     //TODO: 타입 바꾸기 workDetails / DistractedDetails
     @Override
-    public List<DistractedDetailsDto> getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, int session) {
+    public AppUsageDto getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, int session) {
         List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategory.categories;
@@ -235,18 +236,29 @@ public class PomodoroServiceImpl implements PomodoroService {
             }
         }
 
-        List<DistractedDetailsDto> distractedDetailsDtoList = new ArrayList<>();
+        List<AppUsageResult> distractedAppUsageList = new ArrayList<>();
         for (String app: distractedCountMap.keySet()) {
-            distractedDetailsDtoList.add(
-                    DistractedDetailsDto.builder()
-                            .distractedApp(app)
+            distractedAppUsageList.add(
+                    AppUsageResult.builder()
+                            .app(app)
                             .count(distractedCountMap.get(app))
                             .duration(distractedDurationMap.get(app))
                             .build()
             );
         }
 
-        return distractedDetailsDtoList;
+        List<AppUsageResult> workAppUsageList = new ArrayList<>();
+        for (String app: workCountMap.keySet()) {
+            workAppUsageList.add(
+                    AppUsageResult.builder()
+                            .app(app)
+                            .count(workCountMap.get(app))
+                            .duration(workCountMap.get(app))
+                            .build()
+            );
+        }
+
+        return AppUsageDto.from(distractedAppUsageList, workAppUsageList);
     }
 
     private static String getString(List<CategorizedData> categorizedDataList, List<PomodoroUsageLog> pomodoroUsageLogList) {

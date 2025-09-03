@@ -8,7 +8,7 @@ import java.util.List;
 public record UsageLogDetailDto(
         int totalDistractedDuration,
         int scoreByDistractedDuration,
-        List<DistractedDetailsDto> details
+        List<AppUsageResult> details
 ) {
 }
 

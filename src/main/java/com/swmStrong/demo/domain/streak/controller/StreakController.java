@@ -72,18 +72,21 @@ public class StreakController {
             summary = "유저 스트릭 조회(격자형)",
             description =
                     "<p> 유저의 스트릭 격자를 조회한다. (깃허브 스타일) </p>" +
-                    "<p> 날짜를 넣으면 자동으로 이전 100일까지를 조회한다. 없으면 반환 안한다. </p>"
+                    "<p> 날짜를 넣으면 자동으로 이전일까지를 조회한다. 없으면 반환 안한다. </p>" +
+                    "<p> days-before 에 값을 넣지 않을 시의 기본값은 100일이다. </p>"
     )
     @GetMapping("/matrix")
     public ResponseEntity<ApiResponse<List<DailyActivityResponseDto>>> getActivitiesByPast100Days(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date
+            LocalDate date,
+            @RequestParam(name = "days-before", required = false, defaultValue = "100")
+            Long daysBefore
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
-                streakService.getDailyActivitiesByPast100Days(principal.userId(), date)
+                streakService.getDailyActivitiesBetweenDateAndDaysBefore(principal.userId(), date, daysBefore)
         );
     }
 }

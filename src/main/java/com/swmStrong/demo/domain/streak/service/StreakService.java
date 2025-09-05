@@ -9,5 +9,5 @@ import java.util.List;
 public interface StreakService {
     StreakResponseDto getStreakCount(String userId);
     List<DailyActivityResponseDto> getDailyActivitiesByMonth(String userId, LocalDate date);
-    List<DailyActivityResponseDto> getDailyActivitiesByPast100Days(String userId, LocalDate date);
+    List<DailyActivityResponseDto> getDailyActivitiesBetweenDateAndDaysBefore(String userId, LocalDate date, Long daysBefore);
 }

@@ -62,9 +62,9 @@ public class StreakServiceImpl implements StreakService {
     }
 
     @Override
-    public List<DailyActivityResponseDto> getDailyActivitiesByPast100Days(String userId, LocalDate date) {
+    public List<DailyActivityResponseDto> getDailyActivitiesBetweenDateAndDaysBefore(String userId, LocalDate date, Long daysBefore) {
         List<DailyActivity> dailyActivityList = dailyActivityRepository.findByUserIdAndActivityDateBetween(
-                userId, date.minusDays(100), date);
+                userId, date.minusDays(daysBefore), date);
         return dailyActivityList.stream()
                 .map(DailyActivityResponseDto::of)
                 .toList();

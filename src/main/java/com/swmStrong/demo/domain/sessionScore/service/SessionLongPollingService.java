@@ -27,7 +27,8 @@ public class SessionLongPollingService {
     }
     
     public CustomDeferredResult<List<SessionScoreResponseDto>> getSessionScoreWithLongPolling(
-            String userId, LocalDate date) {
+            String userId, LocalDate date
+    ) {
         
         String key = String.format("%s:%s", userId, date.toString());
         CustomDeferredResult<List<SessionScoreResponseDto>> deferredResult = 

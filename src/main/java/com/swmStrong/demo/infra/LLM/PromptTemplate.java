@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 public class PromptTemplate {
     
     private static final String CLASSIFICATION_PROMPT_TEMPLATE = """
-Which category does the usage of thie app with the given URL and title belong to?
+Which category does the usage of this app with the given URL and title belong to?
 
 Respond with **only one** of the following categories. **Do not explain. Do not say anything else.**
                 
@@ -90,14 +90,15 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
 3. 한국어로 자연스러운 한 문장으로 작성
 4. "사용자가" 같은 불필요한 주어는 생략하고 핵심 위주로 간결하게 작성
 5. 명사형으로 문장을 마무리 (예시: "Java 프로젝트 코드 작성", "pomocore 팀 관리", "백준 문제 풀이 및 블로그 포스팅")
-6. afk를 포함하는 경우 분석에 사용하지 않고 무시
-7. 마지막에 문장 부호 붙이지 않기 (예시: '.' ',' '?' '!')
+6. afk, loginwindow를 포함하는 경우 분석에 사용하지 않고 무시.
+7. 단, 전체 duration의 합산 대비 loginwindow, afk 의 비중이 절반 이상의 경우 "(특정 행동) 중 잠시 자리비움" 으로 표시
+8. 마지막에 문장 부호 붙이지 않기 (예시: '.' ',' '?' '!')
 
 **데이터:**
 %s
 """;
 
     public String getSummarizeTemplate(String query) {
-        return SUMMARIZE_PROMPT_TEMPLATE.formatted(query);
+        return SUMMARIZE_PROMPT_TEMPLATE.formatted(query.replace("%", "%%"));
     }
 }

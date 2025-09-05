@@ -52,26 +52,6 @@ public class SessionPollingManager {
         log.debug("Registered long polling request for key: {}", key);
     }
     
-    public void notifySessionProcessed(String userId, LocalDate date, int session, List<SessionScoreResponseDto> data) {
-        String sessionKey = generateKey(userId, date, session);
-        String dateKey = generateKey(userId, date);
-        
-        // 개별 세션 키에 대한 알림 (기존 호환성)
-        CustomDeferredResult<List<SessionScoreResponseDto>> sessionDeferredResult = waitingRequests.get(sessionKey);
-        if (sessionDeferredResult != null) {
-            boolean success = sessionDeferredResult.setResult(data);
-            if (success) {
-                log.debug("Notified waiting request for session key: {}", sessionKey);
-                waitingRequests.remove(sessionKey);
-            } else {
-                log.warn("Failed to set result for session key: {} (already set or expired)", sessionKey);
-            }
-        } else {
-            log.debug("No waiting request found for session key: {}", sessionKey);
-        }
-        
-    }
-    
     public void notifyAllSessionsProcessed(String userId, LocalDate date, List<SessionScoreResponseDto> data) {
         String dateKey = generateKey(userId, date);
         

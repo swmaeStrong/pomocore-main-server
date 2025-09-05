@@ -49,9 +49,9 @@ public class StreakController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "유저 스트릭 달력 조회",
+            summary = "유저 스트릭 조회 (달력형)",
             description =
-                    "<p> 유저의 스트릭 달력을 조회한다. </p>" +
+                    "<p> 유저의 스트릭 달력을 조회한다. (듀오링고 스타일) </p>" +
                     "<p> 날짜를 넣으면 자동으로 그 달의 1일 ~ 말일 까지의 데이터를 반환한다. 없으면 반환 안한다. </p>"
     )
     @GetMapping("/calendar")
@@ -67,4 +67,23 @@ public class StreakController {
         );
     }
 
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 스트릭 조회(격자형)",
+            description =
+                    "<p> 유저의 스트릭 격자를 조회한다. (깃허브 스타일) </p>" +
+                    "<p> 날짜를 넣으면 자동으로 이전 100일까지를 조회한다. 없으면 반환 안한다. </p>"
+    )
+    @GetMapping("/matrix")
+    public ResponseEntity<ApiResponse<List<DailyActivityResponseDto>>> getActivitiesByPast100Days(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                streakService.getDailyActivitiesByPast100Days(principal.userId(), date)
+        );
+    }
 }

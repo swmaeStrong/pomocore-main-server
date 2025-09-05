@@ -5,6 +5,7 @@ import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.streak.dto.DailyActivityResponseDto;
+import com.swmStrong.demo.domain.streak.dto.StreakDashboardDto;
 import com.swmStrong.demo.domain.streak.dto.StreakResponseDto;
 import com.swmStrong.demo.domain.streak.service.StreakService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,7 +77,7 @@ public class StreakController {
                     "<p> days-before 에 값을 넣지 않을 시의 기본값은 100일이다. </p>"
     )
     @GetMapping("/matrix")
-    public ResponseEntity<ApiResponse<List<DailyActivityResponseDto>>> getActivitiesByPast100Days(
+    public ResponseEntity<ApiResponse<StreakDashboardDto>> getDailyActivitiesBetweenDateAndDaysBefore(
             @AuthenticationPrincipal SecurityPrincipal principal,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

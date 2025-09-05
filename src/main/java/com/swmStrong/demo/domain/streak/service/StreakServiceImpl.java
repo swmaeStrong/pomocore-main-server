@@ -3,6 +3,7 @@ package com.swmStrong.demo.domain.streak.service;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.streak.dto.DailyActivityResponseDto;
+import com.swmStrong.demo.domain.streak.dto.StreakDashboardDto;
 import com.swmStrong.demo.domain.streak.dto.StreakResponseDto;
 import com.swmStrong.demo.domain.streak.entity.DailyActivity;
 import com.swmStrong.demo.domain.streak.entity.Streak;
@@ -62,11 +63,17 @@ public class StreakServiceImpl implements StreakService {
     }
 
     @Override
-    public List<DailyActivityResponseDto> getDailyActivitiesBetweenDateAndDaysBefore(String userId, LocalDate date, Long daysBefore) {
+    public StreakDashboardDto getDailyActivitiesBetweenDateAndDaysBefore(String userId, LocalDate date, Long daysBefore) {
         List<DailyActivity> dailyActivityList = dailyActivityRepository.findByUserIdAndActivityDateBetween(
                 userId, date.minusDays(daysBefore), date);
-        return dailyActivityList.stream()
+
+        List<DailyActivityResponseDto> dailyActivityResponseDto = dailyActivityList.stream()
                 .map(DailyActivityResponseDto::of)
                 .toList();
+
+        StreakResponseDto streak = getStreakCount(userId);
+
+        return StreakDashboardDto.from(streak, dailyActivityResponseDto);
+
     }
 }

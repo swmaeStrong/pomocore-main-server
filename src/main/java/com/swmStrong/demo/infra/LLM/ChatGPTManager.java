@@ -70,7 +70,7 @@ public abstract class ChatGPTManager extends AbstractLLMManager {
         requestBody.put("model", openAIConfig.model());
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0);
-        requestBody.put("max_tokens", 150);
+        requestBody.put("max_tokens", 500);
         return requestBody;
     }
     protected abstract String getPrompt(String query);

@@ -76,7 +76,7 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
     }
 
     private static final String SUMMARIZE_PROMPT_TEMPLATE = """
-사용자가 사용한 앱들의 정보를 바탕으로, 해당 세션 동안 사용자가 무엇을 했는지 50자 이내로 요약해주세요.
+사용자가 사용한 앱들의 정보를 바탕으로, 해당 세션 동안 사용자가 무엇을 했는지 30자 이내로 요약해주세요.
 
 **분석할 데이터:**
 - App: 사용한 애플리케이션 이름
@@ -89,7 +89,9 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
 2. 구체적인 작업 내용이나 주제가 있다면 포함
 3. 한국어로 자연스러운 한 문장으로 작성
 4. "사용자가" 같은 불필요한 주어는 생략하고 핵심 위주로 간결하게 작성
-5. 명사형으로 문장을 마무리 (예시: "Java 프로젝트 코드 작성". "pomocore 팀 관리")
+5. 명사형으로 문장을 마무리 (예시: "Java 프로젝트 코드 작성", "pomocore 팀 관리", "백준 문제 풀이 및 블로그 포스팅")
+6. afk를 포함하는 경우 분석에 사용하지 않고 무시
+7. 마지막에 문장 부호 붙이지 않기 (예시: '.' ',' '?' '!')
 
 **데이터:**
 %s

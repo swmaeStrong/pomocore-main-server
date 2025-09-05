@@ -60,4 +60,13 @@ public class StreakServiceImpl implements StreakService {
                 .map(DailyActivityResponseDto::of)
                 .toList();
     }
+
+    @Override
+    public List<DailyActivityResponseDto> getDailyActivitiesBetweenDateAndDaysBefore(String userId, LocalDate date, Long daysBefore) {
+        List<DailyActivity> dailyActivityList = dailyActivityRepository.findByUserIdAndActivityDateBetween(
+                userId, date.minusDays(daysBefore), date);
+        return dailyActivityList.stream()
+                .map(DailyActivityResponseDto::of)
+                .toList();
+    }
 }

@@ -9,11 +9,8 @@ import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
-import com.swmStrong.demo.infra.LLM.LLMSummaryProvider;
-import com.swmStrong.demo.message.event.SessionProcessedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,8 +30,6 @@ public class SessionScoreServiceImpl implements SessionScoreService {
     private final LeaderboardProvider leaderboardProvider;
     private final SessionStateManager sessionStateManager;
     private final SessionPollingManager sessionPollingManager;
-    private final ApplicationEventPublisher eventPublisher;
-    private final LLMSummaryProvider llmSummaryProvider;
 
     public SessionScoreServiceImpl(
             SessionScoreRepository sessionScoreRepository,
@@ -42,9 +37,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
             CategoryProvider categoryProvider,
             LeaderboardProvider leaderboardProvider,
             SessionStateManager sessionStateManager,
-            SessionPollingManager sessionPollingManager,
-            ApplicationEventPublisher eventPublisher,
-            LLMSummaryProvider llmSummaryProvider
+            SessionPollingManager sessionPollingManager
     ) {
         this.sessionScoreRepository = sessionScoreRepository;
         this.pomodoroSessionProvider = pomodoroSessionProvider;
@@ -52,8 +45,6 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         this.leaderboardProvider = leaderboardProvider;
         this.sessionStateManager = sessionStateManager;
         this.sessionPollingManager = sessionPollingManager;
-        this.eventPublisher = eventPublisher;
-        this.llmSummaryProvider = llmSummaryProvider;
     }
 
     @Override
@@ -136,6 +127,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         }
     }
 
+    //TODO: 점수체계 변경 ( work 시간 / 총 시간 )
     private int getScore(double afkDuration, double distractedDuration, int distractedCount, double dropOutDuration) {
         int score = 100;
         score -= distractedCount / 5 * 2;
@@ -185,32 +177,10 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         ));
 
         sessionScoreRepository.save(sessionScore);
-        
-        // Redis에 세션 처리 완료 상태 저장
         sessionStateManager.markSessionAsProcessed(userId, sessionDate, session);
 
-        // 대기 중인 롱 폴링 요청에 응답
         List<SessionScoreResponseDto> sessionScores = getByUserIdAndSessionDate(userId, sessionDate);
-        
-        // 모든 세션이 처리되었는지 확인
-        boolean allSessionsProcessed = sessionScores.stream()
-                .allMatch(sessionData -> sessionStateManager.isSessionProcessed(userId, sessionDate, sessionData.session()));
-        
-        // 개별 세션에 대한 롱 폴링 알림 (기존 호환성)
-        sessionPollingManager.notifySessionProcessed(userId, sessionDate, session, sessionScores);
-        
-        // 모든 세션이 처리되었을 때만 날짜 기반 롱 폴링에 알림
-        if (allSessionsProcessed) {
-            sessionPollingManager.notifyAllSessionsProcessed(userId, sessionDate, sessionScores);
-        }
-        
-        // 처리 완료 이벤트 발행 (필요한 경우 다른 컴포넌트에서 사용)
-        eventPublisher.publishEvent(SessionProcessedEvent.builder()
-                .userId(userId)
-                .session(session)
-                .sessionDate(sessionDate)
-                .sessionScores(sessionScores)
-                .build());
+        sessionPollingManager.notifyAllSessionsProcessed(userId, sessionDate, sessionScores);
     }
 
     private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList) {

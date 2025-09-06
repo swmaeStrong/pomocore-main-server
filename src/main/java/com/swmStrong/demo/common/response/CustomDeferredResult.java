@@ -1,11 +1,13 @@
 package com.swmStrong.demo.common.response;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.function.Consumer;
 
 @Slf4j
+@Getter
 public class CustomDeferredResult<T> {
     
     private static final long DEFAULT_TIMEOUT_MS = 30000L; // 30초 기본 타임아웃
@@ -51,14 +53,9 @@ public class CustomDeferredResult<T> {
         deferredResult.onError(callback);
     }
     
-    public DeferredResult<T> getDeferredResult() {
-        return deferredResult;
-    }
-    
     public <R> DeferredResult<R> map(java.util.function.Function<T, R> mapper) {
         DeferredResult<R> mappedResult = new DeferredResult<>(DEFAULT_TIMEOUT_MS);
-        
-        // 기존 결과 핸들러 설정
+
         deferredResult.setResultHandler(result -> {
             if (result != null) {
                 mappedResult.setResult(mapper.apply((T) result));
@@ -66,17 +63,11 @@ public class CustomDeferredResult<T> {
                 mappedResult.setResult(null);
             }
         });
-        
-        // 타임아웃 전파
+
         deferredResult.onTimeout(() -> mappedResult.setResult(null));
-        
-        // 에러 전파
-        deferredResult.onError(throwable -> mappedResult.setErrorResult(throwable));
+
+        deferredResult.onError(mappedResult::setErrorResult);
         
         return mappedResult;
-    }
-    
-    public String getIdentifier() {
-        return identifier;
     }
 }

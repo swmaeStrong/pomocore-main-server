@@ -81,7 +81,7 @@
             <appender-ref ref="FILE"/>
         </root>
         <logger name="com.swmStrong" level="DEBUG"/>
-        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.springframework.web" level="ERROR"/>
         <logger name="org.hibernate.SQL" level="ERROR"/>
     </springProfile>
 

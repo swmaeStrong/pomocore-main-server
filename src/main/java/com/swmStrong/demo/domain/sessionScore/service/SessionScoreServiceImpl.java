@@ -9,11 +9,8 @@ import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
-import com.swmStrong.demo.infra.LLM.LLMSummaryProvider;
-import com.swmStrong.demo.message.event.SessionProcessedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -180,16 +177,10 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         ));
 
         sessionScoreRepository.save(sessionScore);
-
         sessionStateManager.markSessionAsProcessed(userId, sessionDate, session);
 
         List<SessionScoreResponseDto> sessionScores = getByUserIdAndSessionDate(userId, sessionDate);
-        boolean allSessionsProcessed = sessionScores.stream()
-                .allMatch(sessionData -> sessionStateManager.isSessionProcessed(userId, sessionDate, sessionData.session()));
-
-        if (allSessionsProcessed) {
-            sessionPollingManager.notifyAllSessionsProcessed(userId, sessionDate, sessionScores);
-        }
+        sessionPollingManager.notifyAllSessionsProcessed(userId, sessionDate, sessionScores);
     }
 
     private Result calculatePomodoroScore(List<PomodoroUsageLog> pomodoroUsageLogList) {

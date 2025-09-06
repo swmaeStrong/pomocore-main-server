@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -37,6 +40,24 @@ public class SessionStateManager {
         boolean processed = value == null;
         log.debug("Session processed check for {}: value={}, processed={}", key, value, processed);
         return processed;
+    }
+    
+    public boolean areAllSessionsProcessed(String userId, LocalDate date, Integer session) {
+        List<String> keys = new ArrayList<>();
+
+        for (int i=1; i<=session; i++) {
+            String key = generateKey(userId, date, i);
+            keys.add(key);
+        }
+        
+        Map<String, String> results = redisRepository.multiGet(keys);
+
+        boolean allProcessed = results.isEmpty();
+        
+        log.debug("Bulk session processed check for userId: {}, date: {}, session: {}, processed: {}",
+                userId, date, session, allProcessed);
+        
+        return allProcessed;
     }
     
     private String generateKey(String userId, LocalDate date, int session) {

@@ -2,10 +2,8 @@ package com.swmStrong.demo.domain.sessionScore.service;
 
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 @Slf4j

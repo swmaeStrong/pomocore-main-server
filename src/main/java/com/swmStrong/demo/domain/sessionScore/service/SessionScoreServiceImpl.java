@@ -187,7 +187,6 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         boolean allSessionsProcessed = sessionScores.stream()
                 .allMatch(sessionData -> sessionStateManager.isSessionProcessed(userId, sessionDate, sessionData.session()));
 
-        // 모든 세션이 처리되었을 때만 날짜 기반 롱 폴링에 알림
         if (allSessionsProcessed) {
             sessionPollingManager.notifyAllSessionsProcessed(userId, sessionDate, sessionScores);
         }

@@ -11,4 +11,5 @@ public interface StreakService {
     StreakResponseDto getStreakCount(String userId);
     List<DailyActivityResponseDto> getDailyActivitiesByMonth(String userId, LocalDate date);
     StreakDashboardDto getDailyActivitiesBetweenDateAndDaysBefore(String userId, LocalDate date, Long daysBefore);
+    List<DailyActivityResponseDto> getWeeklySessionCount(String userId, LocalDate date);
 }

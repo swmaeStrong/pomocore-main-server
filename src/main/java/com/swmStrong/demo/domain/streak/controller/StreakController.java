@@ -90,4 +90,23 @@ public class StreakController {
                 streakService.getDailyActivitiesBetweenDateAndDaysBefore(principal.userId(), date, daysBefore)
         );
     }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "주간 유저 세션 개수 조회",
+            description =
+                    "<p> 세션 개수 조회를 스트릭에서 담당하고 있으니, 주간 분석 그래프 또한 여기서 적용한다. </p>"
+    )
+    @GetMapping("/weekly")
+    public ResponseEntity<ApiResponse<List<DailyActivityResponseDto>>> getWeeklySessionCount(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                streakService.getWeeklySessionCount(principal.userId(), date)
+        );
+    }
 }

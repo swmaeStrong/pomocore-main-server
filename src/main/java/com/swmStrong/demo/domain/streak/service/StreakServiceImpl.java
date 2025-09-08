@@ -13,7 +13,9 @@ import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.List;
 
 @Service
@@ -75,5 +77,18 @@ public class StreakServiceImpl implements StreakService {
 
         return StreakDashboardDto.from(streak, dailyActivityResponseDto);
 
+    }
+
+    @Override
+    public List<DailyActivityResponseDto> getWeeklySessionCount(String userId, LocalDate date) {
+        WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
+        LocalDate startOfWeek = date.with(weekFields.dayOfWeek(), 1);
+
+        List<DailyActivity> dailyActivityList = dailyActivityRepository.findByUserIdAndActivityDateBetween(
+                userId, startOfWeek, date);
+
+        return dailyActivityList.stream()
+                .map(DailyActivityResponseDto::of)
+                .toList();
     }
 }

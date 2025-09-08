@@ -163,7 +163,6 @@ public class PomodoroServiceImpl implements PomodoroService {
         );
     }
 
-
     @Override
     public List<CategoryUsageDto> getUsageLogByUserIdAndDateBetween(String userId, LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
@@ -186,10 +185,13 @@ public class PomodoroServiceImpl implements PomodoroService {
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategory.categories;
 
+        double totalSeconds = 0;
+
         List<PomodoroUsageLog> distractedUsageLogList = new ArrayList<>();
         List<PomodoroUsageLog> workUsageLogList = new ArrayList<>();
 
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
+            totalSeconds += pomodoroUsageLog.getDuration();
             if (workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId()))) {
                 workUsageLogList.add(pomodoroUsageLog);
             } else {
@@ -263,7 +265,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             );
         }
 
-        return AppUsageDto.from(distractedAppUsageList, workAppUsageList);
+        return AppUsageDto.from(totalSeconds, distractedAppUsageList, workAppUsageList);
     }
 
     private static String getString(List<CategorizedData> categorizedDataList, List<PomodoroUsageLog> pomodoroUsageLogList) {

@@ -69,12 +69,13 @@ public class PomodoroController {
             summary = "유저 세션 상세 정보 확인",
             description =
                     "<p> 유저 세션의 기본 정보를 가지고 있다고 가정한다. </p>" +
-                    "<p> 해당 가정에 의해 여기서는 방해한 앱에 접근한 횟수와 시간만을 반환한다. </p>"
+                    "<p> 해당 가정에 의해 여기서는 방해한 앱에 접근한 횟수와 시간만을 반환한다. </p>" +
+                    "<p> session을 입력하지 않는 경우 해당 일자의 전체 details 를 반환한다. </p>"
     )
     @GetMapping("/details")
     public ResponseEntity<ApiResponse<AppUsageDto>> getDistractedApps(
             @AuthenticationPrincipal SecurityPrincipal principal,
-            @RequestParam int session,
+            @RequestParam(required = false) Integer session,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDate date
     ) {

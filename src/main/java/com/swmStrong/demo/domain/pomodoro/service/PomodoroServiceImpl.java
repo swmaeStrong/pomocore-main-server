@@ -176,8 +176,13 @@ public class PomodoroServiceImpl implements PomodoroService {
     }
 
     @Override
-    public AppUsageDto getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, int session) {
-        List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
+    public AppUsageDto getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, Integer session) {
+        List<PomodoroUsageLog> pomodoroUsageLogList;
+        if (session == null) {
+            pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDate(userId, date);
+        } else {
+            pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
+        }
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategory.categories;
 

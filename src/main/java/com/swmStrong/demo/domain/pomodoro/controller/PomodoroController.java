@@ -84,4 +84,22 @@ public class PomodoroController {
                 pomodoroService.getDetailsByUserIdAndSessionDateAndSession(principal.userId(), date, session)
         );
     }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "주간 details 확인",
+            description =
+                    "<p> 월요일부터 해당 날짜 까지의 details를 확인한다. </p>"
+    )
+    @GetMapping("/details/weekly")
+    public ResponseEntity<ApiResponse<AppUsageDto>> getWeeklyDetailsByUserIdAndSessionDate(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                pomodoroService.getWeeklyDetailsByUserIdAndSessionDate(principal.userId(), date)
+        );
+    }
 }

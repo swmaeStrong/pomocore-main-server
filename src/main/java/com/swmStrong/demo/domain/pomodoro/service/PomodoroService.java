@@ -11,4 +11,5 @@ public interface PomodoroService {
     void save(String userId, PomodoroUsageLogsDto pomodoroUsageLogsDto);
     List<CategoryUsageDto> getUsageLogByUserIdAndDateBetween(String userId, LocalDate date);
     AppUsageDto getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, Integer session);
+    AppUsageDto getWeeklyDetailsByUserIdAndSessionDate(String userId, LocalDate date);
 }

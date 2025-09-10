@@ -6,6 +6,7 @@ import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
+import com.swmStrong.demo.domain.sessionScore.dto.WeeklySessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.service.SessionLongPollingService;
 import com.swmStrong.demo.domain.sessionScore.service.SessionScoreService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -105,6 +106,25 @@ public class SessionScoreController {
 
         return customDeferredResult.map(data -> 
             CustomResponseEntity.of(SuccessCode._OK, data)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "주간 점수 평균",
+            description =
+                    "<p> 해당 일자 주간의 점수 평균을 반환한다. </p>"
+    )
+    @GetMapping("/weekly")
+    public ResponseEntity<ApiResponse<WeeklySessionScoreResponseDto>> getWeeklyDetailsByUserIdAndSessionDate(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                sessionScoreService.getWeeklyDetailsByUserIdAndSessionDate(principal.userId(), date)
         );
     }
     

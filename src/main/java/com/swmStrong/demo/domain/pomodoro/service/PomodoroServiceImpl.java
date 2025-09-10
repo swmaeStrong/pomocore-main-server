@@ -194,7 +194,7 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
             totalSeconds += pomodoroUsageLog.getDuration();
-            if (workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId()))) {
+            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
                 workUsageLogList.add(pomodoroUsageLog);
             } else {
                 distractedUsageLogList.add(pomodoroUsageLog);
@@ -273,8 +273,9 @@ public class PomodoroServiceImpl implements PomodoroService {
     @Override
     public AppUsageDto getWeeklyDetailsByUserIdAndSessionDate(String userId, LocalDate date) {
         WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
-        LocalDate startOfWeek = date.with(weekFields.dayOfWeek(), 1);
-        List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateBetween(userId, startOfWeek, date);
+        LocalDate startOfWeek = date.with(weekFields.dayOfWeek(), 1).minusDays(1);
+        LocalDate endOfWeek = date.with(weekFields.dayOfWeek(), 7).plusDays(1);
+        List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateBetween(userId, startOfWeek, endOfWeek);
 
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategory.categories;
@@ -283,14 +284,23 @@ public class PomodoroServiceImpl implements PomodoroService {
         List<PomodoroUsageLog> workUsageLogList = new ArrayList<>();
 
         double totalSeconds = 0;
+        Map<LocalDate, AppUsageDto.DailyUsageResult> dailyResults = new TreeMap<>();
+
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
             totalSeconds += pomodoroUsageLog.getDuration();
-            if (workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId()))) {
+            AppUsageDto.DailyUsageResult dailyResult = dailyResults.computeIfAbsent(
+                    pomodoroUsageLog.getSessionDate(), k -> new AppUsageDto.DailyUsageResult(pomodoroUsageLog.getSessionDate())
+            );
+
+            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
                 workUsageLogList.add(pomodoroUsageLog);
+                dailyResult.increaseWorkSeconds(pomodoroUsageLog.getDuration());
             } else {
                 distractedUsageLogList.add(pomodoroUsageLog);
+                dailyResult.increaseDistractedSeconds(pomodoroUsageLog.getDuration());
             }
         }
+        List<AppUsageDto.DailyUsageResult> dailyResultList = new ArrayList<>(dailyResults.values());
 
         Set<ObjectId> allCategorizedDataIds = new HashSet<>();
         for (PomodoroUsageLog log : pomodoroUsageLogList) {
@@ -358,7 +368,7 @@ public class PomodoroServiceImpl implements PomodoroService {
             );
         }
 
-        return AppUsageDto.from(totalSeconds, distractedAppUsageList, workAppUsageList);
+        return AppUsageDto.from(totalSeconds, dailyResultList, distractedAppUsageList, workAppUsageList);
     }
 
     private static String getString(List<CategorizedData> categorizedDataList, List<PomodoroUsageLog> pomodoroUsageLogList) {

@@ -10,21 +10,23 @@ public record AppUsageDto(
         double totalSeconds,
         @JsonInclude(JsonInclude.Include.NON_NULL)
         List<DailyUsageResult> dailyResults,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        List<CategoryUsageDto> categoryUsages,
         List<AppUsageResult> distractedAppUsage,
         List<AppUsageResult> workAppUsage
 ) {
     public static AppUsageDto from(
-            double totalSeconds, List<DailyUsageResult> dailyResultList,
+            double totalSeconds, List<DailyUsageResult> dailyResultList, List<CategoryUsageDto> categoryUsages,
             List<AppUsageResult> distractedAppUsage, List<AppUsageResult> workAppUsage
     ) {
-        return new AppUsageDto(totalSeconds, dailyResultList, distractedAppUsage, workAppUsage);
+        return new AppUsageDto(totalSeconds, dailyResultList, categoryUsages, distractedAppUsage, workAppUsage);
     }
 
     public static AppUsageDto from(
             double totalSeconds,
             List<AppUsageResult> distractedAppUsage, List<AppUsageResult> workAppUsage
     ) {
-        return new AppUsageDto(totalSeconds, null, distractedAppUsage, workAppUsage);
+        return new AppUsageDto(totalSeconds, null, null, distractedAppUsage, workAppUsage);
     }
 
     @Getter

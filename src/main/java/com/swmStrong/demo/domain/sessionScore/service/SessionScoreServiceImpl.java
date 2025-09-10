@@ -76,9 +76,9 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                             )).toList();
 
                     int score = getScore(
+                            Math.min(sessionScore.getSessionMinutes(), sessionScore.getDuration()),
                             sessionScore.getAfkDuration(),
                             sessionScore.getDistractedDuration(),
-                            sessionScore.getDistractedCount(),
                             (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
                     );
 
@@ -103,9 +103,9 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         return sessionScoreList.stream()
                 .map(sessionScore -> {
                     int score = getScore(
+                            Math.min(sessionScore.getSessionMinutes(), sessionScore.getDuration()),
                             sessionScore.getAfkDuration(),
                             sessionScore.getDistractedDuration(),
-                            sessionScore.getDistractedCount(),
                             (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
                     );
 
@@ -130,22 +130,9 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         }
     }
 
-    //TODO: 점수체계 변경 ( work 시간 / 총 시간 )
-    private int getScore(double afkDuration, double distractedDuration, int distractedCount, double dropOutDuration) {
-        int score = 100;
-        score -= distractedCount / 5 * 2;
-        score -= (int) distractedDuration / 10;
-        score = Math.max(30, score);
-
-        dropOutDuration = Math.max(0, dropOutDuration - 10);
-
-        score -= (int) dropOutDuration / 10;
-        score -= (int) afkDuration / 10 * 2;
-        score -= distractedCount / 10;
-
-        score = Math.max(0, score);
-
-        return score;
+    private int getScore(double duration, double afkDuration, double distractedDuration, double dropOutDuration) {
+        double distracted = afkDuration + distractedDuration + dropOutDuration;
+        return Math.min(100, Math.max(0, 100 - (int) (distracted/duration)));
     }
 
     @Transactional
@@ -173,9 +160,9 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         );
 
         leaderboardProvider.increaseSessionScore(userId, sessionDate, getScore(
+                Math.min(sessionScore.getSessionMinutes(), sessionScore.getDuration()),
                 sessionScore.getAfkDuration(),
                 sessionScore.getDistractedDuration(),
-                sessionScore.getDistractedCount(),
                 (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
         ));
 
@@ -224,10 +211,10 @@ public class SessionScoreServiceImpl implements SessionScoreService {
             double totalScore = 0;
             for (SessionScore sessionScore: sessionScoreList) {
                 int score = getScore(
-                        sessionScore.getAfkDuration(),
-                        sessionScore.getDistractedDuration(),
-                        sessionScore.getDistractedCount(),
-                        (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
+                    Math.min(sessionScore.getSessionMinutes(), sessionScore.getDuration()),
+                    sessionScore.getAfkDuration(),
+                    sessionScore.getDistractedDuration(),
+                    (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
                 );
                 totalScore += score;
             }

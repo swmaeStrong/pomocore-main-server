@@ -2,11 +2,12 @@ package com.swmStrong.demo.domain.sessionScore.service;
 
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -22,29 +23,41 @@ public class SessionStateManager {
     
     public void initializeSessionProcessing(String userId, LocalDate date, int session) {
         String key = generateKey(userId, date, session);
-        redisRepository.setDataWithExpire(key, false, TTL);
+        redisRepository.setDataWithExpire(key, 0, TTL);
         log.debug("Initialized session processing: {}", key);
     }
     
     public void markSessionAsProcessed(String userId, LocalDate date, int session) {
         String key = generateKey(userId, date, session);
-        redisRepository.setDataWithExpire(key, true, TTL);
+        redisRepository.deleteData(key);
         log.debug("Marked session as processed: {}", key);
     }
     
     public boolean isSessionProcessed(String userId, LocalDate date, int session) {
         String key = generateKey(userId, date, session);
         String value = redisRepository.getData(key);
-        // null이거나 true면 처리 완료로 간주
-        boolean processed = value == null || "true".equals(value);
+
+        boolean processed = value == null;
         log.debug("Session processed check for {}: value={}, processed={}", key, value, processed);
         return processed;
     }
     
-    public void removeSessionProcessedFlag(String userId, LocalDate date, int session) {
-        String key = generateKey(userId, date, session);
-        redisRepository.deleteData(key);
-        log.debug("Removed processed flag for: {}", key);
+    public boolean areAllSessionsProcessed(String userId, LocalDate date, Integer session) {
+        List<String> keys = new ArrayList<>();
+
+        for (int i=1; i<=session; i++) {
+            String key = generateKey(userId, date, i);
+            keys.add(key);
+        }
+        
+        Map<String, String> results = redisRepository.multiGet(keys);
+
+        boolean allProcessed = results.isEmpty();
+        
+        log.debug("Bulk session processed check for userId: {}, date: {}, session: {}, processed: {}",
+                userId, date, session, allProcessed);
+        
+        return allProcessed;
     }
     
     private String generateKey(String userId, LocalDate date, int session) {

@@ -69,18 +69,37 @@ public class PomodoroController {
             summary = "유저 세션 상세 정보 확인",
             description =
                     "<p> 유저 세션의 기본 정보를 가지고 있다고 가정한다. </p>" +
-                    "<p> 해당 가정에 의해 여기서는 방해한 앱에 접근한 횟수와 시간만을 반환한다. </p>"
+                    "<p> 해당 가정에 의해 여기서는 방해한 앱에 접근한 횟수와 시간만을 반환한다. </p>" +
+                    "<p> session을 입력하지 않는 경우 해당 일자의 전체 details 를 반환한다. </p>"
     )
     @GetMapping("/details")
     public ResponseEntity<ApiResponse<AppUsageDto>> getDistractedApps(
             @AuthenticationPrincipal SecurityPrincipal principal,
-            @RequestParam int session,
+            @RequestParam(required = false) Integer session,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDate date
     ) {
         return CustomResponseEntity.of(
                 SuccessCode._OK,
                 pomodoroService.getDetailsByUserIdAndSessionDateAndSession(principal.userId(), date, session)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "주간 details 확인",
+            description =
+                    "<p> 월요일부터 해당 날짜 까지의 details를 확인한다. </p>"
+    )
+    @GetMapping("/details/weekly")
+    public ResponseEntity<ApiResponse<AppUsageDto>> getWeeklyDetailsByUserIdAndSessionDate(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                pomodoroService.getWeeklyDetailsByUserIdAndSessionDate(principal.userId(), date)
         );
     }
 }

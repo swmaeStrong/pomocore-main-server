@@ -434,7 +434,8 @@ public class GroupServiceImpl implements GroupService{
         }
 
         String link = "https://www.pomocore.com/invite?code=" + code;
-        if (emailsRequestDto != null) {
+
+        if (emailsRequestDto.emails() != null && !emailsRequestDto.emails().isEmpty()) {
             mailSender.sendInvitationEmail(emailsRequestDto.emails(), group.getName(), link);
         }
 

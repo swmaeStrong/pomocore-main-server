@@ -30,8 +30,10 @@ import org.bson.types.ObjectId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -163,7 +165,6 @@ public class PomodoroServiceImpl implements PomodoroService {
         );
     }
 
-
     @Override
     public List<CategoryUsageDto> getUsageLogByUserIdAndDateBetween(String userId, LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
@@ -176,16 +177,24 @@ public class PomodoroServiceImpl implements PomodoroService {
     }
 
     @Override
-    public AppUsageDto getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, int session) {
-        List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
+    public AppUsageDto getDetailsByUserIdAndSessionDateAndSession(String userId, LocalDate date, Integer session) {
+        List<PomodoroUsageLog> pomodoroUsageLogList;
+        if (session == null) {
+            pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDate(userId, date);
+        } else {
+            pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateAndSession(userId, date, session);
+        }
         Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
         Set<String> workCategories = WorkCategory.categories;
+
+        double totalSeconds = 0;
 
         List<PomodoroUsageLog> distractedUsageLogList = new ArrayList<>();
         List<PomodoroUsageLog> workUsageLogList = new ArrayList<>();
 
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
-            if (workCategories.contains(categoryMap.get(pomodoroUsageLog.getCategoryId()))) {
+            totalSeconds += pomodoroUsageLog.getDuration();
+            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
                 workUsageLogList.add(pomodoroUsageLog);
             } else {
                 distractedUsageLogList.add(pomodoroUsageLog);
@@ -258,7 +267,108 @@ public class PomodoroServiceImpl implements PomodoroService {
             );
         }
 
-        return AppUsageDto.from(distractedAppUsageList, workAppUsageList);
+        return AppUsageDto.from(totalSeconds, distractedAppUsageList, workAppUsageList);
+    }
+
+    @Override
+    public AppUsageDto getWeeklyDetailsByUserIdAndSessionDate(String userId, LocalDate date) {
+        WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
+        LocalDate startOfWeek = date.with(weekFields.dayOfWeek(), 1).minusDays(1);
+        LocalDate endOfWeek = date.with(weekFields.dayOfWeek(), 7).plusDays(1);
+        List<PomodoroUsageLog> pomodoroUsageLogList = pomodoroUsageLogRepository.findByUserIdAndSessionDateBetween(userId, startOfWeek, endOfWeek);
+
+        Map<ObjectId, String> categoryMap = categoryProvider.getCategoryMapById();
+        Set<String> workCategories = WorkCategory.categories;
+
+        List<PomodoroUsageLog> distractedUsageLogList = new ArrayList<>();
+        List<PomodoroUsageLog> workUsageLogList = new ArrayList<>();
+
+        double totalSeconds = 0;
+        Map<LocalDate, AppUsageDto.DailyUsageResult> dailyResults = new TreeMap<>();
+
+        for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
+            totalSeconds += pomodoroUsageLog.getDuration();
+            AppUsageDto.DailyUsageResult dailyResult = dailyResults.computeIfAbsent(
+                    pomodoroUsageLog.getSessionDate(), k -> new AppUsageDto.DailyUsageResult(pomodoroUsageLog.getSessionDate())
+            );
+
+            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
+                workUsageLogList.add(pomodoroUsageLog);
+                dailyResult.increaseWorkSeconds(pomodoroUsageLog.getDuration());
+            } else {
+                distractedUsageLogList.add(pomodoroUsageLog);
+                dailyResult.increaseDistractedSeconds(pomodoroUsageLog.getDuration());
+            }
+        }
+        List<AppUsageDto.DailyUsageResult> dailyResultList = new ArrayList<>(dailyResults.values());
+
+        Set<ObjectId> allCategorizedDataIds = new HashSet<>();
+        for (PomodoroUsageLog log : pomodoroUsageLogList) {
+            allCategorizedDataIds.add(log.getCategorizedDataId());
+        }
+
+        Map<ObjectId, CategorizedData> categorizedDataMap = categorizedDataRepository.findAllById(allCategorizedDataIds)
+                .stream()
+                .collect(Collectors.toMap(CategorizedData::getId, Function.identity(), (existing, replacement) -> existing));
+
+        Map<String, Integer> distractedCountMap = new HashMap<>();
+        Map<String, Double> distractedDurationMap = new HashMap<>();
+        Map<String, Integer> workCountMap = new HashMap<>();
+        Map<String, Double> workDurationMap = new HashMap<>();
+
+        for (PomodoroUsageLog log : distractedUsageLogList) {
+            CategorizedData categorizedData = categorizedDataMap.get(log.getCategorizedDataId());
+            if (categorizedData != null) {
+                String app = categorizedData.getApp();
+                if (Browsers.patterns.contains(app.toLowerCase())) {
+                    String domainUrl = DomainExtractor.extractDomain(categorizedData.getUrl());
+                    if (domainUrl != null && !domainUrl.isEmpty()) {
+                        app = DomainExtractor.extractDomain(categorizedData.getUrl());
+                    }
+                }
+                distractedCountMap.merge(app, 1, Integer::sum);
+                distractedDurationMap.merge(app, log.getDuration(), Double::sum);
+            }
+        }
+
+        for (PomodoroUsageLog log : workUsageLogList) {
+            CategorizedData categorizedData = categorizedDataMap.get(log.getCategorizedDataId());
+            if (categorizedData != null) {
+                String app = categorizedData.getApp();
+                if (Browsers.patterns.contains(app.toLowerCase())) {
+                    String domainUrl = DomainExtractor.extractDomain(categorizedData.getUrl());
+                    if (domainUrl != null && !domainUrl.isEmpty()) {
+                        app = DomainExtractor.extractDomain(categorizedData.getUrl());
+                    }
+                }
+                workCountMap.merge(app, 1, Integer::sum);
+                workDurationMap.merge(app, log.getDuration(), Double::sum);
+            }
+        }
+
+        List<AppUsageResult> distractedAppUsageList = new ArrayList<>();
+        for (String app: distractedCountMap.keySet()) {
+            distractedAppUsageList.add(
+                    AppUsageResult.builder()
+                            .app(app)
+                            .count(distractedCountMap.get(app))
+                            .duration(distractedDurationMap.get(app))
+                            .build()
+            );
+        }
+
+        List<AppUsageResult> workAppUsageList = new ArrayList<>();
+        for (String app: workCountMap.keySet()) {
+            workAppUsageList.add(
+                    AppUsageResult.builder()
+                            .app(app)
+                            .count(workCountMap.get(app))
+                            .duration(workDurationMap.get(app))
+                            .build()
+            );
+        }
+
+        return AppUsageDto.from(totalSeconds, dailyResultList, distractedAppUsageList, workAppUsageList);
     }
 
     private static String getString(List<CategorizedData> categorizedDataList, List<PomodoroUsageLog> pomodoroUsageLogList) {

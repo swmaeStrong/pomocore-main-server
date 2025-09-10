@@ -5,6 +5,7 @@ import com.swmStrong.demo.common.response.ApiResponse;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.streak.dto.DailyActivityResponseDto;
+import com.swmStrong.demo.domain.streak.dto.StreakDashboardDto;
 import com.swmStrong.demo.domain.streak.dto.StreakResponseDto;
 import com.swmStrong.demo.domain.streak.service.StreakService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,9 +50,9 @@ public class StreakController {
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
-            summary = "유저 스트릭 달력 조회",
+            summary = "유저 스트릭 조회 (달력형)",
             description =
-                    "<p> 유저의 스트릭 달력을 조회한다. </p>" +
+                    "<p> 유저의 스트릭 달력을 조회한다. (듀오링고 스타일) </p>" +
                     "<p> 날짜를 넣으면 자동으로 그 달의 1일 ~ 말일 까지의 데이터를 반환한다. 없으면 반환 안한다. </p>"
     )
     @GetMapping("/calendar")
@@ -67,4 +68,45 @@ public class StreakController {
         );
     }
 
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 스트릭 조회(격자형)",
+            description =
+                    "<p> 유저의 스트릭 격자를 조회한다. (깃허브 스타일) </p>" +
+                    "<p> 날짜를 넣으면 자동으로 이전일까지를 조회한다. 없으면 반환 안한다. </p>" +
+                    "<p> days-before 에 값을 넣지 않을 시의 기본값은 100일이다. </p>"
+    )
+    @GetMapping("/matrix")
+    public ResponseEntity<ApiResponse<StreakDashboardDto>> getDailyActivitiesBetweenDateAndDaysBefore(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date,
+            @RequestParam(name = "days-before", required = false, defaultValue = "100")
+            Long daysBefore
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                streakService.getDailyActivitiesBetweenDateAndDaysBefore(principal.userId(), date, daysBefore)
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "주간 유저 세션 개수 조회",
+            description =
+                    "<p> 세션 개수 조회를 스트릭에서 담당하고 있으니, 주간 분석 그래프 또한 여기서 적용한다. </p>"
+    )
+    @GetMapping("/weekly")
+    public ResponseEntity<ApiResponse<List<DailyActivityResponseDto>>> getWeeklySessionCount(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                streakService.getWeeklySessionCount(principal.userId(), date)
+        );
+    }
 }

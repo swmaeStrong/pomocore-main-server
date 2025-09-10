@@ -216,20 +216,24 @@ public class SessionScoreServiceImpl implements SessionScoreService {
     @Override
     public WeeklySessionScoreResponseDto getWeeklyDetailsByUserIdAndSessionDate(String userId, LocalDate date) {
         WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
-        LocalDate startOfWeek = date.with(weekFields.dayOfWeek(), 1);
+        LocalDate startOfWeek = date.with(weekFields.dayOfWeek(), 1).minusDays(1);
+        LocalDate endOfWeek = date.with(weekFields.dayOfWeek(), 7).plusDays(1);
 
-        List<SessionScore> sessionScoreList = sessionScoreRepository.findByUserIdAndSessionDateBetween(userId, startOfWeek, date);
-        double totalScore = 0;
-        for (SessionScore sessionScore: sessionScoreList) {
-            int score = getScore(
-                    sessionScore.getAfkDuration(),
-                    sessionScore.getDistractedDuration(),
-                    sessionScore.getDistractedCount(),
-                    (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
-            );
-            totalScore += score;
+        List<SessionScore> sessionScoreList = sessionScoreRepository.findByUserIdAndSessionDateBetween(userId, startOfWeek, endOfWeek);
+        if (!sessionScoreList.isEmpty()) {
+            double totalScore = 0;
+            for (SessionScore sessionScore: sessionScoreList) {
+                int score = getScore(
+                        sessionScore.getAfkDuration(),
+                        sessionScore.getDistractedDuration(),
+                        sessionScore.getDistractedCount(),
+                        (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
+                );
+                totalScore += score;
+            }
+            return new WeeklySessionScoreResponseDto(totalScore/sessionScoreList.size());
         }
-        return new WeeklySessionScoreResponseDto(totalScore/sessionScoreList.size());
+        return new WeeklySessionScoreResponseDto(0);
     }
 
     record Result(

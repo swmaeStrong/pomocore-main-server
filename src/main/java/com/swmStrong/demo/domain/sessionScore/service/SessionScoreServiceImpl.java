@@ -7,6 +7,7 @@ import com.swmStrong.demo.domain.pomodoro.entity.PomodoroUsageLog;
 import com.swmStrong.demo.domain.pomodoro.facade.PomodoroSessionProvider;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionDashboardDto;
 import com.swmStrong.demo.domain.sessionScore.dto.SessionScoreResponseDto;
+import com.swmStrong.demo.domain.sessionScore.dto.WeeklySessionScoreResponseDto;
 import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -210,6 +213,24 @@ public class SessionScoreServiceImpl implements SessionScoreService {
         return new Result(distractedCount, distractedDuration, afkDuration);
     }
 
+    @Override
+    public WeeklySessionScoreResponseDto getWeeklyDetailsByUserIdAndSessionDate(String userId, LocalDate date) {
+        WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
+        LocalDate startOfWeek = date.with(weekFields.dayOfWeek(), 1);
+
+        List<SessionScore> sessionScoreList = sessionScoreRepository.findByUserIdAndSessionDateBetween(userId, startOfWeek, date);
+        double totalScore = 0;
+        for (SessionScore sessionScore: sessionScoreList) {
+            int score = getScore(
+                    sessionScore.getAfkDuration(),
+                    sessionScore.getDistractedDuration(),
+                    sessionScore.getDistractedCount(),
+                    (sessionScore.getSessionMinutes() * 60) - sessionScore.getDuration()
+            );
+            totalScore += score;
+        }
+        return new WeeklySessionScoreResponseDto(totalScore/sessionScoreList.size());
+    }
 
     record Result(
             int distractedCount,

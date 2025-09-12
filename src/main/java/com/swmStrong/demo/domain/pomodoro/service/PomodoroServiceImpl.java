@@ -194,7 +194,9 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
             totalSeconds += pomodoroUsageLog.getDuration();
-            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
+            String category = categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized");
+            if (category.equals("AFK")) continue;
+            if (workCategories.contains(category)) {
                 workUsageLogList.add(pomodoroUsageLog);
             } else {
                 distractedUsageLogList.add(pomodoroUsageLog);
@@ -288,17 +290,21 @@ public class PomodoroServiceImpl implements PomodoroService {
         Map<String, Double> categoryDurationMap = new HashMap<>();
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
             totalSeconds += pomodoroUsageLog.getDuration();
+
             AppUsageDto.DailyUsageResult dailyResult = dailyResults.computeIfAbsent(
                     pomodoroUsageLog.getSessionDate(), k -> new AppUsageDto.DailyUsageResult(pomodoroUsageLog.getSessionDate())
             );
 
+            String category = categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized");
+            if (category.equals("AFK")) continue;
+
             categoryDurationMap.merge(
-                    categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"),
+                    category,
                     pomodoroUsageLog.getDuration(),
                     Double::sum
             );
 
-            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
+            if (workCategories.contains(category)) {
                 workUsageLogList.add(pomodoroUsageLog);
                 dailyResult.increaseWorkSeconds(pomodoroUsageLog.getDuration());
             } else {
@@ -306,6 +312,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                 dailyResult.increaseDistractedSeconds(pomodoroUsageLog.getDuration());
             }
         }
+
         List<AppUsageDto.DailyUsageResult> dailyResultList = new ArrayList<>(dailyResults.values());
 
         Set<ObjectId> allCategorizedDataIds = new HashSet<>();

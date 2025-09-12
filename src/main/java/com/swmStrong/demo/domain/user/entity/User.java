@@ -59,4 +59,8 @@ public class User extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
         this.profileImageKey = profileImageKey;
     }
+
+    public void completeOnBoard() {
+        this.isOnBoarded = true;
+    }
 }

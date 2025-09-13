@@ -30,6 +30,8 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<UserGroup> groups = new ArrayList<>();
 
+    private boolean isOnBoarded = false;
+
     private String profileImageUrl;
     private String profileImageKey;
 
@@ -56,5 +58,9 @@ public class User extends BaseEntity {
     public void updateProfileImage(String profileImageUrl, String profileImageKey) {
         this.profileImageUrl = profileImageUrl;
         this.profileImageKey = profileImageKey;
+    }
+
+    public void completeOnBoard() {
+        this.isOnBoarded = true;
     }
 }

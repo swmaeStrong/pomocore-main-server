@@ -5,9 +5,10 @@ import com.swmStrong.demo.domain.user.entity.User;
 public record UserResponseDto(
         String userId,
         String nickname,
+        Boolean isOnBoarded,
         String profileImageUrl
 ) {
     public static UserResponseDto of(User user) {
-        return new UserResponseDto(user.getId(), user.getNickname(), user.getProfileImageUrl());
+        return new UserResponseDto(user.getId(), user.getNickname(), user.isOnBoarded(), user.getProfileImageUrl());
     }
 }

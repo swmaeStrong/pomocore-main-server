@@ -37,7 +37,6 @@ public class UserServiceImpl implements UserService {
     private final RedisRepository redisRepository;
     private final S3Client s3Client;
     private final S3Properties s3Properties;
-    private final ObjectMapper objectMapper;
     private final StreakProvider streakProvider;
 
     public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
@@ -53,8 +52,7 @@ public class UserServiceImpl implements UserService {
             RedisRepository redisRepository,
             StreakProvider streakProvider,
             S3Client s3Client,
-            S3Properties s3Properties,
-            ObjectMapper objectMapper
+            S3Properties s3Properties
     ) {
         this.userRepository = userRepository;
         this.tokenManager = tokenManager;
@@ -62,7 +60,6 @@ public class UserServiceImpl implements UserService {
         this.streakProvider = streakProvider;
         this.s3Client = s3Client;
         this.s3Properties = s3Properties;
-        this.objectMapper = objectMapper;
     }
 
     @Override

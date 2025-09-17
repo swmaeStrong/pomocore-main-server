@@ -166,10 +166,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(String userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ApiException(ErrorCode.USER_NOT_FOUND);
-        }
-
         userRepository.deleteById(userId);
         redisRepository.deleteData(getUserInfoKey(userId));
     }

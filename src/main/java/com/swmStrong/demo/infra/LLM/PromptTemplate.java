@@ -87,7 +87,7 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
 **요약 지침:**
 1. 가장 많이 사용한 앱과 활동을 중심으로 요약
 2. 구체적인 작업 내용이나 주제가 있다면 포함
-3. 한국어로 자연스러운 한 문장으로 작성
+3. 자연스러운 한 문장으로 한국어와 영어 각각 json으로 작성
 4. "사용자가" 같은 불필요한 주어는 생략하고 핵심 위주로 간결하게 작성
 5. 명사형으로 문장을 마무리 (예시: "Java 프로젝트 코드 작성", "pomocore 팀 관리", "백준 문제 풀이 및 블로그 포스팅")
 6. 마지막 단어를 '집중'으로 끝내지 않기 (예시: '백준 문제 풀이에 집중'이 아닌 '백준 문제 풀이'로 마무리)
@@ -97,6 +97,12 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
 
 **데이터:**
 %s
+
+**출력 지침:**
+{
+  summaryKor: string(한글),
+  summaryEng: string(영어),
+}
 """;
 
     public String getSummarizeTemplate(String query) {

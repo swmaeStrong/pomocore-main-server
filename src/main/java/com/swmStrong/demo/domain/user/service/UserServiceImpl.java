@@ -39,8 +39,8 @@ public class UserServiceImpl implements UserService {
     private final S3Properties s3Properties;
     private final StreakProvider streakProvider;
 
-    public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
-    public static final String USER_ONLINE_PREFIX = "userOnline";
+    public static final String REGISTERED_IP_COUNT_FORMAT = "registerIpCount:%s" ;
+    public static final String USER_ONLINE_FORMAT = "userOnline:%s";
     public static final String USER_INFO_FORMAT = "userInfo:%s";
 
     private static final int USER_INFO_EXPIRES = 3600; // 1 hour
@@ -215,13 +215,13 @@ public class UserServiceImpl implements UserService {
                     .contentLength(file.getSize())
                     .build();
 
-            s3Client.putObject(putObjectRequest, 
+            s3Client.putObject(putObjectRequest,
                     RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
             String imageUrl = generateImageUrl(s3Key);
-            
+
             updateUserProfileImage(userId, imageUrl, s3Key);
-            
+
             log.debug("Profile image uploaded successfully for user: {}, key: {}", userId, s3Key);
             return imageUrl;
 
@@ -239,7 +239,7 @@ public class UserServiceImpl implements UserService {
         try {
             User user = getUserEntityById(userId);
             String profileImageKey = user.getProfileImageKey();
-            
+
             if (profileImageKey == null || profileImageKey.isEmpty()) {
                 log.warn("No profile image to delete for user: {}", userId);
                 return;
@@ -251,9 +251,9 @@ public class UserServiceImpl implements UserService {
                     .build();
 
             s3Client.deleteObject(deleteObjectRequest);
-            
+
             updateUserProfileImage(userId, null, null);
-            
+
             log.debug("Profile image deleted successfully for user: {}", userId);
 
         } catch (S3Exception e) {
@@ -273,16 +273,16 @@ public class UserServiceImpl implements UserService {
         List<String> keys = userIds.stream()
                 .map(this::getUserOnlineKey)
                 .toList();
-        
+
         Map<String, OnlineRequestDto> keysToOnlineDetails = redisRepository.multiGetJson(keys, OnlineRequestDto.class);
         Map<String, OnlineRequestDto> userOnlineDetails = new HashMap<>();
-        
+
         for (String userId : userIds) {
             String key = getUserOnlineKey(userId);
             OnlineRequestDto onlineData = keysToOnlineDetails.get(key);
             userOnlineDetails.put(userId, onlineData);
         }
-        
+
         return userOnlineDetails;
     }
 
@@ -290,7 +290,7 @@ public class UserServiceImpl implements UserService {
     public Map<String, Double> getUserOnline(List<String> userIds) {
         Map<String, OnlineRequestDto> userOnlineDetails = getUserOnlineDetails(userIds);
         Map<String, Double> userLastActivities = new HashMap<>();
-        
+
         for (String userId : userIds) {
             OnlineRequestDto onlineRequestDto = userOnlineDetails.get(userId);
             if (onlineRequestDto != null) {
@@ -300,7 +300,7 @@ public class UserServiceImpl implements UserService {
                 userLastActivities.put(userId, 0.0); // 미접속 처리
             }
         }
-        
+
         return userLastActivities;
     }
 
@@ -329,25 +329,25 @@ public class UserServiceImpl implements UserService {
     private String generateFileName(String userId, MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
         String extension = "";
-        
+
         if (originalFilename != null && originalFilename.contains(".")) {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        
+
         return userId + "_" + UUID.randomUUID().toString() + extension;
     }
 
     private String generateImageUrl(String s3Key) {
-        return String.format("https://%s.s3.%s.amazonaws.com/%s", 
-                s3Properties.bucketName(), 
-                s3Properties.region(), 
+        return String.format("https://%s.s3.%s.amazonaws.com/%s",
+                s3Properties.bucketName(),
+                s3Properties.region(),
                 s3Key);
     }
 
     private void updateUserProfileImage(String userId, String profileImageUrl, String profileImageKey) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-        
+
         user.updateProfileImage(profileImageUrl, profileImageKey);
         userRepository.save(user);
     }
@@ -358,11 +358,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private String getRegisterCountKey(String requestIP) {
-        return REGISTER_IP_COUNT_PREFIX+requestIP;
+        return String.format(REGISTERED_IP_COUNT_FORMAT, requestIP);
     }
 
     private String getUserOnlineKey(String userId) {
-        return String.format("%s:%s", USER_ONLINE_PREFIX, userId);
+        return String.format(USER_ONLINE_FORMAT, userId);
     }
 
     private String getUserInfoKey(String userId) {

@@ -259,24 +259,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Map<String, Double> getUserOnline(List<String> userIds) {
-        Map<String, OnlineRequestDto> userOnlineDetails = getUserOnlineDetails(userIds);
-        Map<String, Double> userLastActivities = new HashMap<>();
-
-        for (String userId : userIds) {
-            OnlineRequestDto onlineRequestDto = userOnlineDetails.get(userId);
-            if (onlineRequestDto != null) {
-                double lastActivityTime = onlineRequestDto.timestamp() + onlineRequestDto.sessionMinutes() * 60.0;
-                userLastActivities.put(userId, lastActivityTime);
-            } else {
-                userLastActivities.put(userId, 0.0); // 미접속 처리
-            }
-        }
-
-        return userLastActivities;
-    }
-
-    @Override
     public void dropOut(String userId) {
         String key = getUserOnlineKey(userId);
         OnlineRequestDto onlineRequestDto = new OnlineRequestDto((double) System.currentTimeMillis() /1000, 0 );

@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String currentNickname = getInfoById(userId).nickname();
-        if (!currentNickname.equals(nickname)) {
+        if (currentNickname==null || !currentNickname.equals(nickname)) {
             if (userRepository.existsByNickname(nickname)) {
                 throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
             }

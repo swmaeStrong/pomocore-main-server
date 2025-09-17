@@ -2,9 +2,9 @@ package com.swmStrong.demo.domain.streak.listener;
 
 import com.swmStrong.demo.domain.streak.entity.DailyActivity;
 import com.swmStrong.demo.domain.streak.repository.DailyActivityRepository;
-import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.domain.streak.entity.Streak;
 import com.swmStrong.demo.domain.streak.repository.StreakRepository;
+import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.message.event.UsageLogCreatedEvent;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

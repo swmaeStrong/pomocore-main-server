@@ -64,20 +64,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponseDto getDetailsByUserId(String userId) {
-        String nickname, profileImageUrl;
-
-        String key = String.format(USER_INFO_FORMAT, userId);
-        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
-        if (userResponseDto != null) {
-            nickname = userResponseDto.nickname();
-            profileImageUrl = userResponseDto.profileImageUrl();
-        } else {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-            nickname = user.getNickname();
-            profileImageUrl = user.getProfileImageUrl();
-        }
+        UserResponseDto userResponseDto = getUserInfoCacheOrRepository(userId);
 
         Streak streak = streakProvider.loadStreakByUserId(userId);
 
@@ -87,8 +74,8 @@ public class UserServiceImpl implements UserService {
 
         return UserInfoResponseDto.builder()
                 .userId(userId)
-                .nickname(nickname)
-                .profileImageUrl(profileImageUrl)
+                .nickname(userResponseDto.nickname())
+                .profileImageUrl(userResponseDto.profileImageUrl())
                 .currentStreak(currentStreak)
                 .maxStreak(maxStreak)
                 .totalSession(totalSession == null ? 0 : totalSession)
@@ -141,14 +128,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         user.updateNickname(nicknameRequestDto.nickname());
-
         user = userRepository.save(user);
 
-        String key = getUserInfoKey(userId);
-        UserResponseDto userResponseDto = UserResponseDto.of(user);
-        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
-
-        return userResponseDto;
+        return saveUserInfoCache(user);
     }
 
     @Override
@@ -167,20 +149,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getInfoById(String userId) {
-        String key = getUserInfoKey(userId);
-        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
-
-        if (userResponseDto != null) {
-            log.trace("Return user info by cache");
-            return userResponseDto;
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        userResponseDto = UserResponseDto.of(user);
-        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
-        return userResponseDto;
+        return getUserInfoCacheOrRepository(userId);
     }
 
     @Override
@@ -198,6 +167,7 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.deleteById(userId);
+        redisRepository.deleteData(getUserInfoKey(userId));
     }
 
     @Override
@@ -237,7 +207,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteProfileImage(String userId) {
         try {
-            User user = getUserEntityById(userId);
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
             String profileImageKey = user.getProfileImageKey();
 
             if (profileImageKey == null || profileImageKey.isEmpty()) {
@@ -352,11 +324,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    private User getUserEntityById(String userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-    }
-
     private String getRegisterCountKey(String requestIP) {
         return String.format(REGISTERED_IP_COUNT_FORMAT, requestIP);
     }
@@ -367,5 +334,26 @@ public class UserServiceImpl implements UserService {
 
     private String getUserInfoKey(String userId) {
         return String.format(USER_INFO_FORMAT, userId);
+    }
+
+    private UserResponseDto saveUserInfoCache(User user) {
+        String key = getUserInfoKey(user.getId());
+        UserResponseDto userResponseDto = UserResponseDto.of(user);
+        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
+
+        return userResponseDto;
+    }
+
+    private UserResponseDto getUserInfoCacheOrRepository(String userId) {
+        String key = getUserInfoKey(userId);
+        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
+        if (userResponseDto == null) {
+            User user = userRepository.findById(userId).orElseThrow(
+                    () -> new ApiException(ErrorCode.USER_NOT_FOUND)
+            );
+            userResponseDto = UserResponseDto.of(user);
+            saveUserInfoCache(user);
+        }
+        return userResponseDto;
     }
 }

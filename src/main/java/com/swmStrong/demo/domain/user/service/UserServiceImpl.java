@@ -148,11 +148,9 @@ public class UserServiceImpl implements UserService {
         String key = getUserInfoKey(userId);
         UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
         if (userResponseDto == null) {
-            User user = userRepository.findById(userId).orElseThrow(
-                    () -> new ApiException(ErrorCode.USER_NOT_FOUND)
-            );
-            userResponseDto = UserResponseDto.of(user);
-            saveUserInfoCache(user);
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+            userResponseDto = saveUserInfoCache(user);
         }
         return userResponseDto;
     }

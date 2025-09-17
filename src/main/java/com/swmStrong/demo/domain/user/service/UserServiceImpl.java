@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponseDto getDetailsByUserId(String userId) {
-        UserResponseDto userResponseDto = getUserInfoCacheOrRepository(userId);
+        UserResponseDto userResponseDto = getInfoById(userId);
 
         Streak streak = streakProvider.loadStreakByUserId(userId);
 
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ErrorCode.BAD_WORD_FILTER);
         }
 
-        String currentNickname = getUserInfoCacheOrRepository(userId).nickname();
+        String currentNickname = getInfoById(userId).nickname();
         if (!currentNickname.equals(nickname)) {
             if (userRepository.existsByNickname(nickname)) {
                 throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
@@ -144,7 +144,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getInfoById(String userId) {
-        return getUserInfoCacheOrRepository(userId);
+        String key = getUserInfoKey(userId);
+        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
+        if (userResponseDto == null) {
+            User user = userRepository.findById(userId).orElseThrow(
+                    () -> new ApiException(ErrorCode.USER_NOT_FOUND)
+            );
+            userResponseDto = UserResponseDto.of(user);
+            saveUserInfoCache(user);
+        }
+        return userResponseDto;
     }
 
     @Override
@@ -318,19 +327,6 @@ public class UserServiceImpl implements UserService {
         UserResponseDto userResponseDto = UserResponseDto.of(user);
         redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
 
-        return userResponseDto;
-    }
-
-    private UserResponseDto getUserInfoCacheOrRepository(String userId) {
-        String key = getUserInfoKey(userId);
-        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
-        if (userResponseDto == null) {
-            User user = userRepository.findById(userId).orElseThrow(
-                    () -> new ApiException(ErrorCode.USER_NOT_FOUND)
-            );
-            userResponseDto = UserResponseDto.of(user);
-            saveUserInfoCache(user);
-        }
         return userResponseDto;
     }
 }

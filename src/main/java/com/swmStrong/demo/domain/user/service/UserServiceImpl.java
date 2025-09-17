@@ -16,6 +16,7 @@ import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -171,8 +172,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public String uploadProfileImage(String userId, MultipartFile file) {
         validateFile(file);
+
+        deleteExistingProfileImage(userId);
 
         String fileName = generateFileName(userId, file);
         String s3Key = s3Properties.profileImagePath() + fileName;
@@ -205,6 +209,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteProfileImage(String userId) {
         try {
             User user = userRepository.findById(userId)
@@ -298,11 +303,13 @@ public class UserServiceImpl implements UserService {
                 s3Key);
     }
 
-    private void updateUserProfileImage(String userId, String profileImageUrl, String profileImageKey) {
+    @Transactional
+    protected void updateUserProfileImage(String userId, String profileImageUrl, String profileImageKey) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         user.updateProfileImage(profileImageUrl, profileImageKey);
+        saveUserInfoCache(user);
         userRepository.save(user);
     }
 
@@ -316,6 +323,27 @@ public class UserServiceImpl implements UserService {
 
     private String getUserInfoKey(String userId) {
         return String.format(USER_INFO_FORMAT, userId);
+    }
+
+    private void deleteExistingProfileImage(String userId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+            String existingImageKey = user.getProfileImageKey();
+
+            if (existingImageKey != null && !existingImageKey.isEmpty()) {
+                DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                        .bucket(s3Properties.bucketName())
+                        .key(existingImageKey)
+                        .build();
+
+                s3Client.deleteObject(deleteObjectRequest);
+                log.debug("Existing profile image deleted for user: {}, key: {}", userId, existingImageKey);
+            }
+        } catch (S3Exception e) {
+            log.warn("Failed to delete existing profile image for user: {}", userId, e);
+        }
     }
 
     private UserResponseDto saveUserInfoCache(User user) {

@@ -88,6 +88,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                             .sessionDate(sessionScore.getSessionDate())
                             .score(score)
                             .title(sessionScore.getTitle())
+                            .titleEng(sessionScore.getTitleEng())
                             .timestamp(sessionScore.getTimestamp())
                             .duration(sessionScore.getDuration())
                             .details(details)
@@ -114,6 +115,7 @@ public class SessionScoreServiceImpl implements SessionScoreService {
                             .sessionMinutes(sessionScore.getSessionMinutes())
                             .score(score)
                             .title(sessionScore.getTitle())
+                            .titleEng(sessionScore.getTitleEng())
                             .timestamp(sessionScore.getTimestamp())
                             .duration(sessionScore.getDuration())
                             .build();

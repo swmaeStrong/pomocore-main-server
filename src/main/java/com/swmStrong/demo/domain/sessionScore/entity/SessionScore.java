@@ -45,17 +45,18 @@ public class SessionScore extends BaseEntity {
 
     private String title;
 
+    private String titleEng;
+
     private double timestamp;
 
     private double duration;
 
     @Builder
-    public SessionScore(User user, String title, double timestamp, double duration, int sessionMinutes,
+    public SessionScore(User user, double timestamp, double duration, int sessionMinutes,
                         LocalDate sessionDate, int session, int distractedCount, int distractedDuration,
                         double afkDuration
     ) {
         this.user = user;
-        this.title = title;
         this.timestamp = timestamp;
         this.duration = duration;
         this.sessionDate = sessionDate;
@@ -76,5 +77,9 @@ public class SessionScore extends BaseEntity {
 
     public void updateTitle(String title) {
         this.title = title;
+    }
+
+    public void updateEngTitle(String titleEng) {
+        this.titleEng = titleEng;
     }
 }

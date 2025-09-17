@@ -8,6 +8,7 @@ public record SessionDashboardDto(
         int sessionMinutes,
         int score,
         String title,
+        String titleEng,
         double timestamp,
         double duration
 ) {}

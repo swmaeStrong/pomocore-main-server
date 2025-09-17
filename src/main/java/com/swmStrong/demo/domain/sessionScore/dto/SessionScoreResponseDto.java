@@ -8,6 +8,7 @@ import java.util.List;
 @Builder
 public record SessionScoreResponseDto(
     String title,
+    String titleEng,
     int session,
     LocalDate sessionDate,
     int sessionMinutes,

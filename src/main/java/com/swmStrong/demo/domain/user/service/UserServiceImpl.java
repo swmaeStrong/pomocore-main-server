@@ -15,6 +15,8 @@ import com.swmStrong.demo.infra.token.TokenManager;
 import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final S3Client s3Client;
     private final S3Properties s3Properties;
     private final StreakProvider streakProvider;
+    private final ApplicationContext applicationContext;
 
     public static final String REGISTERED_IP_COUNT_FORMAT = "registerIpCount:%s" ;
     public static final String USER_ONLINE_FORMAT = "userOnline:%s";
@@ -52,7 +55,8 @@ public class UserServiceImpl implements UserService {
             RedisRepository redisRepository,
             StreakProvider streakProvider,
             S3Client s3Client,
-            S3Properties s3Properties
+            S3Properties s3Properties,
+            ApplicationContext applicationContext
     ) {
         this.userRepository = userRepository;
         this.tokenManager = tokenManager;
@@ -60,6 +64,7 @@ public class UserServiceImpl implements UserService {
         this.streakProvider = streakProvider;
         this.s3Client = s3Client;
         this.s3Properties = s3Properties;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -170,70 +175,41 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public String uploadProfileImage(String userId, MultipartFile file) {
         validateFile(file);
 
-        deleteExistingProfileImage(userId);
-
-        String fileName = generateFileName(userId, file);
-        String s3Key = s3Properties.profileImagePath() + fileName;
+        String tempS3Key = uploadToS3(userId, file);
+        String imageUrl = generateImageUrl(tempS3Key);
 
         try {
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(s3Properties.bucketName())
-                    .key(s3Key)
-                    .contentType(file.getContentType())
-                    .contentLength(file.getSize())
-                    .build();
+            UserServiceImpl proxy = applicationContext.getBean(UserServiceImpl.class);
+            String oldImageKey = proxy.updateProfileImageInTransaction(userId, imageUrl, tempS3Key);
 
-            s3Client.putObject(putObjectRequest,
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-
-            String imageUrl = generateImageUrl(s3Key);
-
-            updateUserProfileImage(userId, imageUrl, s3Key);
-
-            log.debug("Profile image uploaded successfully for user: {}, key: {}", userId, s3Key);
+            if (oldImageKey != null && !oldImageKey.isEmpty()) {
+                deleteS3ImageAsync(oldImageKey);
+            }
+            log.debug("Profile image uploaded successfully for user: {}, key: {}", userId, tempS3Key);
             return imageUrl;
 
-        } catch (IOException e) {
-            log.error("Failed to upload profile image for user: {}", userId, e);
-            throw new ApiException(ErrorCode.FILE_UPLOAD_ERROR);
-        } catch (S3Exception e) {
-            log.error("S3 error while uploading profile image for user: {}", userId, e);
-            throw new ApiException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        } catch (Exception e) {
+            deleteS3ImageAsync(tempS3Key);
+            log.error("DB update failed, rolling back S3 upload for user: {}", userId, e);
+            throw e;
         }
     }
 
     @Override
-    @Transactional
     public void deleteProfileImage(String userId) {
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        // Phase 1: DB에서 이미지 키 조회 및 초기화 (트랜잭션 내)
+        UserServiceImpl proxy = applicationContext.getBean(UserServiceImpl.class);
+        String imageKeyToDelete = proxy.clearProfileImageInTransaction(userId);
 
-            String profileImageKey = user.getProfileImageKey();
-
-            if (profileImageKey == null || profileImageKey.isEmpty()) {
-                log.warn("No profile image to delete for user: {}", userId);
-                return;
-            }
-
-            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                    .bucket(s3Properties.bucketName())
-                    .key(profileImageKey)
-                    .build();
-
-            s3Client.deleteObject(deleteObjectRequest);
-
-            updateUserProfileImage(userId, null, null);
-
-            log.debug("Profile image deleted successfully for user: {}", userId);
-
-        } catch (S3Exception e) {
-            log.error("S3 error while deleting profile image for user: {}", userId, e);
-            throw new ApiException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        // Phase 2: S3에서 이미지 삭제 (비동기)
+        if (imageKeyToDelete != null && !imageKeyToDelete.isEmpty()) {
+            deleteS3ImageAsync(imageKeyToDelete);
+            log.debug("Profile image deletion initiated for user: {}", userId);
+        } else {
+            log.warn("No profile image to delete for user: {}", userId);
         }
     }
 
@@ -301,15 +277,6 @@ public class UserServiceImpl implements UserService {
                 s3Key);
     }
 
-    @Transactional
-    protected void updateUserProfileImage(String userId, String profileImageUrl, String profileImageKey) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        user.updateProfileImage(profileImageUrl, profileImageKey);
-        saveUserInfoCache(user);
-        userRepository.save(user);
-    }
 
     private String getRegisterCountKey(String requestIP) {
         return String.format(REGISTERED_IP_COUNT_FORMAT, requestIP);
@@ -323,24 +290,73 @@ public class UserServiceImpl implements UserService {
         return String.format(USER_INFO_FORMAT, userId);
     }
 
-    private void deleteExistingProfileImage(String userId) {
+
+    private String uploadToS3(String userId, MultipartFile file) {
+        String fileName = generateFileName(userId, file);
+        String s3Key = s3Properties.profileImagePath() + fileName;
+
         try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(s3Properties.bucketName())
+                    .key(s3Key)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
 
-            String existingImageKey = user.getProfileImageKey();
+            s3Client.putObject(putObjectRequest,
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-            if (existingImageKey != null && !existingImageKey.isEmpty()) {
-                DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                        .bucket(s3Properties.bucketName())
-                        .key(existingImageKey)
-                        .build();
+            log.debug("Profile image uploaded to S3: {}", s3Key);
+            return s3Key;
 
-                s3Client.deleteObject(deleteObjectRequest);
-                log.debug("Existing profile image deleted for user: {}, key: {}", userId, existingImageKey);
-            }
+        } catch (IOException e) {
+            log.error("Failed to upload profile image to S3 for user: {}", userId, e);
+            throw new ApiException(ErrorCode.FILE_UPLOAD_ERROR);
         } catch (S3Exception e) {
-            log.warn("Failed to delete existing profile image for user: {}", userId, e);
+            log.error("S3 error while uploading profile image for user: {}", userId, e);
+            throw new ApiException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        }
+    }
+
+    @Transactional
+    protected String updateProfileImageInTransaction(String userId, String imageUrl, String s3Key) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        String oldImageKey = user.getProfileImageKey();
+        user.updateProfileImage(imageUrl, s3Key);
+        userRepository.save(user);
+        saveUserInfoCache(user);
+
+        return oldImageKey;
+    }
+
+    @Transactional
+    protected String clearProfileImageInTransaction(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        String imageKeyToDelete = user.getProfileImageKey();
+        user.updateProfileImage(null, null);
+        userRepository.save(user);
+        saveUserInfoCache(user);
+
+        return imageKeyToDelete;
+    }
+
+    @Async
+    protected void deleteS3ImageAsync(String s3Key) {
+        try {
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(s3Properties.bucketName())
+                    .key(s3Key)
+                    .build();
+
+            s3Client.deleteObject(deleteRequest);
+            log.debug("S3 image deleted asynchronously: {}", s3Key);
+
+        } catch (S3Exception e) {
+            log.warn("Failed to delete S3 image asynchronously: {}", s3Key, e);
         }
     }
 

@@ -1,6 +1,5 @@
 package com.swmStrong.demo.domain.user.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.s3.S3Properties;
@@ -97,8 +96,8 @@ public class UserServiceImpl implements UserService {
         if (count > 5) {
             throw new ApiException(ErrorCode.IP_RATE_LIMIT_EXCEEDED);
         }
-
         User user = userRepository.save(User.of(userRequestDto));
+        saveUserInfoCache(user);
         return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), Role.UNREGISTERED);
     }
 
@@ -108,15 +107,11 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ErrorCode.BAD_WORD_FILTER);
         }
 
-        User user = userRepository.findById(userId)
-                .orElse(null);
-
-        if (user != null && user.getNickname() != null && user.getNickname().equals(nickname)) {
-            return;
-        }
-
-        if (userRepository.existsByNickname(nickname)) {
-            throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
+        String currentNickname = getUserInfoCacheOrRepository(userId).nickname();
+        if (!currentNickname.equals(nickname)) {
+            if (userRepository.existsByNickname(nickname)) {
+                throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
+            }
         }
     }
 

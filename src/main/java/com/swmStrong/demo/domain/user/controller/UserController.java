@@ -6,6 +6,8 @@ import com.swmStrong.demo.common.exception.code.SuccessCode;
 import com.swmStrong.demo.common.response.CustomResponseEntity;
 import com.swmStrong.demo.config.security.principal.SecurityPrincipal;
 import com.swmStrong.demo.domain.user.dto.*;
+import com.swmStrong.demo.domain.user.service.OnBoardService;
+import com.swmStrong.demo.domain.user.service.OnBoardServiceImpl;
 import com.swmStrong.demo.domain.user.service.UserService;
 import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,10 +24,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "회원 관리")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/user")
 public class UserController {
     private final UserService userService;
+    private final OnBoardService onBoardService;
+
+    public UserController(UserService userService, OnBoardService onBoardService) {
+        this.userService = userService;
+        this.onBoardService = onBoardService;
+    }
 
     @Operation(
             security = @SecurityRequirement(name = "bearerAuth"),
@@ -223,6 +230,24 @@ public class UserController {
             @AuthenticationPrincipal SecurityPrincipal principal
     ) {
         userService.dropOut(principal.userId());
+        return CustomResponseEntity.of(
+                SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 온보딩 정보 저장",
+            description =
+                    "<p> 단순 문서 형태 저장이라 일단 하고 싶은대로 하면 된다. </p>" +
+                    "<p> TODO: 유저가 온보딩 페이지에 한 번 더 접근할 수 있는지 논의 (사용 목적 등의 변화 고려) </p>"
+    )
+    @PostMapping("/on-board")
+    public ResponseEntity<ApiResponse<Void>> onBoard(
+            @AuthenticationPrincipal SecurityPrincipal principal,
+            @RequestBody OnBoardRequestDto onBoardRequestDto
+    ) {
+        onBoardService.save(principal.userId(), onBoardRequestDto);
         return CustomResponseEntity.of(
                 SuccessCode._OK
         );

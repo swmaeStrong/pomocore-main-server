@@ -1,5 +1,7 @@
 package com.swmStrong.demo.domain.pomodoro.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.domain.categoryPattern.enums.Browsers;
 import com.swmStrong.demo.domain.categoryPattern.enums.WorkCategory;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
@@ -17,12 +19,13 @@ import com.swmStrong.demo.domain.sessionScore.entity.SessionScore;
 import com.swmStrong.demo.domain.sessionScore.facade.SessionScoreProvider;
 import com.swmStrong.demo.domain.sessionScore.repository.SessionScoreRepository;
 import com.swmStrong.demo.domain.sessionScore.service.SessionStateManager;
+import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.LLM.LLMSummaryProvider;
 import com.swmStrong.demo.domain.user.entity.User;
-import com.swmStrong.demo.domain.user.facade.UserInfoProvider;
 import com.swmStrong.demo.infra.redis.stream.RedisStreamProducer;
 import com.swmStrong.demo.infra.redis.stream.StreamConfig;
 import com.swmStrong.demo.message.dto.PomodoroPatternClassifyMessage;
+import com.swmStrong.demo.message.dto.SummaryResult;
 import com.swmStrong.demo.message.event.UsageLogCreatedEvent;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +56,7 @@ public class PomodoroServiceImpl implements PomodoroService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LeaderboardProvider leaderboardProvider;
     private final LLMSummaryProvider llmSummaryProvider;
+    private final ObjectMapper objectMapper;
 
     public PomodoroServiceImpl(
             CategorizedDataRepository categorizedDataRepository,
@@ -65,7 +69,8 @@ public class PomodoroServiceImpl implements PomodoroService {
             RedisStreamProducer redisStreamProducer,
             ApplicationEventPublisher applicationEventPublisher,
             LeaderboardProvider leaderboardProvider,
-            LLMSummaryProvider llmSummaryProvider
+            LLMSummaryProvider llmSummaryProvider,
+            ObjectMapper objectMapper
     ) {
         this.categorizedDataRepository = categorizedDataRepository;
         this.pomodoroUsageLogRepository = pomodoroUsageLogRepository;
@@ -78,6 +83,7 @@ public class PomodoroServiceImpl implements PomodoroService {
         this.applicationEventPublisher = applicationEventPublisher;
         this.leaderboardProvider = leaderboardProvider;
         this.llmSummaryProvider = llmSummaryProvider;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -115,12 +121,21 @@ public class PomodoroServiceImpl implements PomodoroService {
         //TODO: 이후 낙관적 락을 통한 동시성 제어 필요.
         String sessionData = getString(categorizedDataList, pomodoroUsageLogList);
 
-        String summary = llmSummaryProvider.getResult(sessionData);
+        String summaryJson = llmSummaryProvider.getResult(sessionData);
+
+        SummaryResult summaryResult;
+        try {
+            summaryResult = objectMapper.readValue(summaryJson, SummaryResult.class);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse summary JSON: {}", summaryJson, e);
+            throw new RuntimeException("Failed to parse LLM summary result", e);
+        }
 
         SessionScore sessionScore = sessionScoreRepository.findByUserIdAndSessionAndSessionDate(
                 userId, session, pomodoroUsageLogsDto.sessionDate());
         if (sessionScore != null) {
-            sessionScore.updateTitle(summary);
+            sessionScore.updateTitle(summaryResult.summaryKor());
+            sessionScore.updateEngTitle(summaryResult.summaryEng());
             sessionScoreRepository.save(sessionScore);
         }
 
@@ -194,7 +209,9 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
             totalSeconds += pomodoroUsageLog.getDuration();
-            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
+            String category = categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized");
+            if (category.equals("AFK")) continue;
+            if (workCategories.contains(category)) {
                 workUsageLogList.add(pomodoroUsageLog);
             } else {
                 distractedUsageLogList.add(pomodoroUsageLog);
@@ -285,14 +302,24 @@ public class PomodoroServiceImpl implements PomodoroService {
 
         double totalSeconds = 0;
         Map<LocalDate, AppUsageDto.DailyUsageResult> dailyResults = new TreeMap<>();
-
+        Map<String, Double> categoryDurationMap = new HashMap<>();
         for (PomodoroUsageLog pomodoroUsageLog : pomodoroUsageLogList) {
             totalSeconds += pomodoroUsageLog.getDuration();
+
             AppUsageDto.DailyUsageResult dailyResult = dailyResults.computeIfAbsent(
                     pomodoroUsageLog.getSessionDate(), k -> new AppUsageDto.DailyUsageResult(pomodoroUsageLog.getSessionDate())
             );
 
-            if (workCategories.contains(categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized"))) {
+            String category = categoryMap.getOrDefault(pomodoroUsageLog.getCategoryId(), "Uncategorized");
+            if (category.equals("AFK")) continue;
+
+            categoryDurationMap.merge(
+                    category,
+                    pomodoroUsageLog.getDuration(),
+                    Double::sum
+            );
+
+            if (workCategories.contains(category)) {
                 workUsageLogList.add(pomodoroUsageLog);
                 dailyResult.increaseWorkSeconds(pomodoroUsageLog.getDuration());
             } else {
@@ -300,6 +327,7 @@ public class PomodoroServiceImpl implements PomodoroService {
                 dailyResult.increaseDistractedSeconds(pomodoroUsageLog.getDuration());
             }
         }
+
         List<AppUsageDto.DailyUsageResult> dailyResultList = new ArrayList<>(dailyResults.values());
 
         Set<ObjectId> allCategorizedDataIds = new HashSet<>();
@@ -368,7 +396,17 @@ public class PomodoroServiceImpl implements PomodoroService {
             );
         }
 
-        return AppUsageDto.from(totalSeconds, dailyResultList, distractedAppUsageList, workAppUsageList);
+        List<CategoryUsageDto> categoryUsages = new ArrayList<>();
+        for (String category: categoryDurationMap.keySet()) {
+            categoryUsages.add(
+                    CategoryUsageDto.builder()
+                            .category(category)
+                            .duration(categoryDurationMap.get(category))
+                            .build()
+            );
+        }
+
+        return AppUsageDto.from(totalSeconds, dailyResultList, categoryUsages, distractedAppUsageList, workAppUsageList);
     }
 
     private static String getString(List<CategorizedData> categorizedDataList, List<PomodoroUsageLog> pomodoroUsageLogList) {

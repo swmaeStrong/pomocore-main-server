@@ -1,6 +1,5 @@
 package com.swmStrong.demo.domain.user.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.config.s3.S3Properties;
@@ -16,7 +15,10 @@ import com.swmStrong.demo.infra.token.TokenManager;
 import com.swmStrong.demo.infra.token.dto.TokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -37,11 +39,11 @@ public class UserServiceImpl implements UserService {
     private final RedisRepository redisRepository;
     private final S3Client s3Client;
     private final S3Properties s3Properties;
-    private final ObjectMapper objectMapper;
     private final StreakProvider streakProvider;
+    private final ApplicationContext applicationContext;
 
-    public static final String REGISTER_IP_COUNT_PREFIX = "registerIpCount:";
-    public static final String USER_ONLINE_PREFIX = "userOnline";
+    public static final String REGISTERED_IP_COUNT_FORMAT = "registerIpCount:%s" ;
+    public static final String USER_ONLINE_FORMAT = "userOnline:%s";
     public static final String USER_INFO_FORMAT = "userInfo:%s";
 
     private static final int USER_INFO_EXPIRES = 3600; // 1 hour
@@ -54,7 +56,7 @@ public class UserServiceImpl implements UserService {
             StreakProvider streakProvider,
             S3Client s3Client,
             S3Properties s3Properties,
-            ObjectMapper objectMapper
+            ApplicationContext applicationContext
     ) {
         this.userRepository = userRepository;
         this.tokenManager = tokenManager;
@@ -62,25 +64,12 @@ public class UserServiceImpl implements UserService {
         this.streakProvider = streakProvider;
         this.s3Client = s3Client;
         this.s3Properties = s3Properties;
-        this.objectMapper = objectMapper;
+        this.applicationContext = applicationContext;
     }
 
     @Override
     public UserInfoResponseDto getDetailsByUserId(String userId) {
-        String nickname, profileImageUrl;
-
-        String key = String.format(USER_INFO_FORMAT, userId);
-        UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
-        if (userResponseDto != null) {
-            nickname = userResponseDto.nickname();
-            profileImageUrl = userResponseDto.profileImageUrl();
-        } else {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-            nickname = user.getNickname();
-            profileImageUrl = user.getProfileImageUrl();
-        }
+        UserResponseDto userResponseDto = getInfoById(userId);
 
         Streak streak = streakProvider.loadStreakByUserId(userId);
 
@@ -90,8 +79,8 @@ public class UserServiceImpl implements UserService {
 
         return UserInfoResponseDto.builder()
                 .userId(userId)
-                .nickname(nickname)
-                .profileImageUrl(profileImageUrl)
+                .nickname(userResponseDto.nickname())
+                .profileImageUrl(userResponseDto.profileImageUrl())
                 .currentStreak(currentStreak)
                 .maxStreak(maxStreak)
                 .totalSession(totalSession == null ? 0 : totalSession)
@@ -113,8 +102,8 @@ public class UserServiceImpl implements UserService {
         if (count > 5) {
             throw new ApiException(ErrorCode.IP_RATE_LIMIT_EXCEEDED);
         }
-
         User user = userRepository.save(User.of(userRequestDto));
+        saveUserInfoCache(user);
         return tokenManager.getToken(user.getId(), request.getHeader("User-Agent"), Role.UNREGISTERED);
     }
 
@@ -124,15 +113,11 @@ public class UserServiceImpl implements UserService {
             throw new ApiException(ErrorCode.BAD_WORD_FILTER);
         }
 
-        User user = userRepository.findById(userId)
-                .orElse(null);
-
-        if (user != null && user.getNickname() != null && user.getNickname().equals(nickname)) {
-            return;
-        }
-
-        if (userRepository.existsByNickname(nickname)) {
-            throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
+        String currentNickname = getInfoById(userId).nickname();
+        if (currentNickname==null || !currentNickname.equals(nickname)) {
+            if (userRepository.existsByNickname(nickname)) {
+                throw new ApiException(ErrorCode.DUPLICATE_NICKNAME);
+            }
         }
     }
 
@@ -144,14 +129,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         user.updateNickname(nicknameRequestDto.nickname());
-
         user = userRepository.save(user);
 
-        String key = getUserInfoKey(userId);
-        UserResponseDto userResponseDto = UserResponseDto.of(user);
-        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
-
-        return userResponseDto;
+        return saveUserInfoCache(user);
     }
 
     @Override
@@ -172,17 +152,11 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto getInfoById(String userId) {
         String key = getUserInfoKey(userId);
         UserResponseDto userResponseDto = redisRepository.getJsonData(key, UserResponseDto.class);
-
-        if (userResponseDto != null) {
-            log.trace("Return user info by cache");
-            return userResponseDto;
+        if (userResponseDto == null) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+            userResponseDto = saveUserInfoCache(user);
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-
-        userResponseDto = UserResponseDto.of(user);
-        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
         return userResponseDto;
     }
 
@@ -196,72 +170,46 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(String userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ApiException(ErrorCode.USER_NOT_FOUND);
-        }
-
         userRepository.deleteById(userId);
+        redisRepository.deleteData(getUserInfoKey(userId));
     }
 
     @Override
     public String uploadProfileImage(String userId, MultipartFile file) {
         validateFile(file);
 
-        String fileName = generateFileName(userId, file);
-        String s3Key = s3Properties.profileImagePath() + fileName;
+        String tempS3Key = uploadToS3(userId, file);
+        String imageUrl = generateImageUrl(tempS3Key);
 
         try {
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(s3Properties.bucketName())
-                    .key(s3Key)
-                    .contentType(file.getContentType())
-                    .contentLength(file.getSize())
-                    .build();
+            UserServiceImpl proxy = applicationContext.getBean(UserServiceImpl.class);
+            String oldImageKey = proxy.updateProfileImageInTransaction(userId, imageUrl, tempS3Key);
 
-            s3Client.putObject(putObjectRequest, 
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-
-            String imageUrl = generateImageUrl(s3Key);
-            
-            updateUserProfileImage(userId, imageUrl, s3Key);
-            
-            log.debug("Profile image uploaded successfully for user: {}, key: {}", userId, s3Key);
+            if (oldImageKey != null && !oldImageKey.isEmpty()) {
+                deleteS3ImageAsync(oldImageKey);
+            }
+            log.debug("Profile image uploaded successfully for user: {}, key: {}", userId, tempS3Key);
             return imageUrl;
 
-        } catch (IOException e) {
-            log.error("Failed to upload profile image for user: {}", userId, e);
-            throw new ApiException(ErrorCode.FILE_UPLOAD_ERROR);
-        } catch (S3Exception e) {
-            log.error("S3 error while uploading profile image for user: {}", userId, e);
-            throw new ApiException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        } catch (Exception e) {
+            deleteS3ImageAsync(tempS3Key);
+            log.error("DB update failed, rolling back S3 upload for user: {}", userId, e);
+            throw e;
         }
     }
 
     @Override
     public void deleteProfileImage(String userId) {
-        try {
-            User user = getUserEntityById(userId);
-            String profileImageKey = user.getProfileImageKey();
-            
-            if (profileImageKey == null || profileImageKey.isEmpty()) {
-                log.warn("No profile image to delete for user: {}", userId);
-                return;
-            }
+        // Phase 1: DB에서 이미지 키 조회 및 초기화 (트랜잭션 내)
+        UserServiceImpl proxy = applicationContext.getBean(UserServiceImpl.class);
+        String imageKeyToDelete = proxy.clearProfileImageInTransaction(userId);
 
-            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                    .bucket(s3Properties.bucketName())
-                    .key(profileImageKey)
-                    .build();
-
-            s3Client.deleteObject(deleteObjectRequest);
-            
-            updateUserProfileImage(userId, null, null);
-            
-            log.debug("Profile image deleted successfully for user: {}", userId);
-
-        } catch (S3Exception e) {
-            log.error("S3 error while deleting profile image for user: {}", userId, e);
-            throw new ApiException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        // Phase 2: S3에서 이미지 삭제 (비동기)
+        if (imageKeyToDelete != null && !imageKeyToDelete.isEmpty()) {
+            deleteS3ImageAsync(imageKeyToDelete);
+            log.debug("Profile image deletion initiated for user: {}", userId);
+        } else {
+            log.warn("No profile image to delete for user: {}", userId);
         }
     }
 
@@ -276,35 +224,17 @@ public class UserServiceImpl implements UserService {
         List<String> keys = userIds.stream()
                 .map(this::getUserOnlineKey)
                 .toList();
-        
+
         Map<String, OnlineRequestDto> keysToOnlineDetails = redisRepository.multiGetJson(keys, OnlineRequestDto.class);
         Map<String, OnlineRequestDto> userOnlineDetails = new HashMap<>();
-        
+
         for (String userId : userIds) {
             String key = getUserOnlineKey(userId);
             OnlineRequestDto onlineData = keysToOnlineDetails.get(key);
             userOnlineDetails.put(userId, onlineData);
         }
-        
-        return userOnlineDetails;
-    }
 
-    @Override
-    public Map<String, Double> getUserOnline(List<String> userIds) {
-        Map<String, OnlineRequestDto> userOnlineDetails = getUserOnlineDetails(userIds);
-        Map<String, Double> userLastActivities = new HashMap<>();
-        
-        for (String userId : userIds) {
-            OnlineRequestDto onlineRequestDto = userOnlineDetails.get(userId);
-            if (onlineRequestDto != null) {
-                double lastActivityTime = onlineRequestDto.timestamp() + onlineRequestDto.sessionMinutes() * 60.0;
-                userLastActivities.put(userId, lastActivityTime);
-            } else {
-                userLastActivities.put(userId, 0.0); // 미접속 처리
-            }
-        }
-        
-        return userLastActivities;
+        return userOnlineDetails;
     }
 
     @Override
@@ -332,43 +262,109 @@ public class UserServiceImpl implements UserService {
     private String generateFileName(String userId, MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
         String extension = "";
-        
+
         if (originalFilename != null && originalFilename.contains(".")) {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        
+
         return userId + "_" + UUID.randomUUID().toString() + extension;
     }
 
     private String generateImageUrl(String s3Key) {
-        return String.format("https://%s.s3.%s.amazonaws.com/%s", 
-                s3Properties.bucketName(), 
-                s3Properties.region(), 
+        return String.format("https://%s.s3.%s.amazonaws.com/%s",
+                s3Properties.bucketName(),
+                s3Properties.region(),
                 s3Key);
     }
 
-    private void updateUserProfileImage(String userId, String profileImageUrl, String profileImageKey) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-        
-        user.updateProfileImage(profileImageUrl, profileImageKey);
-        userRepository.save(user);
-    }
-
-    private User getUserEntityById(String userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-    }
 
     private String getRegisterCountKey(String requestIP) {
-        return REGISTER_IP_COUNT_PREFIX+requestIP;
+        return String.format(REGISTERED_IP_COUNT_FORMAT, requestIP);
     }
 
     private String getUserOnlineKey(String userId) {
-        return String.format("%s:%s", USER_ONLINE_PREFIX, userId);
+        return String.format(USER_ONLINE_FORMAT, userId);
     }
 
     private String getUserInfoKey(String userId) {
         return String.format(USER_INFO_FORMAT, userId);
+    }
+
+
+    private String uploadToS3(String userId, MultipartFile file) {
+        String fileName = generateFileName(userId, file);
+        String s3Key = s3Properties.profileImagePath() + fileName;
+
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(s3Properties.bucketName())
+                    .key(s3Key)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
+            s3Client.putObject(putObjectRequest,
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+            log.debug("Profile image uploaded to S3: {}", s3Key);
+            return s3Key;
+
+        } catch (IOException e) {
+            log.error("Failed to upload profile image to S3 for user: {}", userId, e);
+            throw new ApiException(ErrorCode.FILE_UPLOAD_ERROR);
+        } catch (S3Exception e) {
+            log.error("S3 error while uploading profile image for user: {}", userId, e);
+            throw new ApiException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        }
+    }
+
+    @Transactional
+    protected String updateProfileImageInTransaction(String userId, String imageUrl, String s3Key) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        String oldImageKey = user.getProfileImageKey();
+        user.updateProfileImage(imageUrl, s3Key);
+        userRepository.save(user);
+        saveUserInfoCache(user);
+
+        return oldImageKey;
+    }
+
+    @Transactional
+    protected String clearProfileImageInTransaction(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        String imageKeyToDelete = user.getProfileImageKey();
+        user.updateProfileImage(null, null);
+        userRepository.save(user);
+        saveUserInfoCache(user);
+
+        return imageKeyToDelete;
+    }
+
+    @Async
+    protected void deleteS3ImageAsync(String s3Key) {
+        try {
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(s3Properties.bucketName())
+                    .key(s3Key)
+                    .build();
+
+            s3Client.deleteObject(deleteRequest);
+            log.debug("S3 image deleted asynchronously: {}", s3Key);
+
+        } catch (S3Exception e) {
+            log.warn("Failed to delete S3 image asynchronously: {}", s3Key, e);
+        }
+    }
+
+    private UserResponseDto saveUserInfoCache(User user) {
+        String key = getUserInfoKey(user.getId());
+        UserResponseDto userResponseDto = UserResponseDto.of(user);
+        redisRepository.setJsonDataWithExpire(key, userResponseDto, USER_INFO_EXPIRES);
+
+        return userResponseDto;
     }
 }

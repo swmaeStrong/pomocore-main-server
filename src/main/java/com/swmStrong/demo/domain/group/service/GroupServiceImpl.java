@@ -4,6 +4,7 @@ import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
 import com.swmStrong.demo.domain.categoryPattern.facade.CategoryProvider;
 import com.swmStrong.demo.domain.common.enums.PeriodType;
+import com.swmStrong.demo.domain.common.enums.Role;
 import com.swmStrong.demo.domain.common.util.badWords.BadWordsFilter;
 import com.swmStrong.demo.domain.group.dto.*;
 import com.swmStrong.demo.domain.group.entity.Group;
@@ -127,6 +128,9 @@ public class GroupServiceImpl implements GroupService{
     public void authorizeOwner(String userId, Long groupId, AuthorizeMemberDto authorizeMemberDto) {
         GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
         User newOwner = userInfoProvider.loadByUserId(authorizeMemberDto.userId());
+        if (newOwner.getRole().equals(Role.UNREGISTERED)) {
+            throw new ApiException(ErrorCode._BAD_REQUEST);
+        }
         context.group().updateOwner(newOwner);
         groupRepository.save(context.group());
     }

@@ -26,19 +26,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-//TODO: 그룹 초대 시 유니버셜 링크 고려해보기 초대 링크
+
 //TODO: 그룹 숨기기
 //TODO: 갯수 제한
 //TODO: 신고 기능
 @Service
 public class GroupServiceImpl implements GroupService{
-
     private final GroupRepository groupRepository;
     private final UserInfoProvider userInfoProvider;
     private final UserGroupRepository userGroupRepository;
     private final RedisRepository redisRepository;
     private final CategoryProvider categoryProvider;
     private final LeaderboardProvider leaderboardProvider;
+    private final GroupAuthorizationProvider groupAuthorizationProvider;
     private final MailSender mailSender;
 
     private static final String GROUP_GOAL_PREFIX = "group_goal";
@@ -52,6 +52,7 @@ public class GroupServiceImpl implements GroupService{
             RedisRepository redisRepository,
             CategoryProvider categoryProvider,
             LeaderboardProvider leaderboardProvider,
+            GroupAuthorizationProvider groupAuthorizationProvider,
             MailSender mailSender
     ) {
         this.groupRepository = groupRepository;
@@ -60,6 +61,7 @@ public class GroupServiceImpl implements GroupService{
         this.redisRepository = redisRepository;
         this.categoryProvider = categoryProvider;
         this.leaderboardProvider = leaderboardProvider;
+        this.groupAuthorizationProvider = groupAuthorizationProvider;
         this.mailSender = mailSender;
     }
 
@@ -93,13 +95,9 @@ public class GroupServiceImpl implements GroupService{
 
     @Override
     public void updateNewPassword(String userId, Long groupId) {
-        User user = userInfoProvider.loadByUserId(userId);
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+        GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
+        Group group = context.group();
 
-        if (!group.getOwner().equals(user)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
-        }
         group.updatePassword(getRandomPassword(6));
         groupRepository.save(group);
     }
@@ -107,13 +105,9 @@ public class GroupServiceImpl implements GroupService{
     @Override
     @Transactional
     public void banMember(String userId, Long groupId, BanMemberDto banMemberDto) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
-        User user = userInfoProvider.loadByUserId(userId);
-
-        if (!group.getOwner().equals(user)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
-        }
+        GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
+        User user = context.user();
+        Group group = context.group();
 
         User bannedUser = userInfoProvider.loadByUserId(banMemberDto.userId());
 
@@ -131,21 +125,12 @@ public class GroupServiceImpl implements GroupService{
 
     @Override
     public void authorizeOwner(String userId, Long groupId, AuthorizeMemberDto authorizeMemberDto) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
-
-        User user = userInfoProvider.loadByUserId(userId);
-        if (!group.getOwner().equals(user)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
-        }
-
+        GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
         User newOwner = userInfoProvider.loadByUserId(authorizeMemberDto.userId());
-
-        group.updateOwner(newOwner);
-
-        groupRepository.save(group);
+        context.group().updateOwner(newOwner);
+        groupRepository.save(context.group());
     }
-    //TODO: 비밀번호를 내주기 때문에 그룹원만 조회할 수 있도록 수정
+
     @Override
     public GroupDetailsDto getGroupDetails(Long groupId) {
         Group group = groupRepository.findById(groupId)
@@ -157,7 +142,6 @@ public class GroupServiceImpl implements GroupService{
                 .map(GroupMember::userId)
                 .toList();
 
-        
         Map<String, OnlineRequestDto> onlineDetails = userInfoProvider.getUserOnlineDetails(userIds);
         
         List<GroupMember> membersWithOnlineInfo = members.stream()
@@ -197,22 +181,18 @@ public class GroupServiceImpl implements GroupService{
     @Transactional
     @Override
     public void joinGroup(String userId, Long groupId, PasswordRequestDto passwordRequestDto) {
-        User user = userInfoProvider.loadByUserId(userId);
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+        GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.GUEST);
+
+        Group group = context.group();
+        User user = context.user();
 
         if (!group.isPublic()) {
             if (passwordRequestDto == null) {
                 throw new ApiException(ErrorCode.PASSWORD_NEEDED);
             }
-
             if (!group.getPassword().equals(passwordRequestDto.password())) {
                 throw new ApiException(ErrorCode.INCORRECT_PASSWORD);
             }
-        }
-
-        if (userGroupRepository.existsByUserAndGroup(user, group)) {
-            throw new ApiException(ErrorCode.GROUP_ALREADY_JOINED);
         }
 
         group.increaseMemberCount();
@@ -225,33 +205,28 @@ public class GroupServiceImpl implements GroupService{
     @Override
     @Transactional
     public void quitGroup(String userId, Long groupId) {
-        User user = userInfoProvider.loadByUserId(userId);
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
+        GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.MEMBER);
+        Group group =  context.group();
+        User user = context.user();
 
         if (group.getOwner().equals(user)) {
             throw new ApiException(ErrorCode.GROUP_OWNER_CANT_QUIT);
         }
 
         userGroupRepository.deleteByUserAndGroup(user, group);
-
         group.decreaseMemberCount();
         groupRepository.save(group);
     }
 
     @Override
     public void updateGroup(String userId, Long groupId, UpdateGroupDto updateGroupDto) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
 
-        if (!group.getOwner().getId().equals(userId)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
-        }
+        GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
+        Group group = context.group();
 
         if (!group.getName().equals(updateGroupDto.name()) && !validateGroupName(updateGroupDto.name())) {
             throw new ApiException(ErrorCode.GROUP_NAME_ALREADY_EXISTS);
         }
-
         if (updateGroupDto.description() != null) {
             group.updateDescription(updateGroupDto.description());
         }
@@ -261,11 +236,9 @@ public class GroupServiceImpl implements GroupService{
         if (updateGroupDto.name() != null) {
             group.updateName(updateGroupDto.name());
         }
-
         if  (updateGroupDto.tags() != null) {
             group.updateTags(updateGroupDto.tags());
         }
-
         if (updateGroupDto.isPublic() != null) {
             group.updateIsPublic(updateGroupDto.isPublic());
         }
@@ -276,14 +249,8 @@ public class GroupServiceImpl implements GroupService{
     @Override
     @Transactional
     public void deleteGroup(String userId, Long groupId) {
-        User user = userInfoProvider.loadByUserId(userId);
-
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ApiException(ErrorCode.GROUP_NOT_FOUND));
-
-        if (!group.getOwner().equals(user)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
-        }
+        GroupContext context = groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
+        Group group = context.group();
 
         if (group.getMemberCount() > 1) {
             throw new ApiException(ErrorCode.GROUP_HAS_USER);
@@ -303,15 +270,7 @@ public class GroupServiceImpl implements GroupService{
 
     @Override
     public void setGroupGoal(String userId, Long groupId, SaveGroupGoalDto saveGroupGoalDto) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
-
-        User user = userInfoProvider.loadByUserId(userId);
-
-        if (!group.getOwner().equals(user)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
-        }
-
+        groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
         redisRepository.setData(
                 generateKey(
                         groupId,
@@ -372,14 +331,7 @@ public class GroupServiceImpl implements GroupService{
 
     @Override
     public void deleteGroupGoal(String userId, Long groupId, DeleteGroupGoalDto deleteGroupGoalDto) {
-        Group group = groupRepository.findById(groupId)
-                        .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
-        User user = userInfoProvider.loadByUserId(userId);
-
-        if (!group.getOwner().equals(user)) {
-            throw new ApiException(ErrorCode.GROUP_OWNER_ONLY);
-        }
-
+        groupAuthorizationProvider.authorize(userId, groupId, GroupAuthorizationProvider.AuthorizationLevel.OWNER);
         redisRepository.deleteData(generateKey(groupId, deleteGroupGoalDto.category(), deleteGroupGoalDto.period()));
     }
 
@@ -448,8 +400,7 @@ public class GroupServiceImpl implements GroupService{
         InviteMessage msg = getMessageByCode(code);
         joinGroup(userId, msg.groupId(), PasswordRequestDto.builder().password(msg.password()).build());
     }
-
-
+    
     @Override
     public GroupResponseDto getGroupByInvitationCode(String code) {
         InviteMessage msg = getMessageByCode(code);
@@ -457,12 +408,6 @@ public class GroupServiceImpl implements GroupService{
                 .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
 
         return GroupResponseDto.of(group);
-    }
-
-    @Override
-    public Group getGroupById(Long groupId) {
-        return groupRepository.findById(groupId)
-                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
     }
 
     private InviteMessage getMessageByCode(String code) {

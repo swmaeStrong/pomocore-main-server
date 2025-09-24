@@ -1,7 +1,6 @@
 package com.swmStrong.demo.domain.group.service;
 
 import com.swmStrong.demo.domain.group.dto.*;
-import com.swmStrong.demo.domain.group.entity.Group;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,5 +25,4 @@ public interface GroupService {
     LinkResponseDto createInvitationLink(String userId, Long groupId, EmailsRequestDto emailsRequestDto);
     void joinInvitationLink(String userId, String code);
     GroupResponseDto getGroupByInvitationCode(String code);
-    Group getGroupById(Long groupId);
 }

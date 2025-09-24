@@ -459,6 +459,12 @@ public class GroupServiceImpl implements GroupService{
         return GroupResponseDto.of(group);
     }
 
+    @Override
+    public Group getGroupById(Long groupId) {
+        return groupRepository.findById(groupId)
+                .orElseThrow(() -> new  ApiException(ErrorCode.GROUP_NOT_FOUND));
+    }
+
     private InviteMessage getMessageByCode(String code) {
         Set<String> matchingKeys = redisRepository.findKeys(String.format("%s:*:%s", GROUP_INVITE_PREFIX, code));
 
@@ -474,7 +480,6 @@ public class GroupServiceImpl implements GroupService{
         }
         return msg;
     }
-
 
     private String generateKey(Long groupId, String category, String period) {
         return String.format("%s:%s:%s:%s", GROUP_GOAL_PREFIX, groupId, category, period.toUpperCase());

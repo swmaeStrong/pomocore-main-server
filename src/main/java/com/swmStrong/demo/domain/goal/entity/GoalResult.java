@@ -5,6 +5,7 @@ import com.swmStrong.demo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
                 @UniqueConstraint(columnNames = {"user_id", "date", "category", "period_type"})
         }
 )
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class GoalResult {

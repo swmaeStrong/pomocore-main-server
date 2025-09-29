@@ -53,7 +53,11 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
 
             // 토큰 검증 로직
             if (tokenManager.isTokenValid(accessToken)) {
-                tokenManager.authenticateWithToken(accessToken);
+                try {
+                    tokenManager.authenticateWithToken(accessToken);
+                } catch (Exception e) {
+                    throw new BadCredentialsException(e.getMessage());
+                }
                 filterChain.doFilter(request, response);
             } else {
                 throw new BadCredentialsException("토큰이 유효하지 않습니다.");

@@ -76,33 +76,48 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
     }
 
     private static final String SUMMARIZE_PROMPT_TEMPLATE = """
-사용자가 사용한 앱들의 정보를 바탕으로, 해당 세션 동안 사용자가 무엇을 했는지 30자 이내로 요약해주세요.
+사용자의 앱 사용 데이터를 분석하여 30자 이내로 활동을 요약합니다.
 
-**분석할 데이터:**
-- App: 사용한 애플리케이션 이름
-- Title: 창 제목이나 콘텐츠 설명
+**데이터 구조:**
+- App: 애플리케이션명
+- Title: 창 제목/콘텐츠
 - URL: 웹 주소 (해당하는 경우)
-- Duration: 사용 시간 (초)
+- Duration: 사용 시간(초)
 
-**요약 지침:**
-- 가장 많이 사용한 앱과 활동을 중심으로 요약
-- 구체적인 작업 내용이나 주제가 있다면 포함
-- 자연스러운 한 문장으로 한국어와 영어 각각 json으로 작성
-- afk, loginwindow를 포함하는 경우 분석에 사용하지 않고 무시.
-- "사용자가" 같은 불필요한 주어는 생략하고 핵심 위주로 간결하게 작성
-- 명사형으로 문장을 마무리 (예시: "Java 프로젝트 코드 작성", "pomocore 팀 관리", "백준 문제 풀이 및 블로그 포스팅")
-- 단, 전체 duration의 합산 대비 loginwindow, afk 의 비중이 절반 이상의 경우 "(특정 행동) 중 잠시 자리비움" 으로 표시
-- 마지막 단어를 '~에 집중'으로 끝내지 않기 (not good: '백준 문제 풀이에 집중', good: '백준 문제 풀이')
-- 첫번째 단어를 'Focused On ~' 으로 시작하지 않기 (not good: 'Focused on coding and problem solving', good: 'Coding and problem solving')
-- 마지막에 문장 부호 붙이지 않기 (예시: '.' ',' '?' '!')
+**요약 생성 규칙:**
+
+[필수 규칙]
+- 형식: 명사구로 종결 (예: "개발", "작업", "관리")
+- 길이: 한글 30자 이내, 영어는 한글을 번역
+- 구조: [구체적 활동] + [대상/도구] + [행위명사]
+예: "Java 프로젝트 코드 작성"
+
+[우선순위 기준]
+1순위: Duration 최상위 2개 앱의 핵심 활동
+2순위: 전체 시간의 30퍼센트 이상 차지하는 활동
+3순위: 의미있는 작업 패턴
+
+[특별 처리]
+- afk/loginwindow
+- 기본: 무시
+- 전체 50퍼센트 이상: "(주요활동) 중 자리비움" 형식
+
+- YouTube 음악 (URL이 'youtube.com' 으로 시작하고, title이 노래와 관련이 있을 경우)
+- 기본: 무시
+- 전체 30퍼센트 이상: "음악 감상하며 (주요활동)" 형식
+
+**좋은 예시:**
+- "백준 문제 풀이 및 블로그 작성"
+- "pomocore 팀 관리 업무"
+- "Spring 프로젝트 개발"
 
 **데이터:**
 %s
 
-**출력 지침:**
+**출력:**
 {
-  summaryKor: string(한글),
-  summaryEng: string(영어),
+    summaryKor: string,
+    summaryEng: string
 }
 """;
 

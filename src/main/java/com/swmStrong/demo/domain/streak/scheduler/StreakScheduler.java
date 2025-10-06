@@ -10,13 +10,13 @@ import java.util.List;
 
 @Service
 public class StreakScheduler {
-
     private final StreakRepository streakRepository;
 
-    public  StreakScheduler(StreakRepository streakRepository) {
+    public StreakScheduler(StreakRepository streakRepository) {
         this.streakRepository = streakRepository;
     }
-    @Scheduled(cron = "0 0 0 * * *")
+
+    @Scheduled(cron = "0 0 2 * * *")
     public void syncTimeAndStreak() {
         List<Streak> streakList = streakRepository.findAll();
 
@@ -26,7 +26,6 @@ public class StreakScheduler {
                 streak.resetCurrentStreak();
             }
         }
-
         streakRepository.saveAll(streakList);
     }
 }

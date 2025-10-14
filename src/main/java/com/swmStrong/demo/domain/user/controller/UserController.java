@@ -22,6 +22,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Tag(name = "회원 관리")
 @RestController
 @RequestMapping("/user")
@@ -250,6 +252,41 @@ public class UserController {
         onBoardService.save(principal.userId(), onBoardRequestDto);
         return CustomResponseEntity.of(
                 SuccessCode._OK
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 온보딩 정보 조회",
+            description =
+                    "<p> 유저 전체의 온보딩 정보 통계를 조회한다. </p>" +
+                    "<p> ADMIN 권한의 계정만 요청할 수 있다. </p>"
+    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/on-board/statistics")
+    public ResponseEntity<ApiResponse<List<OnBoardStatisticsResponseDto>>> getCount(
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                onBoardService.getCount()
+        );
+    }
+
+    @Operation(
+            security = @SecurityRequirement(name = "bearerAuth"),
+            summary = "유저 온보딩 정보 조회",
+            description =
+                    "<p> 특정 유저의 온보딩 답변을 조회한다.</p>" +
+                    "<p> ADMIN 권한의 계정만 요청할 수 있다. </p>"
+    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/on-board")
+    public ResponseEntity<ApiResponse<OnBoardResponseDto>> getUserOnboard(
+            @RequestParam String userId
+    ) {
+        return CustomResponseEntity.of(
+                SuccessCode._OK,
+                onBoardService.getUserOnBoard(userId)
         );
     }
 }

@@ -115,9 +115,10 @@ SNS, Documentation, Design, Communication, LLM, Development, Productivity, Video
 %s
 
 **출력:**
+반드시 유효한 JSON 형식으로 응답해야 합니다. 키는 반드시 큰따옴표로 감싸야 합니다.
 {
-    summaryKor: string,
-    summaryEng: string
+    "summaryKor": "string",
+    "summaryEng": "string"
 }
 """;
 

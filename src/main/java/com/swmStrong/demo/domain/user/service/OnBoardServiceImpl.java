@@ -2,7 +2,10 @@ package com.swmStrong.demo.domain.user.service;
 
 import com.swmStrong.demo.common.exception.ApiException;
 import com.swmStrong.demo.common.exception.code.ErrorCode;
+import com.swmStrong.demo.domain.user.dto.OnBoardAnswerCountDto;
 import com.swmStrong.demo.domain.user.dto.OnBoardRequestDto;
+import com.swmStrong.demo.domain.user.dto.OnBoardResponseDto;
+import com.swmStrong.demo.domain.user.dto.OnBoardStatisticsResponseDto;
 import com.swmStrong.demo.domain.user.entity.OnBoard;
 import com.swmStrong.demo.domain.user.entity.User;
 import com.swmStrong.demo.domain.user.repository.OnBoardRepository;
@@ -10,6 +13,11 @@ import com.swmStrong.demo.domain.user.repository.UserRepository;
 import com.swmStrong.demo.infra.redis.repository.RedisRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.swmStrong.demo.domain.user.service.UserServiceImpl.USER_INFO_FORMAT;
 
@@ -52,5 +60,39 @@ public class OnBoardServiceImpl implements OnBoardService {
         userRepository.save(user);
         onBoardRepository.save(onBoard);
         redisRepository.deleteData(String.format(USER_INFO_FORMAT, userId));
+    }
+
+
+    @Override
+    public List<OnBoardStatisticsResponseDto> getCount() {
+        List<OnBoard> onBoards = onBoardRepository.findAll();
+
+        Map<String, Map<String, Integer>> questionAnswerCountMap = new HashMap<>();
+
+        for (OnBoard onBoard : onBoards) {
+            for (OnBoard.Question question : onBoard.getQuestions()) {
+                String questionText = question.getQuestion();
+                String answerText = question.getAnswer();
+
+                questionAnswerCountMap
+                    .computeIfAbsent(questionText, k -> new HashMap<>())
+                    .merge(answerText, 1, Integer::sum);
+            }
+        }
+
+        return questionAnswerCountMap.entrySet().stream()
+            .map(entry -> {
+                String questionText = entry.getKey();
+                List<OnBoardAnswerCountDto> answerCounts = entry.getValue().entrySet().stream()
+                    .map(answerEntry -> new OnBoardAnswerCountDto(answerEntry.getKey(), answerEntry.getValue()))
+                    .collect(Collectors.toList());
+
+                return new OnBoardStatisticsResponseDto(questionText, answerCounts);
+            })
+            .collect(Collectors.toList());
+    }
+
+    public OnBoardResponseDto getUserOnBoard(String userId) {
+        return OnBoardResponseDto.from(onBoardRepository.findByUserId(userId));
     }
 }
